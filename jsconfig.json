@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+      "target": "es2017",
+      "module": "es6",
+      "allowSyntheticDefaultImports": true,
+      "baseUrl": "./",
+      "moduleResolution": "node",
+      "paths": {
+        "Components/*": ["src/components/*"],
+        "ComponentsGeneric/*": ["src/components-generic/*"],
+        "Containers/*": ["src/containers/*"],
+        "Utils": ["src/utils/index"],
+        "Mock/*": ["src/mock/*"],
+        "Hocs/*": ["src/hocs/*"],
+        "Config/*": ["src/config/*"]
+      }
+    },
+    "exclude": ["node_modules", "dist"]
+  }

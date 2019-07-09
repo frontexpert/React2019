@@ -1,0 +1,46 @@
+{
+    "action": "rtm/subscription/data",
+    "body": {
+    "position": "1532624759:63",
+        "subscription_id": "PositionReply",
+        "messages": [
+        {
+            "Positions": [
+                {
+                    "Exchange": "Binance",
+                    "Coin": "BTC",
+                    "Position": 0.0123456
+                },
+                {
+                    "Exchange": "bitFlyer",
+                    "Coin": "BTC",
+                    "Position": 1
+                },
+                {
+                    "Exchange": "Bithumb",
+                    "Coin": "BTC",
+                    "Position": 123
+                },
+                {
+                    "Exchange": "Binance",
+                    "Coin": "ETH",
+                    "Position": 45600
+                },
+                {
+                    "Exchange": "YoBit",
+                    "Coin": "TRX",
+                    "Position": 1000000
+                },
+                {
+                    "Exchange": "Bitbank",
+                    "Coin": "XLM",
+                    "Position": 4562200
+                }
+            ],
+            "ClientId": "russell",
+            "ProgramId": "Homyak.root.fGG8n",
+            "SentTime": "2018-07-26T22:27:05.7212757Z"
+        }
+    ]
+}
+}
