@@ -1,4 +1,5 @@
 import React, { Component, Fragment } from 'react';
+import PT from 'prop-types';
 import { FormattedMessage } from 'react-intl';
 import { AutoSizer } from 'react-virtualized';
 import PerfectScrollbar from 'react-perfect-scrollbar';
@@ -14,13 +15,11 @@ import {
 import { GlobalIcon } from '../../../../OrderTabs/Components';
 import {
     ItemList, ListStyleWrapper,
-    SearchInput, SearchInputWrapper, SearchClose
+    SearchInput, SearchInputWrapper
 } from '../../../../../components-generic/SelectDropdown/Components';
 import ExchangeList from './ExchangeList';
 import ExchangeTransactions from './ExchangeTransactions';
 import { transactions } from './mock';
-
-import iconDrop from '../../icons/icon_drop.png';
 
 const HeaderRow = ({
     height, menu, changeMenu, selectedExchange,
@@ -68,6 +67,14 @@ const HeaderRow = ({
 );
 
 class ExchangeSelector extends Component {
+    static propTypes = {
+        onClick: PT.func,
+    }
+
+    static defaultProps = {
+        onClick: () => {},
+    }
+
     wrapperRef = null;
     searchValueRef = null;
     perfectScrollRef = null;
@@ -81,12 +88,8 @@ class ExchangeSelector extends Component {
         contentHeight: 0,
     };
 
+
     componentDidMount() {
-        if (this.props.settingsOpen) {
-            this.setState({
-                isOpen: true,
-            });
-        }
         document.addEventListener('mousedown', this.handleClickOutside);
     }
 
@@ -107,14 +110,6 @@ class ExchangeSelector extends Component {
             searchValue: (e && e.target && e.target.value) || '',
         });
     };
-
-    handleClickSearchInput = e => {
-        const { settingsOpen } = this.props;
-        if (settingsOpen) return;
-        this.setState({
-            isOpen: false,
-        });
-    }
 
     toggleDropDown = isOpen => {
         this.setState(prevState => ({
@@ -203,9 +198,14 @@ class ExchangeSelector extends Component {
         });
     };
 
+    handleClickIcon = () => {
+        this.toggleDropDown();
+        this.props.onClick();
+    }
+
     render() {
         const {
-            value, items, exchanges, isEnabled, onClick, isLoggedIn, setChildOpen, settingsOpen,
+            value, items, exchanges, isEnabled,
         } = this.props;
 
         const {
@@ -221,7 +221,6 @@ class ExchangeSelector extends Component {
 
         // Get selected Table Item
         let activeExchanges = 0;
-        let activeExchange = '';
         for (let i = 0; i < items.length; i++) {
             if (items[i].name !== 'Global' && exchanges[items[i].name] && exchanges[items[i].name].active) {
                 activeExchanges++;
@@ -243,7 +242,6 @@ class ExchangeSelector extends Component {
         const selectedName = (selectedTableItem && selectedTableItem.name) || null;
 
         const isShowingHeaderRow = (selectedMenu === 'transaction') || (selectedMenu === 'trading');
-        if (setChildOpen) setChildOpen(this.state.isOpen);
 
         return (
             <IconWrapper
@@ -252,36 +250,19 @@ class ExchangeSelector extends Component {
             >
                 <SelectedItem
                     isEnabled={isEnabled}
-                    onClick={() => {
-                        if (isEnabled) {
-                            this.toggleDropDown();
-
-                            if (onClick) {
-                                onClick();
-                            }
-                        }
-                    }}
+                    onClick={this.handleClickIcon}
                 >
-                    {/*
-                    {activeExchanges === 0
-                        ? (
-                            <GlobalIcon size={38} marginRight={0} isDisabled={!isEnabled} color="#fff"/>
-                        ) : (
-                            <LogoWrapper size={38}>
-                                {selectedIcon && <Logo src={`/img/exchange/${selectedIcon}`} alt=""/>}
-                            </LogoWrapper>
-                        )
-                    }
-                    */}
-
                     {isEnabled ? (
                         this.props.value === 'Global' ? (
                             countExchange !== 1
-                                ? (
-                                    <span className="exchange-name">{`${countExchange} Exchanges`}</span>
-                                )
+                                ? <span className="exchange-name">{`${countExchange} Exchanges`}</span>
                                 : (
-                                    <span className="exchange-name">{selectedName}</span>
+                                    <Fragment>
+                                        <LogoWrapper size={35}>
+                                            <Logo src={`/img/exchange/${selectedIcon}`} alt="" />
+                                        </LogoWrapper>
+                                        <span className="exchange-name">{selectedName}</span>
+                                    </Fragment>
                                 )
                         ) : (
                             <span className="exchange-name">{this.props.value}</span>
@@ -289,11 +270,6 @@ class ExchangeSelector extends Component {
                     ) : (
                         <span className="best-execution">Best Execution</span>
                     )}
-                    {/*
-                    {isEnabled && (
-                        <img src={iconDrop} className="dropdown-icon" alt="" />
-                    )}
-                    */}
                 </SelectedItem>
 
                 {isOpen && (
@@ -313,26 +289,16 @@ class ExchangeSelector extends Component {
                                     <SearchInput
                                         value={searchValue}
                                         onChange={this.handleChangeSearchValue}
-                                        onClick={this.handleClickSearchInput}
-                                        // placeholder={placeholder}
+                                        placeholder={placeholder}
                                         innerRef={ref => { this.searchValueRef = ref; }}
                                     />
                                 }
                             </FormattedMessage>
-
-                            {/*
-                            <SearchClose onClick={() => this.toggleDropDown(false)}>
-                                <svg className="sprite-icon" role="img" aria-hidden="true">
-                                    <use xmlnsXlink="http://www.w3.org/1999/xlink" xlinkHref="img/sprite-basic.svg#arrow-drop-close" />
-                                </svg>
-                            </SearchClose>
-                            */}
                         </SearchInputWrapper>
 
                         <ItemList isMarginTop>
                             <div
                                 className={'scroll__scrollup' + (scrollTop ? '' : ' hide')}
-                                // className="scroll__scrollup"
                                 onClick={() => this.scrollTop(300)}
                             >
                                 <button className="scroll-up-button">
@@ -373,7 +339,7 @@ class ExchangeSelector extends Component {
                                                 <ExchangeList
                                                     width={this.props.width || width}
                                                     height={this.props.height || height - (isShowingHeaderRow ? 110 : 0)}
-                                                    rowHeight={settingsOpen ? 70 : 110}
+                                                    rowHeight={110}
                                                     headerHeight={110}
                                                     value={value}
                                                     searchValue={searchValue}

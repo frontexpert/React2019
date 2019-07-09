@@ -2,17 +2,16 @@ import React from 'react';
 import styled from 'styled-components';
 
 export const Wrapper = styled.div.attrs({ className: 'wallet-header' })`
-    // position: relative;
     height: 60px;
     grid-area: walletheader;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: ${props => props.theme.palette.clrChartBackground};
-    border: ${props => props.isTelegram || props.isClosed ? 'none' : `1px solid ${props.theme.palette.clrBorder}`};
+    background: ${props => props.theme.palette.clrBackground};
+    border: ${props => props.isTelegram ? '0' : `1px solid ${props.theme.palette.clrBorder}`};
     border-radius: ${props => props.isSeparate ? props.theme.palette.borderRadius : `${props.theme.palette.borderRadius} ${props.theme.palette.borderRadius} 0 0`};
     // padding-right: ${props => props.isPadding ? '60px' : ''};
-
+    padding-left: 15px;
     .dropdown-wrapper {
         color: ${props => props.theme.palette.clrPurple};
 
@@ -20,49 +19,26 @@ export const Wrapper = styled.div.attrs({ className: 'wallet-header' })`
             top: 1px;
         }
     }
-    .exchange-sibling{
-        margin: 0;
-        padding-left: 12px;
-    }    
-    .exchange-sibling: hover{
-        background: ${props => props.theme.palette.coinPairSelectHoverBg};
-    }
-    .exchange-sibling: hover ~.exchange-child{
-        background: ${props => props.theme.palette.coinPairSelectHoverBg};
-    }
-    .exchange-child{
-        display: flex;
-        height: 100%;
-        padding: 0 12px;
-    }
-    .exchange-child: hover svg{
-        background: ${props => props.theme.palette.clrBorderHover};
-        border-radius: 50%;
-    }
-    .exchange-child svg{
-        width: 38px;
-        height: 38px;
-        stroke-width: 3;
-        stroke-linecap: square;
-        stroke: white;
-        margin: auto;
-    }
 
     @media (max-width: 768px) {
         height: ${props => !props.isOrderbook ? '80px' : ''};
     }
 
+    &:hover {
+        background: ${props => props.theme.palette.coinPairSelectHoverBg};
+    }
 `;
 
 export const AvatarWrapper = styled.div`
     position: relative;
-    width: 60px;
+    width: 44px;
     height: 60px;
+    margin-right: 15px;
 
     .login-title {
         position: absolute;
         text-overflow: ellipsis;
-        left: 30px;
+        left: 20px;
         bottom: 3px;
         z-index: 99;
         padding: 2px;
@@ -268,7 +244,7 @@ export const IconWrapper = styled.div`
 export const SelectedItem = styled.div.attrs({ className: 'selected-item' })`
     width: 100% !important;
     cursor: pointer;
-    color: ${props => !props.isWhite ? props.isColorfulToggle ? props.theme.palette.clrBlue : props.theme.palette.clrPurple : props.theme.palette.clrHighContrast};
+    color: ${props => !props.isWhite ? props.theme.palette.clrPurple : props.theme.palette.clrHighContrast};
     font-size: ${props => props.size ? props.size : 30}px;
     font-weight: 400;
     display: flex;
@@ -324,9 +300,13 @@ export const SelectedItem = styled.div.attrs({ className: 'selected-item' })`
         }
     `};
 
-    /* .exchange-icon {
+    &:hover {
+        color: ${props => props.theme.palette.clrBlue};
+    }
+
+    .exchange-icon {
         margin: 0 !important;
-    } */
+    }
 
     .exchange-name {
         width: unset !important;
@@ -334,8 +314,8 @@ export const SelectedItem = styled.div.attrs({ className: 'selected-item' })`
         flex: 1;
         display: block;
         border: 0;
-        font-size: 40px !important;
-        font-weight: 600;
+        font-size: 38px !important;
+        font-weight: 700;
         color: ${props => props.isEnabled ? props.theme.palette.clrPurple : props.theme.palette.clrBorder};
         text-align: left;
         text-transform: uppercase;
@@ -359,7 +339,6 @@ export const SelectedItem = styled.div.attrs({ className: 'selected-item' })`
         text-align: left;
         text-transform: uppercase;
         cursor: unset;
-        padding-left: ${props => props.isPadding ? '15px' : '0'};
 
         &:hover {
             background: none;
@@ -478,19 +457,6 @@ export const GlobalIcon = props => (
     </Svg>
 );
 
-const HistoryMenuIconSvg = styled.svg`
-    width: 36.32px;
-    height: 34.50px;
-    margin-right: 15px;
-    fill: ${props => props.theme.palette.clrPurple};
-`;
-
-export const HistoryMenuIcon = props => (
-    <HistoryMenuIconSvg {...props}>
-        <path className="cls-1" d="M19.07,0A16.94,16.94,0,0,0,4.18,8.72L0,4.54V16.35H11.81L6.72,11.26a13.69,13.69,0,0,1,26,6A13.65,13.65,0,0,1,6.17,21.79H2.36a17.29,17.29,0,0,0,34-4.54A17.36,17.36,0,0,0,19.07,0ZM16.35,9.08v9.26l8.53,5.09,1.45-2.36-7.26-4.36V9.08Z"/>
-    </HistoryMenuIconSvg>
-);
-
 const CheckWrapper = styled.button`
     position: relative;
     width: 20px;
@@ -555,18 +521,13 @@ const SearchSvg = styled.svg`
 `;
 
 export const SearchIcon = props => (
-
-    <svg className="exch-search__icon" xmlns="http://www.w3.org/2000/svg" data-name="Layer 1" viewBox="0 0 100 100" x="0px" y="0px">
-        <path d="M38,76.45A38.22,38.22,0,1,1,76,38.22,38.15,38.15,0,0,1,38,76.45Zm0-66.3A28.08,28.08,0,1,0,65.84,38.22,28,28,0,0,0,38,10.15Z"/>
-        <rect x="73.84" y="54.26" width="10.15" height="49.42" transform="translate(-32.73 79.16) rotate(-45.12)"/>
+    <svg className="exch-search__icon" role="img" aria-hidden="true" viewBox="0 0 10.583 10.583" xmlns="http://www.w3.org/2000/svg">
+        <g transform="translate(0 -286.42)">
+            <path d="m10.144 295.34-2.3931-2.3786c-0.35646 0.55128-0.82824 1.0202-1.3829 1.3745l2.3931 2.3784c0.382 0.37989 1.0015 0.37989 1.3829 0 0.382-0.37885 0.382-0.99463 0-1.3743"/>
+            <path d="m3.9114 293.44c-1.618 0-2.9338-1.3079-2.9338-2.9157 0-1.608 1.3158-2.9157 2.9338-2.9157 1.6178 0 2.9336 1.3076 2.9336 2.9157 0 1.6078-1.3158 2.9157-2.9336 2.9157m3.9111-2.9157c0-2.1469-1.751-3.8877-3.9111-3.8877-2.1601 0-3.9114 1.7407-3.9114 3.8877 0 2.147 1.7513 3.8874 3.9114 3.8874 2.1601 0 3.9111-1.7404 3.9111-3.8874"/>
+            <path d="m1.6296 290.52h0.65211c0-0.89326 0.73083-1.6199 1.6296-1.6199v-0.6479c-1.2579 0-2.2817 1.0173-2.2817 2.2678"/>
+        </g>
     </svg>
-    // <svg className="exch-search__icon" role="img" aria-hidden="true" viewBox="0 0 10.583 10.583" xmlns="http://www.w3.org/2000/svg">
-    //     <g transform="translate(0 -286.42)">
-    //         <path d="m10.144 295.34-2.3931-2.3786c-0.35646 0.55128-0.82824 1.0202-1.3829 1.3745l2.3931 2.3784c0.382 0.37989 1.0015 0.37989 1.3829 0 0.382-0.37885 0.382-0.99463 0-1.3743"/>
-    //         <path d="m3.9114 293.44c-1.618 0-2.9338-1.3079-2.9338-2.9157 0-1.608 1.3158-2.9157 2.9338-2.9157 1.6178 0 2.9336 1.3076 2.9336 2.9157 0 1.6078-1.3158 2.9157-2.9336 2.9157m3.9111-2.9157c0-2.1469-1.751-3.8877-3.9111-3.8877-2.1601 0-3.9114 1.7407-3.9114 3.8877 0 2.147 1.7513 3.8874 3.9114 3.8874 2.1601 0 3.9111-1.7404 3.9111-3.8874"/>
-    //         <path d="m1.6296 290.52h0.65211c0-0.89326 0.73083-1.6199 1.6296-1.6199v-0.6479c-1.2579 0-2.2817 1.0173-2.2817 2.2678"/>
-    //     </g>
-    // </svg>
 );
 
 export const ApiKeyWrapper = styled.div`
@@ -583,12 +544,9 @@ export const ApiKeyWrapper = styled.div`
 `;
 
 export const LabelArbitrage = styled.div`
-    display: flex;
-    align-items: center;
     flex: 1;
     font-size: 40px;
     font-weight: 600;
-    margin-left: 15px;
     color: ${props => props.theme.palette.clrPurple};
 `;
 
@@ -598,6 +556,7 @@ export const ExchangeHeader = styled.div`
     height: ${props => props.height ? `${props.height}px` : '100%'};
     margin: 0;
     padding-left: 15px;
+    padding-right: 15px;
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -635,7 +594,6 @@ export const TransactionDetail = styled.div`
         margin-top: 8px;
     }
 `;
-
 const ThreeDotSvg = styled.svg`
     width: 30px;
     height: 100%;
@@ -644,16 +602,14 @@ const ThreeDotSvg = styled.svg`
 `;
 
 export const ThreeDotIcon = (props) => (
-    <div className="exchange-child">
-        <ThreeDotSvg
-            viewBox="0 0 38 38"
-            role="img"
-            aria-hidden="true"
-            {...props}
-        >
-            <path d="M10.5 10l17 0"/>
-            <path d="M10.5 19l17 0"/>
-            <path d="M10.5 28l17 0"/>
-        </ThreeDotSvg>
-    </div>
+    <ThreeDotSvg
+        viewBox="0 0 384 384"
+        role="img"
+        aria-hidden="true"
+        {...props}
+    >
+        <circle cx="192" cy="42.667" r="42.667"/>
+        <circle cx="192" cy="192" r="42.667"/>
+        <circle cx="192" cy="341.333" r="42.667"/>
+    </ThreeDotSvg>
 );

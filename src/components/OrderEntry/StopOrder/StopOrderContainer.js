@@ -13,8 +13,6 @@ const Wrapper = styled.div`
     align-items: stretch;
     justify-content: flex-start;
     padding: 14px;
-    padding-top: 5px;
-    padding-bottom: 5px;
     width: 100%;
 
     &:last-of-type {

@@ -36,7 +36,7 @@ export const Wrapper = styled.div`
 
 export const CoinPriceBox = styled.div`
     display: flex;
-    align-items: center;
+    align-items: flex-end;
 
     .price {
         display: block;
@@ -65,7 +65,7 @@ export const CoinPriceBox = styled.div`
 
         &.positive {
             color: ${props => props.theme.palette.clrGreen};
-            font-size: 30px;
+            font-size: 33px;
             font-weight: 500;
             > span {
                 width: 0; 
@@ -90,7 +90,7 @@ export const CoinPriceBox = styled.div`
 
         &.negative {
             color: ${props => props.theme.palette.clrRed};
-            font-size: 30px;   
+            font-size: 33px;   
             font-weight: 500;         
             > span {
                 width: 0; 
@@ -160,7 +160,7 @@ export const ArrowIcon = () => (
 );
 
 export const LabelPrice = styled.div`
-    font-size: 30px;
+    font-size: 33px;
     font-weight: 500;
     color: ${props => props.theme.palette.clrPurple};
     pointer-events: none;
@@ -205,8 +205,8 @@ export const GlobalIcon = props => (
 
 
 const GlobalSvg = styled.svg`
-    width: 38px;
-    height: 38px;
+    width: 22px;
+    height: 22px;
 `;
 
 
@@ -223,11 +223,27 @@ export const GlobalIconNew = props => (
     </GlobalSvg>
 );
 
+export const GlobalLabel = styled.span`
+    margin-left: 4px;
+    margin-right: 4px;
+    font-size: 21px;
+    font-weight: 600 !important;
+    color: ${props => props.theme.palette.clrPurple};
+    text-transform: uppercase;
+`;
+
 export const PercentClass = styled.span`
     font-size: 21px;
     font-weight: 600;
     color: white;
 `;
+
+export const GlobalMark = () => (
+    <div>
+        <GlobalIconNew/>
+        <GlobalLabel>Global</GlobalLabel>
+    </div>
+);
 
 export const PositiveIcon = props => (
     <Svg
@@ -284,7 +300,7 @@ export const SectionTitle = styled.div`
     color: ${props => props.theme.palette.clrPurple};
 
     span {
-        font-size: 30px;
+        font-size: 33px;
     }
 `;
 

@@ -2,44 +2,44 @@ import React from 'react';
 import styled from 'styled-components';
 
 export const ExchDropdownList = styled.div`
-    height: ${props => props.itemCount > 4 ? 440 : props.itemCount * 110}px;
+    height: ${props => props.itemCount > 5 ? 550 : (props.itemCount - 1) * 110}px;
 
     .exch-dropdown__list__rvtable-wrapper {
-        height: ${props => props.itemCount > 4 ? 440 : props.itemCount * 110}px;
+        height: ${props => props.itemCount > 5 ? 550 : (props.itemCount - 1) * 110 + 5}px;
     }
 `;
 
 export const StyleWrapper = styled.div`
     width: ${props => props.width}px;
     height: ${props => props.height}px;
-
+    
     .ps__thumb-y {
         opacity: 0 !important;
         z-index: 9999;
         cursor: pointer;
     }
-
+    
     .ReactVirtualized__Table__rowColumn {
         margin-left: 0;
         text-overflow: inherit;
         overflow: initial !important;
     }
-
+    
     .ReactVirtualized__Table__row {
-        overflow: visible !important;
-
+        overflow: visible !important;        
+    
         .ReactVirtualized__Table__rowColumn {
             &:last-child {
                 margin-right: 0;
             }
         }
     }
-
+    
     .ReactVirtualized__Table__Grid {
         outline: none !important;
         box-shadow: 7px 6px 11px rgba(0, 0, 0, .05);
     }
-
+    
     .addon {
         display: flex;
         flex-direction: row;
@@ -60,7 +60,7 @@ export const AddonWrapper = styled.div`
     display: flex;
     align-items: center;
     pointer-events: none;
-
+    
     .DemoLabel{
         font-size: 11px;
         position: absolute;
@@ -81,37 +81,13 @@ export const ItemButtonWrapper = styled.div`
     min-height: 110px;
     display: flex;
     align-items: center;
-
+    
     .phone-number-input svg, .code-input svg{
-        min-height: 36px;
+        min-height: 36px;   
     }
 `;
 
 export const ItemButton = styled.button`
     padding-right: ${props => props.isActive ? '20px !important' : '30px'};
     flex: 1;
-`;
-
-export const CoinItemWrapper = styled.div.attrs({ className: 'exch-dropdown__current' })`
-    width: 100%;
-    height: 100%;
-    padding: 0 12px;
-    display: flex;
-    flex: 1;
-    justify-content: space-between;
-    align-items: center;
-    transition: all .1s;
-    font-size: 13px;
-    color: ${props => props.theme.palette.coinPairSelectText2};
-
-    .exch-dropdown__title {
-        font-size: 13px;
-        color: ${props => props.theme.palette.coinPairSelectText2};
-
-        span {
-            font-size: 40px;
-            font-weight: 600;
-            color: ${props => props.theme.palette.coinPairSelectHoverText2};
-        }
-    }
 `;

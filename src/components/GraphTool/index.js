@@ -27,7 +27,7 @@ const BGraph = styled.div.attrs({ className: 'bgraph' })`
     display: flex;
     flex: 1 1;
     background: transparent;
-    // overflow: hidden;
+    overflow: hidden;
 
     position: ${props => (props.fullmode ? 'fixed' : 'relative')};
     top: 0;
@@ -45,19 +45,18 @@ const BGraphSection = styled.div`
     right: 0;
     width: 100%;
     height: 100%;
-    // overflow: hidden;
+    overflow: hidden;
     transition: width 0.25s linear;
 `;
 
 const BGraphControls = styled.div`
     position: absolute;
-    ${props => props.isBorderHidden && 'border: none !important;'}
     left: 0;
     top: 0;
     right: 0;
     width: 100%;
     height: ${props => props.height}px;
-    // overflow: hidden;
+    overflow: hidden;
     border-right: 1px solid ${props => props.theme.palette.clrBorder};
     border-bottom: ${props => (!props.isCoinSearch ? '1px solid ' + props.theme.palette.clrBorder : '')};
     border-radius: ${props => props.theme.palette.borderRadius};
@@ -80,9 +79,6 @@ const GraphTool = ({
     isLoggedIn,
     showOrderFormWith,
     isArbitrageMode,
-    graphSwitchMode,
-    tradeColStatus,
-    sidebarStatus,
 }) => {
     baseSymbol = (baseSymbol || '').replace('F:', '');
     quoteSymbol = (quoteSymbol || '').replace('F:', '');
@@ -93,7 +89,7 @@ const GraphTool = ({
         isTradingView = true;
         isPriceChart = false;
     }
-    let isDonutChart = (!isPriceChart && !isTradingView) || graphSwitchMode;
+    let isDonutChart = !isPriceChart && !isTradingView;
     const isLowerSectionOpened = depthChartMode && isDGLoaded;
     const lowerSectionHeight = 275;
     let isWalletPopup = selectedCoin !== '' && convertState === STATE_KEYS.coinSearch;
@@ -114,8 +110,6 @@ const GraphTool = ({
     //     updateExchange(0, '');
     //     setIsFirstLoad(false);
     // }
-    const isArbitrageMonitorMode = isArbitrageMode && convertState !== STATE_KEYS.coinSearch;
-    const isBoderHidden = (isArbitrageMonitorMode && tradeColStatus === 'closed') || sidebarStatus === 'closed';
 
     return (
         <AutoSizer>
@@ -132,38 +126,30 @@ const GraphTool = ({
                             <BGraphControls
                                 height={isLowerSectionOpened ? height - lowerSectionHeight : height}
                                 isCoinSearch={convertState === STATE_KEYS.coinSearch}
-                                isBorderHidden={isBoderHidden}
                             >
                                 {isPriceChart && isWalletPopup && !isBestRateTradingView && (
                                     <PriceChartCanvas
                                         isLowerSectionOpened={isLowerSectionOpened}
                                         height={isLowerSectionOpened ? chartHeight - lowerSectionHeight : height}
-                                        isBorderHidden={isBoderHidden}
                                     />
                                 )}
 
-                                {isArbitrageMode && isDonutChart && (
-                                    <PortfolioChartCanvas isBorderHidden={isBoderHidden} />
-                                )}
+                                {isArbitrageMode && isDonutChart && <PortfolioChartCanvas />}
 
-                                {isTradingView && (
-                                    <TradingView
-                                        width={width}
-                                        height={isLowerSectionOpened ? chartHeight - lowerSectionHeight : height}
-                                        convertState={convertState}
-                                        coinPair={baseSymbol ? `${baseSymbol}-${quoteSymbol}` : 'BTC-USDT'}
-                                    />
-                                )}
+                                <TradingView
+                                    width={width}
+                                    height={isLowerSectionOpened ? chartHeight - lowerSectionHeight : height}
+                                    convertState={convertState}
+                                    coinPair={baseSymbol ? `${baseSymbol}-${quoteSymbol}` : 'BTC-USDT'}
+                                    isVisible={isTradingView}
+                                />
 
-                                {isDonutChart && (
-                                    <DonutChart
-                                        width={width}
-                                        height={isLowerSectionOpened ? chartHeight - lowerSectionHeight : height}
-                                        isLoggedIn={isLoggedIn}
-                                        isExchangeCellsV2
-                                        donutChatId="donut-chart"
-                                    />
-                                )}
+                                <DonutChart
+                                    width={width}
+                                    height={isLowerSectionOpened ? chartHeight - lowerSectionHeight : height}
+                                    isVisible={isDonutChart}
+                                    isLoggedIn={isLoggedIn}
+                                />
 
                                 {convertState === STATE_KEYS.coinSearch && isLowerSectionOpened && (
                                     <GraphPrices.BottomToggleBar
@@ -223,14 +209,13 @@ export default compose(
                 setViewMode,
                 isFirstLoad,
                 setIsFirstLoad,
-                graphSwitchMode,
             },
             [STORE_KEYS.CONVERTSTORE]: { convertState },
             [STORE_KEYS.LOWESTEXCHANGESTORE]: { updateExchange, exchangeIndex },
             [STORE_KEYS.TELEGRAMSTORE]: { isLoggedIn },
             [STORE_KEYS.YOURACCOUNTSTORE]: { selectedCoin },
             [STORE_KEYS.ORDERFORMTOGGLE]: { showOrderFormWith },
-            [STORE_KEYS.SETTINGSSTORE]: { isArbitrageMode, tradeColStatus, sidebarStatus },
+            [STORE_KEYS.SETTINGSSTORE]: { isArbitrageMode },
         }) => {
             return {
                 baseSymbol,
@@ -244,7 +229,6 @@ export default compose(
                 setViewMode,
                 isFirstLoad,
                 setIsFirstLoad,
-                graphSwitchMode,
                 convertState,
                 updateExchange,
                 exchangeIndex,
@@ -252,8 +236,6 @@ export default compose(
                 selectedCoin,
                 showOrderFormWith,
                 isArbitrageMode,
-                tradeColStatus,
-                sidebarStatus,
             };
         }
     )

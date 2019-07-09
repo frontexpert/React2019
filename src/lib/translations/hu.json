@@ -187,6 +187,7 @@
   "data_loader_done.label_done": "KÉSZ",
   "sms_verification.label_enter_mobile_number": "Írja be a mobiltelefonszámot",
   "sms_verification.label_what_code": "Mi a kód?",
+  "switch_custom.label_off": "KI",
 
   "button.save": "Mentés",
   "button.confirm": "megerősít",
@@ -215,6 +216,5 @@
   "order_book.buy_book.label_max_order_size": "MAX ORDER SIZE: ",
   "settings.label_auto_flip": "Auto Flip",
   "settings.label_swaps": "Csere",
-  "settings.label_is_auto_convert": "Automatikus konvertálás",
-  "settings.label_support_center": "Platform támogatási központ"
+  "settings.label_is_auto_convert": "Automatikus konvertálás"
 }

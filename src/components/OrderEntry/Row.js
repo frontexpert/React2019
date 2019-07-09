@@ -32,6 +32,7 @@ const Header = styled.p`
     font-weight: 600;
     color : ${props => props.theme.palette.contrastText};
     text-transform: uppercase;
+    word-break: break-all;
 
     &:lang(pl) {
         line-height: 14px;

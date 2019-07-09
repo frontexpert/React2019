@@ -1,18 +1,12 @@
 import React, { Component } from 'react';
 import { AutoSizer, Column, Table } from 'react-virtualized';
 import PerfectScrollbar from 'react-perfect-scrollbar';
-import { inject, observer } from 'mobx-react';
-import { compose, withProps } from 'recompose';
-import { Tooltip } from 'react-tippy';
 
 import {
     List,
     StyleWrapper,
-    HeaderWrapper,
-    ImgCancel,
-    Item
+    HeaderWrapper
 } from './Components';
-import { STORE_KEYS } from '../../stores';
 
 const headerRenderer = (coin) => () => {
     return (
@@ -22,133 +16,11 @@ const headerRenderer = (coin) => () => {
     );
 };
 
-const headerCancelRenderer = () => () => {
-    return (
-        <ImgCancel/>
-    );
-};
-
 class MyTradesTable extends Component {
-    timeCellRenderer = ({ rowData }) => {
-        return (
-            <Item>
-                { rowData.time }
-            </Item>
-        );
-    };
-
-    orderIdCellRenderer = ({ rowData }) => {
-        return (
-            <Item>
-                <Tooltip
-                    arrow={true}
-                    // animation="shift"
-                    position="bottom"
-                    // followCursor
-                    theme="bct"
-                    title={rowData.orderId}
-                    className="full-width"
-                >
-                    <div className="text-overflow-ellipsis">{rowData.orderId}</div>
-                </Tooltip>
-            </Item>
-        );
-    };
-
-    instrCellRenderer = ({ rowData }) => {
-        return (
-            <Item>
-                { rowData.symbol }
-            </Item>
-        );
-    };
-
-    accountCellRenderer = ({ rowData }) => {
-        return (
-            <Item>
-            </Item>
-        );
-    };
-
-    sideCellRenderer = ({ rowData }) => {
-        return (
-            <Item>
-                { rowData.side }
-            </Item>
-        );
-    };
-
-    amountCellRenderer = ({ rowData }) => {
-        return (
-            <Item>
-                { rowData.filled }
-            </Item>
-        );
-    };
-
-    filledCellRenderer = ({ rowData }) => {
-        return (
-            <Item>
-                { rowData.filled }
-            </Item>
-        );
-    };
-
-    priceCellRenderer = ({ rowData }) => {
-        return (
-            <Item>
-                { rowData.price }
-            </Item>
-        );
-    };
-
-    avgPriceCellRenderer = ({ rowData }) => {
-        return (
-            <Item>
-                { rowData.average }
-            </Item>
-        );
-    };
-
-    orderTypeCellRenderer = ({ rowData }) => {
-        return (
-            <Item>
-                { rowData.type }
-            </Item>
-        );
-    };
-
-    tifCellRenderer = ({ rowData }) => {
-        return (
-            <Item>
-            </Item>
-        );
-    };
-
-    sourceCellRenderer = ({ rowData }) => {
-        return (
-            <Item>
-            </Item>
-        );
-    };
-
-    stopPriceCellRenderer = ({ rowData }) => {
-        return (
-            <Item>
-            </Item>
-        );
-    };
-
-    cancelCellRenderer = ({ rowData }) => {
-        return (
-            <Item>
-            </Item>
-        );
-    };
-
+    state = {};
 
     render() {
-        const data = this.props.OrderHistoryData;
+        const data = [];
         return (
             <List>
                 <AutoSizer>
@@ -160,109 +32,86 @@ class MyTradesTable extends Component {
                                         suppressScrollX: true,
                                         minScrollbarLength: 50,
                                     }}
+                                    onScrollY={this.handleScroll}
                                 >
                                     <Table
+                                        autoHeight={true}
                                         width={width}
                                         height={height}
                                         headerHeight={27}
                                         disableHeader={false}
                                         rowCount={data.length}
                                         rowGetter={({ index }) => data[index]}
-                                        rowHeight={27}
+                                        rowHeight={60}
                                         overscanRowCount={0}
                                     >
                                         <Column
-                                            width={width * 0.14}
+                                            width={width * 0.1}
                                             dataKey="Time"
                                             headerRenderer={headerRenderer('Time')}
-                                            cellRenderer={this.timeCellRenderer}
+                                            cellRenderer={this.nameCellRenderer}
                                         />
 
                                         <Column
-                                            width={width * 0.07}
-                                            dataKey="Order ID"
+                                            width={width * 0.1}
+                                            dataKey="TradeID"
+                                            headerRenderer={headerRenderer('Trade ID')}
+                                            cellRenderer={this.priceCellRenderer}
+                                        />
+
+                                        <Column
+                                            width={width * 0.1}
+                                            dataKey="OrderID"
                                             headerRenderer={headerRenderer('Order ID')}
-                                            cellRenderer={this.orderIdCellRenderer}
+                                            cellRenderer={this.priceCellRenderer}
                                         />
 
                                         <Column
-                                            width={width * 0.07}
-                                            dataKey="Instr."
+                                            width={width * 0.1}
+                                            dataKey="Instr"
                                             headerRenderer={headerRenderer('Instr.')}
-                                            cellRenderer={this.instrCellRenderer}
+                                            cellRenderer={this.apiCellRenderer}
                                         />
                                         <Column
-                                            width={width * 0.08}
+                                            width={width * 0.1}
                                             dataKey="Account"
                                             headerRenderer={headerRenderer('Account')}
-                                            cellRenderer={this.accountCellRenderer}
+                                            cellRenderer={this.nameCellRenderer}
                                         />
 
                                         <Column
-                                            width={width * 0.07}
+                                            width={width * 0.1}
                                             dataKey="Side"
                                             headerRenderer={headerRenderer('Side')}
-                                            cellRenderer={this.sideCellRenderer}
+                                            cellRenderer={this.priceCellRenderer}
                                         />
 
                                         <Column
-                                            width={width * 0.08}
+                                            width={width * 0.1}
                                             dataKey="Amount"
                                             headerRenderer={headerRenderer('Amount')}
-                                            cellRenderer={this.amountCellRenderer}
-                                        />
-                                        <Column
-                                            width={width * 0.07}
-                                            dataKey="Filled"
-                                            headerRenderer={headerRenderer('Filled')}
-                                            cellRenderer={this.filledCellRenderer}
+                                            cellRenderer={this.apiCellRenderer}
                                         />
 
                                         <Column
-                                            width={width * 0.08}
+                                            width={width * 0.1}
                                             dataKey="Price"
                                             headerRenderer={headerRenderer('Price')}
                                             cellRenderer={this.priceCellRenderer}
                                         />
 
                                         <Column
-                                            width={width * 0.09}
-                                            dataKey="Avg Price"
-                                            headerRenderer={headerRenderer('Avg. Price')}
-                                            cellRenderer={this.avgPriceCellRenderer}
-                                        />
-                                        <Column
-                                            width={width * 0.08}
-                                            dataKey="Order Type"
-                                            headerRenderer={headerRenderer('Order Type')}
-                                            cellRenderer={this.orderTypeCellRenderer}
+                                            width={width * 0.1}
+                                            dataKey="Value"
+                                            headerRenderer={headerRenderer('Value')}
+                                            cellRenderer={this.priceCellRenderer}
                                         />
 
                                         <Column
-                                            width={width * 0.07}
-                                            dataKey="TIF"
-                                            headerRenderer={headerRenderer('TIF')}
-                                            cellRenderer={this.tifCellRenderer}
-                                        />
-
-                                        <Column
-                                            width={width * 0.07}
-                                            dataKey="Source"
-                                            headerRenderer={headerRenderer('Source')}
-                                            cellRenderer={this.sourceCellRenderer}
-                                        />
-                                        <Column
-                                            width={width * 0.07}
-                                            dataKey="Stop Price"
-                                            headerRenderer={headerRenderer('Stop Price')}
-                                            cellRenderer={this.stopPriceCellRenderer}
-                                        />
-
-                                        <Column
-                                            width={width * 0.03}
-                                            dataKey="Cancel"
-                                            headerRenderer={headerCancelRenderer()}
-                                            cellRenderer={this.cancelCellRenderer}
+                                            width={width * 0.1}
+                                            dataKey="Fee"
+                                            headerRenderer={headerRenderer('Fee')}
+                                            cellRenderer={this.priceCellRenderer}
                                         />
                                     </Table>
                                 </PerfectScrollbar>
@@ -275,14 +124,4 @@ class MyTradesTable extends Component {
     }
 }
 
-export default compose(
-    inject(
-        STORE_KEYS.ORDERHISTORY
-    ),
-    observer,
-    withProps(
-        ({
-            [STORE_KEYS.ORDERHISTORY]: { OrderHistoryData },
-        }) => ({ OrderHistoryData })
-    )
-)(MyTradesTable);
+export default MyTradesTable;

@@ -356,28 +356,16 @@ export const LastChange = styled.div`
 
 export const Prices = styled.div`
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: center;
     font-size: 33px;
     font-weight: 500;
     color: ${props => props.theme.palette.clrPurple};
 
-    .CurrencySymbol{
-        margin-top: 2px;
-        // color:${props => props.theme.palette.clrBlue}; 
-    }
     .dropdown-wrapper {
         position: relative;
     }
-    .btc-wrapper{
-        height: 100%;
-        display: flex;
-        align-items: center;
-    }
-    .exch-dropdown__icon{
-        width: 34px;
-        height: 34px;
-    }    
+
     span {
         display: block;
         // line-height: 18px;

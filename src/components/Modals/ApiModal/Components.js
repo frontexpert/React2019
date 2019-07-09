@@ -64,7 +64,6 @@ export const StyleWrapper = styled.div`
 `;
 
 const CheckWrapper = styled.button`
-    z-index: 10;
     position: relative;
     width: 20px;
     height: 20px;

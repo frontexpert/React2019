@@ -1,27 +1,18 @@
 import React from 'react';
 import styled  from 'styled-components';
 
-export const Wrapper = styled.div`
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: ${props => props.width}px;
-    height: ${props => props.height}px;
-    background: ${props => props.isDonutMode && props.theme.palette.donutBackground};
-    display: ${props => props.isDonutMode ? '' : 'none'};
-`;
-
 export const DonutChartWrapper = styled.div`
     position: absolute;
     top: 0;
-    left: 0;
+    left: 50%;
     width: ${props => props.width}px;
     height: ${props => props.height}px;
     overflow: hidden;
-    background: transparent;
+    background: ${props => props.theme.palette.donutBackground};
     border-top-left-radius: ${props => props.theme.palette.borderRadius};
     border: solid ${props => props.theme.palette.clrBorder};
     border-width: 1px 0 0 1px;
+    transform: translate(${props => props.isVisible ? '0' : '103%'}, 0);
     transition: ${props => props.disableTransition ? 'none' : 'transform .7s ease-out'};
     z-index: 3;
     display: ${props => props.switchMode ? 'none' : ''};
@@ -32,7 +23,7 @@ export const DonutChartWrapper = styled.div`
         left: calc(50% - ${props => props.height < 1000 ? 140 : 160}px);
         width: ${props => props.height < 1000 ? 280 : 320}px;
         height: 150px;
-        display: none; // flex
+        display: flex;
         align-items: center;
         justify-content: center;
         flex-direction: column;
@@ -106,16 +97,9 @@ export const Donut = styled.div`
     // height: ${props => props.height - 100}px;
     left: 0;
     top: -30px;
-    z-index: 4;
     width: 100%;
     height: ${props => props.height + 60}px;
-    // background: radial-gradient(closest-side, #2C0C47, #2C0C47, ${props => props.theme.palette.donutBackground});
-    background: transparent;
-    margin-top: ${props => props.width * 0.05}px;
-    
-    svg>g>g:last-child>g:last-child {
-        display: none;
-    }
+    background: radial-gradient(closest-side, #2C0C47, #2C0C47, ${props => props.theme.palette.donutBackground});
 `;
 
 export const HoverLabel = styled.div.attrs({ className: 'pie-center-label' })`

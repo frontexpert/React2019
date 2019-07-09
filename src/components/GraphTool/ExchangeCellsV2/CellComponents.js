@@ -11,22 +11,21 @@ export const ItemNormal = styled.div.attrs({ className: 'exch-bar-item--normal' 
     padding-left: 8px;
     padding-right: 13px;
     display: flex;
-    background: transparent;
+    background: ${props => props.theme.palette.exchBarItemBg};
     border: 1px solid ${props => props.color || props.theme.palette.clrInnerBorder};
     color: ${props => props.theme.palette.clrtext};
     cursor: ${props => props.disabled ? 'initial' : 'pointer'};
-    z-index: ${props => (props.isRealExchange && !props.isProgressing) ? '5' : ''};
 
     .exch-bar-progress-bar .track {
-        background: transparent;
+        background: ${props => props.theme.palette.exchBarItemBg};
     } 
 
     ${props => ((props.active || props.isOpen || props.hover) && !props.disabled) ? `
-        background: transparent;
+        background: ${props.theme.palette.exchBarActiveItem};
         color: ${props.theme.palette.clrHighContrast};
 
         .exch-bar-progress-bar .track {
-            background: transparent;
+            background: ${props.theme.palette.exchBarHoverItem};
         }
 
         .exch-bar-item__title,
@@ -51,7 +50,7 @@ export const ItemNormal = styled.div.attrs({ className: 'exch-bar-item--normal' 
      
     ${props => !props.disabled ? `   
         &:hover {
-            background: rgba(255, 255, 255, .25);
+            background: ${(props.active || props.isOpen) ? '' : props.theme.palette.clrMouseHover};
             color: ${props.theme.palette.clrHighContrast};
             
             span {
@@ -128,7 +127,7 @@ export const ItemExchPairSimple = styled.div.attrs({ className: 'exch-bar-item__
     align-items: center;
     justify-content: center;
     position: relative;
-    z-index: ${props => (props.isRealExchange && !props.isProgressing) ? '' : (props.isRealExchange ? '5' : '3')};
+    z-index: 10;
     height: 100%;
     width: 100%;
     // font-size: 15px;
@@ -137,70 +136,45 @@ export const ItemExchPairSimple = styled.div.attrs({ className: 'exch-bar-item__
     // color: ${props => props.hover ? props.theme.palette.clrHighContrast : props.theme.palette.clrBorder};
     color: ${props => props.theme.palette.clrBorder};
     
+    .coin-name {
+        height: 50px;
+        display: flex;
+        align-items: center;
+        font-size: 35px;
+        font-weight: 600;
+        line-height: 1;
+    }
+    
+    .flex-1 {
+        flex: 1;
+        // max-width: 190px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-align: center;
+    }
+    .flex-between{
+        width: 44%;
+    }
+    
+    .d-flex {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+        font-size: 30px;
+    }
+    
+    .gray {
+        color: ${props => props.theme.palette.clrtext} !important;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    
     ${props => !props.isProgress ? `
         span {
             color: ${props.theme.palette.clrBorder} !important;
         }
     ` : ''};
-`;
-
-export const ColumnObj = styled.div`
-    flex: 1;
-    display: flex;
-    overflow: hidden;
-    white-space: nowrap;
-    align-items: center;
-    ${props => props.right ? 'padding-right: 10px;' : ''}
-    
-    .exch-name-tooltip {
-        display: contents !important;
-    }
-    .c1Symbol {
-        width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        flex: 1;
-        color: ${props => props.theme.palette.clrHighContrast};
-        font-size: 33px;
-        font-weight: 500;
-        line-height: 40px;
-        text-transform: uppercase;
-        white-space: nowrap;
-        text-align: ${props => props.right ? 'right' : 'left'};
-        padding-left: 10px;
-        
-        &.inactive {
-            width: 20%;
-            color: ${props => props.theme.palette.clrDarkPurple};
-        }
-    }
-    .expRight{
-        color: ${props => props.theme.palette.clrMouseClick} !important;
-    }
-    
-    .c1Amount {
-        flex: 1;
-        color: ${props => props.theme.palette.clrHighContrast};
-        font-size: 33px;
-        font-weight: 500;
-        line-height: 40px;
-        text-align: ${props => props.right ? 'left' : 'right'};
-        
-        &.inactive {
-            color: ${props => props.theme.palette.clrDarkPurple};
-        }    
-        .orderhistory__wallet-btn {
-            ${props => !props.right ? 'float: right;' : ''}
-            height: 65px;
-            * {
-                background: transparent !important;
-            }
-            >div >div svg {
-                ${props => props.right ? 'left: -8px; right: initial;' : 'right: -8px; left: initial;'}
-                fill: transparent !important;
-            }
-        }
-    }
 `;
 
 export const ItemExchPairRatioText = styled.span.attrs({ className: 'exch-bar-item__ratio-text' })`
@@ -230,58 +204,18 @@ export const ItemExchPairRatioText = styled.span.attrs({ className: 'exch-bar-it
 `;
 
 export const ExchangeWrapper = styled.div`
-    width: 70px;
+    max-width: 165px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: column;
+    flex: 1;
     overflow: hidden;
     line-height: 24px;
     
-    .top-bar__icon {
-        transform: rotate(${props => props.isCoinPairInversed ? '180' : '0'}deg);
-        fill: ${props => props.isActive ? (props.isCoinPairInversed ? props.theme.palette.coinPairBuyArrow : props.theme.palette.coinPairSellArrow) : props.theme.palette.clrDarkPurple};
-    }
-    
-    .info-arrow-directional {
-        height: 100%;
-                
-        .label-arrow-info {
-            position: absolute;
-            top: 29%;
-            color: ${props => props.theme.palette.clrHighContrast};
-            font-size: 18px;
-        }
-
-        .wrapper_arrow {
-            display: flex;
-            justify-content: ${props => props.isCoinPairInversed ? 'flex-end' : 'flex-start'};
-            align-items: center;     
-            .arrow-icon {
-                fill: ${props => props.progress ? props.theme.palette.clrHighContrast : props.isCoinPairInversed ? props.theme.palette.btnPositiveBg : props.theme.palette.btnNegativeBg};    //set arrow icon fill color
-                ${props => props.isCoinPairInversed && 'transform: rotate(180deg);'} 
-                width: 35px;
-            }
-            
-            .warning-icon {
-                position: absolute;
-            }
-            
-            .type-label {
-                position: absolute;
-                font-size: 9px;
-                font-weight: 700;
-                ${props => props.isCoinPairInversed ? 'margin-right: 3px;' : 'margin-left: 3px;'}
-                color: ${props => props.progress ? props.isCoinPairInversed ? props.theme.palette.btnPositiveBg : props.theme.palette.btnNegativeBg : props.theme.palette.clrHighContrast} !important;
-            }
-        }
-        
-        .label-changes-amount {
-            position: absolute;
-            top: 64%;
-            color: ${props => props.theme.palette.clrHighContrast};
-            font-size: 12px;             
-        }
+    > div {
+        font-size: 16px;
+        margin-bottom: -5px;
     }
 `;
 
@@ -532,11 +466,10 @@ const ItemProgressBarStyleWrapper = styled.div.attrs({ className: 'exch-bar-prog
         background: ${props => props.theme.palette.exchBarItemBg};
         border-radius: 0;
         overflow: hidden;
-        display: flex;
-        justify-content: ${props => props.isInversed ?  'flex-end' : 'flex-start'};
     }
     
     .progress {
+        position: absolute;
         margin: 0;
         padding: 0;
         top: 0;
@@ -562,13 +495,7 @@ const ItemProgressBarStyleWrapper = styled.div.attrs({ className: 'exch-bar-prog
     }
 `;
 
-export const ItemProgressBar =
-({
-    hover,
-    color,
-    progress,
-    isCoinPairInversed,
-}) => {
+export const ItemProgressBar = ({ hover, color, progress }) => {
     let color1 = 'red';
     let color2 = '';
 
@@ -580,7 +507,7 @@ export const ItemProgressBar =
     }
 
     return (
-        <ItemProgressBarStyleWrapper isInversed={isCoinPairInversed} hover={hover} color={color1}>
+        <ItemProgressBarStyleWrapper hover={hover} color={color1}>
             <div className="track">
                 <div
                     className="progress"
@@ -593,7 +520,6 @@ export const ItemProgressBar =
                         : {
                             width: `calc(${progress}%)`,
                             backgroundColor: color1,
-                            opacity: 0.7,
                         }
                     }
                 />
@@ -638,7 +564,7 @@ export const ArrowIcon = props => (
 );
 
 const LargeIcon1 = styled.svg`
-    width: 25px;
+    width: 23px;
     fill: ${props => props.theme.palette.clrBorder};
 `;
 
@@ -664,7 +590,7 @@ export const ExCellTable = styled.div`
         position: absolute !important;
         top: 0;
         left: 0;
-        width: 100%;
+        width: 50%;
     ` : ''};
 `;
 
@@ -678,7 +604,7 @@ export const ExCellContainer = styled.div`
     border-radius: ${props => props.theme.palette.borderRadius};
     
     .ps__rail-y {
-        background-color: transparent !important;
+        background-color: ${props => props.theme.palette.walletScrollBack} !important;
         // border-left: 1px solid ${props => props.theme.palette.walletScrollBorder};
         border-top: 1px solid ${props => props.theme.palette.clrBorder};
         opacity: 0 !important;
@@ -717,81 +643,27 @@ export const StyleWrapper = styled.div`
 `;
 export const ExchangeInfoWrapper = styled.div.attrs({ className: 'exchange-info-wrapper' })`
     height: 100%;
-    width: 100px;
-    padding-left: 10px;
+    margin-right: 10px;
     display: flex;
-    justify-content: center;
     align-items: center;
-    border-left: 1px solid ${props => props.theme.palette.clrInnerBorder};
-    // padding-left: 10px;
+    border-right: 1px solid ${props => props.theme.palette.clrInnerBorder};
     ${IconStyleWrapper} {
-        // padding-right: 10px;
+        padding-right: 10px;
     }
     ${props => props.active && `color: ${props.theme.palette.clrHighContrast};`}
     .exchange-name {
         width: 117px;
+        font-size: 20px;
         font-weight: bold;
         overflow: hidden;
         text-overflow: ellipsis;
-        // padding-right: 10px;
+        padding-right: 10px;
         ${props => props.active && `color: ${props.theme.palette.clrHighContrast};`}
     }
     .display-flex {
-        position: relative;
-        width: 70px;
-        height: 70px;
+        width: 100%;
+        height: 100px;
         display: flex;
         align-items: center;
-        justify-content: center;
-        .CircularProgressbar-text {
-            font-weight: 700;
-        }
-
-        .percentage-badge {
-            position: absolute;
-            top: 7px;
-            right: 7px;
-            color: white;
-            font-size: 10px;
-            font-weight: bold;
-        }
     }
-
-    .CircularProgressbar-text {
-        transform: translateY(3px);
-    }
-
-    .percentage {
-        display: flex;
-        position: absolute;
-        color: ${props => props.theme.palette.clrHighContrast};
-        font-size: 33px;
-        font-weight: 500;
-        line-height: 40px;
-        text-shadow:
-         -1px -1px 0 ${props => props.theme.palette.clrBorder},  
-          1px -1px 0 ${props => props.theme.palette.clrBorder},
-          -1px 1px 0 ${props => props.theme.palette.clrBorder},
-           1px 1px 0 ${props => props.theme.palette.clrBorder};
-        .percent-symbol{
-            font-size: 17px;
-            margin-top: -7px;
-            width: 0;
-        }
-    }
-`;
-
-export const TooltipContent = styled.div`
-   display: flex;
-   
-   .tooltip-icon {
-       border: 1px solid #454c73;
-       border-radius: 50%;
-       width: 20px;
-       height: 20px;
-       background: url(img/exchange/${props => props.value}.png) no-repeat;
-       background-position: center;
-       background-size: cover;
-       margin-right: 3px;
-   }
 `;

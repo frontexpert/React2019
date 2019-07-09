@@ -9,7 +9,7 @@ class PortfolioDataStore {
     @observable lastPortfolioValue = 0;
     @observable lastPortfolioValueChange = 0;
     @observable portfolioGraphRange = 0;
-    @observable isActiveState = false;
+    @observable isActiveState = true;
     @observable portfolioView = '1 year';
     @observable oneDayProfit = 0;
 

@@ -2,8 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import styled from 'styled-components';
 import Fullscreen from 'react-full-screen';
-import { inject, observer } from 'mobx-react';
-import { BrowserRouter as Router, Route } from 'react-router-dom';
+
 // Child Components
 import LeftTopSectionGrid from './LeftTopSectionGrid';
 import RightTopSectionGrid from './RightTopSectionGrid';
@@ -11,15 +10,13 @@ import SideBarGrid from './SideBarGrid';
 import {
     ICO, Charts, News, Stats, Other, NotFound, NotFoundNew
 } from '../components/Pages';
+import { Router, Route } from '../components/Router';
 import InitialLoaderContainer from '../components/InitialLoaderContainer';
 import LoginOrderModalV2 from '../components/LoginOrderModalV2';
 import MobileControl from '../components/MobileControl';
 import { getScreenInfo } from '../utils';
 import BillsModal from '../components/Modals/BillsModal';
 import ConnectionLost from '../components-generic/ConnectionLost';
-import { STORE_KEYS } from '../stores';
-import COIN_DATA_MAP from '../mock/coin-data-map';
-import iconCheck from '../components/YourAccount/DepositModal/mock/check.png';
 
 // Set ReactDom
 window.React = React;
@@ -27,16 +24,16 @@ window.ReactDOM = ReactDOM;
 
 const GridWrapper = styled.div`
     position: relative;
-    display: flex;
-    // grid-template-rows: 100%;
-    // grid-gap: 12px;
+    display: grid;
+    grid-template-rows: 100%;
+    grid-gap: 12px;
     height: 100%;
     background: ${props => props.theme.palette.clrBackground};
     padding: ${({ theme: { palette: { contentGap } } }) => `${contentGap} ${contentGap} ${contentGap}`} 0;
-    // grid-template-areas: 'sidebar lefttopsection righttopsection';
-    // grid-template-columns: ${props => (props.isMobileDevice || props.isSmallWidth) ? '0 calc(100% - 8px) 0' : '0 minmax(390px, 33%) auto'};
+    grid-template-areas: 'sidebar lefttopsection righttopsection';
+    grid-template-columns: ${props => (props.isMobileDevice || props.isSmallWidth) ? '0 calc(100% - 8px) 0' : '0 minmax(390px, 33%) auto'};
     // grid-template-columns: 55px minmax(353px, 23%) auto;
-
+    
     @media(max-width: 1500px) {
         transform:scale(0.75);
         transform-origin:0 0;
@@ -99,13 +96,6 @@ class Trading extends React.Component {
     };
 
     componentDidMount() {
-        const {
-            [STORE_KEYS.INSTRUMENTS]: instrumentsStore,
-        } = this.props;
-        const { setRouterCoin } = instrumentsStore;
-        if (this.props && this.props.match && this.props.match.params && this.props.match.params.coin !== '') {
-            setRouterCoin(this.props.match.params.coin.toUpperCase());
-        }
         window.addEventListener('resize', this.updateDimensions);
         // window.screen.orientation.lock('portrait');
     }
@@ -139,8 +129,8 @@ class Trading extends React.Component {
                     {!isMobileDevice && (
                         <SideBarGrid />
                     )}
-                    <LeftTopSectionGrid isMobileDevice={isMobileDevice} isSmallWidth={isSmallWidth}/>
-                    <RightTopSectionGrid isMobileDevice={isMobileDevice} isSmallWidth={isSmallWidth}/>
+                    <LeftTopSectionGrid isMobileDevice={isMobileDevice}/>
+                    <RightTopSectionGrid/>
                     <InitialLoaderContainer isMobileDevice={isMobileDevice}/>
                     <LoginOrderModalV2/>
                     <BillsModal/>
@@ -164,7 +154,6 @@ const MainGrid = props => {
         <Router defaultComponent={NotFound}>
             <Route path="/index.html" component={() => <Trading {...props} />} />
             <Route path="/" component={() => <Trading {...props} />} />
-            <Route path="/:coin" component={({ match }) => <Trading {...props} match={match}/>} />
             {/*
             <Route path="/ico" component={() => <ICO themeType={props.themeType}/>}/>
             <Route path="/charts" component={() => <Charts themeType={props.themeType}/>}/>
@@ -176,6 +165,5 @@ const MainGrid = props => {
         </Router>
     );
 };
-export default inject(
-    STORE_KEYS.INSTRUMENTS,
-)(observer(MainGrid));
+
+export default MainGrid;

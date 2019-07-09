@@ -16,11 +16,8 @@ const rootKeys = createKeysEnum([
 // http://prntscr.com/m42q0y (2019.01.07 design)
 const corePalette = {
     clrBackground: '#020518',
-    clrChartBackground: '#080924',
-    clrPriceChartAreaBackground: '#0c102a',
     clrMainWindow: '#0d112b',
     clrPurple: '#7f8bc2',
-    clrWhite: 'rgba(255, 255, 255, 1.0)',
     clrDarkPurple: '#1b1c3d',
     clrBlue: '#2780ff',
     clrDarkBlue: '#1f67bc',
@@ -48,16 +45,6 @@ const corePalette = {
     cornerRadius: '3px',
     defaultStrokeWeight: '1px',
     portfolioChartStrokeWeight: '3px',
-
-    // order book
-    fern: '#68B168',
-    pastelGreen: '#7BDB7A',
-    dodgerBlue: '#09f',
-    malibu: '#66CBFF',
-    olive: '#4c9201',
-    cobalt: '#0057a3',
-    silver: '#c1c1c1',
-    portGore: '#191D3E',
 };
 
 // Shared styles between dark & light theme
@@ -84,11 +71,11 @@ const btnColorPalette = {
     btnPositiveHoverText: '#fff',
     btnPositiveActiveBg: '#05DB75',
     btnPositiveActiveText: '#01B067',
-    btnNegativeBg: '#09f',
+    btnNegativeBg: '#BB1E1E',
     btnNegativeText: '#fff',
-    btnNegativeHoverBg: '#66CBFF',
+    btnNegativeHoverBg: '#D82525',
     btnNegativeHoverText: '#fff',
-    btnNegativeActiveBg: '#66CBFF',
+    btnNegativeActiveBg: '#d82525',
     btnNegativeActiveText: '#BB1E1E',
 };
 
@@ -214,7 +201,6 @@ export const darkTheme = {
         // settings
         settingsBackground: corePalette.clrBackground,
         settingsText: corePalette.clrPurple,
-        settingsSelectedText: corePalette.clrWhite,
         settingsBorder: corePalette.clrBorder,
         settingsHeaderBackground: corePalette.clrBackground,
         settingsHeaderText: corePalette.clrHighContrast,
@@ -312,7 +298,7 @@ export const darkTheme = {
         // orderFormIcon: corePalette.clrMouseClick,
         // orderFormTabActive: '#02a4d3',
 
-        orderHistoryBackground: corePalette.clrBackground,
+        orderHistoryBackground: corePalette.clrMainWindow,
         orderHistoryBorder: corePalette.clrInnerBorder,
         orderHistoryText: corePalette.clrPurple,
         orderHistoryHoverText: corePalette.clrHighContrast,
@@ -337,15 +323,13 @@ export const darkTheme = {
         orderBookTableHeaderText2: corePalette.clrHighContrast,
         orderBookTableCellBg: corePalette.clrBackground,
         orderBookTableCellBorder: corePalette.clrBorder,
-        orderBookHistoryCellInnerborder: corePalette.portGore,
+        orderBookHistoryCellInnerborder: corePalette.clrInnerBorder,
         orderBookTableCellText: corePalette.clrPurple,
         orderBookTableCellTextAmount: corePalette.clrPurple,
-        orderBookTableCellTextBuy: corePalette.fern,
-        orderBookTableCellTextBuyBright: corePalette.pastelGreen,
-        orderBookTableCellTextSell: corePalette.dodgerBlue,
-        orderBookTableCellTextSellBright: corePalette.malibu,
-        orderBookTableCellBuyProgress: corePalette.olive,
-        orderBookTableCellSellProgress: corePalette.cobalt,
+        orderBookTableCellTextNegative: corePalette.clrRed,
+        orderBookTableCellTextNegativeDark: corePalette.clrDarkRed,
+        orderBookTableCellTextPositive: corePalette.clrGreen,
+        orderBookTableCellTextPositiveDark: corePalette.clrDarkGreen,
         orderBookTableCellHoverBg: corePalette.clrMouseHover,
         orderBookTableSpreadBg: corePalette.clrMainWindow,
         orderBookTableSpreadBorder: corePalette.clrBorder,
@@ -490,8 +474,6 @@ export const darkTheme = {
         coinPairSelectBg: corePalette.clrBackground,
         coinPairBuyDisabledBg: '#021620',
         coinPairSellDisabledBg: '#140819',
-        coinPairSellArrow: corePalette.dodgerBlue,
-        coinPairBuyArrow: corePalette.fern,
         coinPairSelectBorder: corePalette.clrBorder,
         coinPairSelectText: corePalette.clrHighContrast,
         coinPairSelectText2: corePalette.clrBorder,
@@ -536,11 +518,6 @@ export const darkTheme = {
 
         coinPairDoneBtnBg: corePalette.clrGreen,
         coinPairDoneBtnText: corePalette.clrHighContrast,
-
-        coinActiveFilter: 'invert(100%) sepia(0%) saturate(7484%) hue-rotate(303deg) brightness(105%) contrast(92%)',
-        coinInactiveFilter: 'invert(29%) sepia(15%) saturate(1496%) hue-rotate(193deg) brightness(91%) contrast(85%)',
-        coinBuyFilter: 'invert(60%) sepia(58%) saturate(5791%) hue-rotate(126deg) brightness(93%) contrast(101%)',
-        coinSellFilter: 'invert(39%) sepia(35%) saturate(4473%) hue-rotate(186deg) brightness(108%) contrast(103%)',
 
         // Gradient Btns
         gradientBtnNextBg: 'linear-gradient(to right, rgba(14,113,184,1) 0%, rgba(14,113,184,1) 15%, rgba(0,157,225,1) 45%, rgba(0,157,225,1) 55%, rgba(14,113,184,1) 85%, rgba(14,113,184,1) 100%)',

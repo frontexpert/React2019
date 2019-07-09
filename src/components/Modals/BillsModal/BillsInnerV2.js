@@ -3,26 +3,33 @@ import { AutoSizer } from 'react-virtualized';
 import { inject, observer } from 'mobx-react';
 
 import { STORE_KEYS } from '../../../stores';
-// import BillChip from './BillChip';
-import BillChip from './BillChipV2';
+import BillChip from './BillChip';
 import {
+    BalanceOutline,
     BillLine,
     InnerWrapper,
     BillsWrapper,
     BalanceCol,
     Close,
     Icon,
-    BillDetail,
-    ChangeDeposit
+    BillDetail
 } from './Components';
+import SMSVerification from '../../../components-generic/SMSVerification3';
 
 import imgX from '../../../components-generic/Modal/x.svg';
 
+const showSMSModal = (Modal, onClose, portal, additionalVerticalSpace) => {
+    return Modal({
+        portal,
+        additionalVerticalSpace,
+        showClose: false,
+        ModalComponentFn: () => <SMSVerification portal={portal} onClose={onClose} isMobile />,
+    });
+};
+
 class BillsInner extends React.Component {
     state = {
-        selected: this.props.isDeposit && this.props.selected
-            ? this.props.selected
-            : null,
+        selected: null,
     };
 
     componentDidMount() {
@@ -34,58 +41,29 @@ class BillsInner extends React.Component {
     }
 
     handleClickOutside = (event) => {
-        if (
-            this.state.selected &&
-            this.billDetailRef &&
-            this.billDetailRef.contains &&
-            !this.billDetailRef.contains(event.target)
-        ) {
-            this.closeDetail();
+        if (this.state.selected && this.billDetailRef && this.billDetailRef.contains && !this.billDetailRef.contains(event.target)) {
+            this.setState({
+                selected: null,
+            });
         }
     };
-
-    getInnerRef = ref => this.billDetailRef = ref;
-
-    closeDetail = () => {
-        if (this.props.isDeposit) {
-            this.props.onChangeDeposit();
-            return;
-        }
-        this.setState({
-            selected: null,
-        });
-    };
-
-    // Update chip width to fit table into container
-    // Used approximate coefficient to update width to fit into container
-    updateChipWidth = (width) => Math.floor(width * 0.57);
-
-    // Update height
-    // Used approximate coefficient to update height to fit into container
-    getBillDetailChipHeight = (height) => this.props.isDeposit
-        ? height * 0.83
-        : height * 0.75;
 
     render() {
         const { selected } = this.state;
         const {
             [STORE_KEYS.BILLCHIPSTORE]: {
-                symbol,
-                position,
-                denominations,
-                listUserBillsResponse,
+                symbol, position, denominations, withdrawAmount,
+            },
+            [STORE_KEYS.MODALSTORE]: {
+                Modal, onClose,
             },
             isOpen,
             isFromModal,
             centerPos,
             newPosition,
-            handleColdStorageLoad,
-            isDeposit,
-            onChangeDeposit,
         } = this.props;
 
-        // Get default denomination
-        let deno = 8;
+        let deno = 6;
         for (let i = 0; i < denominations.length; i++) {
             if (denominations[i] && (denominations[i].symbol === symbol)) {
                 deno = denominations[i].deno;
@@ -93,105 +71,53 @@ class BillsInner extends React.Component {
             }
         }
 
-        const balance = newPosition || position;
+        const balance = withdrawAmount || newPosition || position;
         const newDeno = centerPos ? (centerPos - 1) : deno;
-
         return (
             <AutoSizer>
                 {({ width, height }) => {
-                    if (width !== 0 && height !== 0 && handleColdStorageLoad) {
-                        handleColdStorageLoad();
-                    }
                     let bills = [];
-                    const row = 16;
+                    const row = 10;
                     const col = 9;
-                    const w = 1670;
-                    const h = 850;
-                    const chipHeight = Math.floor((h - 70 - 10 * (col - 1)) / (col + 1));
-                    const chipWidth = this.updateChipWidth(chipHeight * 3192 / 1800);
-                    const newHeight = chipHeight * (col + 1) + 10 * (col - 1);
-
-                    const balanceStr = balance.toString().split('.');
-                    let backPos = newDeno;
-                    if (balanceStr.length > 1 && balanceStr[1].length) {
-                        backPos += balanceStr[1].length;
-                    } else if (balanceStr.length > 0 && balanceStr[0].length) {
-                        backPos += balanceStr[0].length;
-                    }
+                    const h = 852;
+                    const chipHeight = Math.floor((h - 20 - 112 - 10 * col) / col);
+                    const chipWidth = Math.floor(chipHeight * 3192 / 1801);
+                    const newHeight = 48 + chipHeight * col + 10 * col;
 
                     for (let i = 0; i < row; i++) {
-                        const nominal = (newDeno - i > -4)
-                            ? Math.pow(10, newDeno - i)
-                            : (1 / Math.pow(10, -(newDeno - i)));
-
-                        let curColBalance = Math.floor((balance / nominal) % 10);
-                        if (typeof curColBalance === 'undefined' || Number.isNaN(curColBalance)) {
-                            curColBalance = 0;
-                        }
-
-                        let startPos = 0;
-                        for (let k = 0; k < listUserBillsResponse.length; k++) {
-                            if (listUserBillsResponse[k].Nominal === nominal) {
-                                startPos = k;
-                                break;
-                            }
-                        }
+                        const curColBalance = Math.floor((balance / Math.pow(10, newDeno - i)) % 10);
+                        const outLineHeight = chipHeight * curColBalance + 10 * (curColBalance - 1) + 8;
 
                         let singleBill = [];
+                        singleBill.push(
+                            <BalanceCol key={`balance-${i}`} active={newDeno === i}>{curColBalance}</BalanceCol>
+                        );
                         for (let j = 0; j < col; j++) {
-                            const disabled = j >= curColBalance;
-
-                            let publicAddress;
-                            let serial;
-
-                            if (!disabled) {
-                                if (listUserBillsResponse.length > (startPos + j) && listUserBillsResponse[startPos + j].Nominal === nominal) {
-                                    publicAddress = listUserBillsResponse[startPos + j].Address;
-                                    serial = listUserBillsResponse[startPos + j].Serial;
-                                }
-                            }
-
                             singleBill.push(
                                 <BillChip
                                     key={`balance-col-${i}-row-${j}`}
                                     index={j}
                                     isV2
-                                    wrapperHeight={height}
                                     height={chipHeight}
-                                    level={i}
+                                    level={i + 1}
                                     symbol={symbol}
                                     deno={newDeno - i}
-                                    publicAddress={publicAddress}
-                                    serial={serial}
-                                    disabled={disabled || !publicAddress}
+                                    disabled={j >= curColBalance}
                                     onClick={() => {
-                                        this.setState({
-                                            selected: {
-                                                index: j,
-                                                level: i,
-                                                symbol,
-                                                deno: newDeno - i,
-                                                publicAddress,
-                                                serial,
-                                                disabled: disabled || !publicAddress,
-                                            },
-                                        });
+                                        if (j < curColBalance && isOpen) {
+                                            this.setState({
+                                                selected: {
+                                                    index: j,
+                                                    level: i + 1,
+                                                    symbol,
+                                                    deno: newDeno - i,
+                                                },
+                                            });
+                                        }
                                     }}
                                 />
                             );
                         }
-
-                        singleBill.push(
-                            <BalanceCol
-                                key={`balance-line-${i}`}
-                                active={newDeno === i}
-                                isShowComma={(newDeno > i) && (balance >= Math.pow(10, newDeno - i)) && ((newDeno - i) % 3 === 0)}
-                                isTransparent={balance < Math.pow(10, newDeno - i) || (i > backPos)}
-                                height={chipHeight}
-                            >
-                                {curColBalance}
-                            </BalanceCol>
-                        );
 
                         bills.push(
                             <BillLine
@@ -201,49 +127,45 @@ class BillsInner extends React.Component {
                                 height={newHeight}
                             >
                                 {singleBill}
+
+                                {/*
+                                {outLineHeight > 0 && (
+                                    <BalanceOutline size={outLineHeight} />
+                                )}
+                                */}
                             </BillLine>
                         );
                     }
 
                     return (
                         <Fragment>
-                            {!isDeposit && (
-                                <InnerWrapper isV2 height={h} realHeight={height}>
-                                    <div className="bill-description">{`MY ${symbol} IN COLD STORAGE`}</div>
+                            <InnerWrapper isV2 realHeight={height}>
+                                <BillsWrapper>
+                                    {bills}
+                                </BillsWrapper>
 
-                                    <BillsWrapper chipHeight={chipHeight}>
-                                        {bills}
-                                    </BillsWrapper>
+                                <span className="bill-description">{`${symbol} IN COLD STORAGE`}</span>
 
-                                    {isOpen && isFromModal && (
-                                        <Close onClick={this.props.onClose}>
-                                            <Icon src={imgX}/>
-                                        </Close>
-                                    )}
-                                </InnerWrapper>
-                            )}
-
-                            <ChangeDeposit isDeposit={isDeposit} onClick={onChangeDeposit}/>
+                                {isOpen && isFromModal && (
+                                    <Close onClick={this.props.onClose}>
+                                        <Icon src={imgX}/>
+                                    </Close>
+                                )}
+                            </InnerWrapper>
 
                             {selected && (
-                                <BillDetail isDeposit={isDeposit} onClick={this.closeDetail}>
-                                    <BillChip
-                                        isV2
-                                        isOpened
-                                        wrapperHeight={852}
-                                        index={selected.index}
-                                        hoverable={false}
-                                        height={this.getBillDetailChipHeight(height)}
-                                        level={selected.level}
-                                        symbol={selected.symbol}
-                                        deno={selected.deno}
-                                        disabled={selected.disabled}
-                                        getInnerRef={this.getInnerRef}
-                                        isDeposit={isDeposit}
-                                        publicAddress={selected.publicAddress}
-                                        serial={selected.serial}
-                                        depositBalance={balance}
-                                    />
+                                <BillDetail>
+                                    <div ref={ref => this.billDetailRef = ref}>
+                                        <BillChip
+                                            index={selected.index}
+                                            isV2
+                                            hoverable={false}
+                                            height={window.innerHeight / 2}
+                                            level={selected.level}
+                                            symbol={selected.symbol}
+                                            deno={selected.deno}
+                                        />
+                                    </div>
                                 </BillDetail>
                             )}
                         </Fragment>
@@ -256,4 +178,5 @@ class BillsInner extends React.Component {
 
 export default inject(
     STORE_KEYS.BILLCHIPSTORE,
+    STORE_KEYS.MODALSTORE
 )(observer(BillsInner));

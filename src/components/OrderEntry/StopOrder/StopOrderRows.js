@@ -11,7 +11,6 @@ const Wrapper = styled.div`
     align-items: stretch;
     justify-content: space-between;
     width: 100%;
-    line-height: 14px;
 `;
 
 export const StopOrderRows = ({

@@ -5,7 +5,6 @@ const GradientButtonStyleWrapper = styled.button.attrs({ className: 'gradient-bu
     position: relative;
     overflow: hidden;
     padding: 0;
-    margin: auto;
     width: ${props => props.width ? (props.width + 'px') : '100%'};
     height: ${props => props.height ? props.height : '30'}px;
     border: none;
@@ -91,6 +90,7 @@ const GradientButtonStyleWrapper = styled.button.attrs({ className: 'gradient-bu
     
     &.exchange-progress {
         cursor: pointer;
+        border: 1px ${props => props.theme.palette.clrBorder} solid;
 
         .gradient-button__content {
             background: transparent;
@@ -102,6 +102,7 @@ const GradientButtonStyleWrapper = styled.button.attrs({ className: 'gradient-bu
     
     &[disabled], &.progress, &.completed {
         cursor: url('/img/not-allowed1.cur'), not-allowed !important;
+        border: 1px ${props => props.theme.palette.clrBorder} solid;
 
         .gradient-button__label {
             &, & * {

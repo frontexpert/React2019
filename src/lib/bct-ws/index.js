@@ -1122,24 +1122,3 @@ export const OrderHistoryReply = ({ throttleMs = 250 }) => {
 
     return orderHistoryObservable;
 };
-
-/**
- *  Bills API integration
- */
-export const ListUserBillsRequest = (coin) => {
-    const payload = {
-        Coin: coin,
-    };
-
-    return new Promise((resolve, reject) => {
-        getClientTrade()
-            .then(cli => {
-                cli.emit('ListUserBillsRequest', payload);
-                cli.on('ListUserBillsResponse', data => {
-                    // console.log('[ListUserBillsResponse]', data);
-                    resolve(data);
-                });
-            })
-            .catch(e => console.log(e.message || 'can not getClientTrade'));
-    });
-};

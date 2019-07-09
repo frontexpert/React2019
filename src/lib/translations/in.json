@@ -187,6 +187,7 @@
   "data_loader_done.label_done": "DIBUAT",
   "sms_verification.label_enter_mobile_number": "Masukkan nomor ponsel",
   "sms_verification.label_what_code": "Apa kodenya?",
+  "switch_custom.label_off": "MATI",
 
   "button.save": "Menyimpan",
   "button.confirm": "Confirm",
@@ -215,6 +216,5 @@
   "order_book.buy_book.label_max_order_size": "MAX ORDER UKURAN: ",
   "settings.label_auto_flip": "Balik Otomatis",
   "settings.label_swaps": "Menukar",
-  "settings.label_is_auto_convert": "Konversi Otomatis",
-  "settings.label_support_center": "Pusat Dukungan Platform"
+  "settings.label_is_auto_convert": "Konversi Otomatis"
 }

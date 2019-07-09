@@ -187,6 +187,7 @@
   "data_loader_done.label_done": "เสร็จสิ้น",
   "sms_verification.label_enter_mobile_number": "ป้อนหมายเลขโทรศัพท์มือถือ",
   "sms_verification.label_what_code": "รหัสคืออะไร?",
+  "switch_custom.label_off": "ปิด",
 
   "button.save": "บันทึก",
   "button.confirm": "ยืนยัน",
@@ -215,6 +216,5 @@
   "order_book.buy_book.label_max_order_size": "ขนาดการสั่งซื้อสูงสุด: ",
   "settings.label_auto_flip": "พลิกอัตโนมัติ",
   "settings.label_swaps": "แลกเปลี่ยน",
-  "settings.label_is_auto_convert": "แปลงอัตโนมัติ",
-  "settings.label_support_center": "ศูนย์สนับสนุนแพลตฟอร์ม"
+  "settings.label_is_auto_convert": "แปลงอัตโนมัติ"
 }

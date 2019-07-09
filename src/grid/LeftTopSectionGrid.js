@@ -12,42 +12,27 @@ import SettingsPanel from '../components/SettingsPanel';
 import ExchangeCellsV2 from '../components/GraphTool/ExchangeCellsV2';
 import { STORE_KEYS } from '../stores';
 import { viewModeKeys } from '../stores/ViewModeStore';
-import { orderFormToggleKeys } from '../stores/OrderFormToggle';
 import { format2DigitString } from '../utils';
 import DepositView from '../components/DepositView';
 import { payViewModeKeys } from '../stores/PayAppStore';
-import { STATE_KEYS } from '../stores/ConvertStore';
-import SidebarToggleButton from './Components/SideBarToggleButton';
+
 const StyledLeftTopSectionGrid = styled.div`
     position: relative;
     grid-area: lefttopsection;
-    ${props => (props.isMobileDevice || props.isSmallWidth) ? 'width: calc(100% - 8px);' : 'min-width: 390px; max-width: 33%; width: 33%;'}
-    margin-left: ${props => props.isTrading || !props.isSidebar ? '-33%' : '12px'};
-    transition: margin .1s linear;
-
-    & > div:first-child {
+    
+    & > div {
         ${props => props.isSidebarOpen
         ? `
             transition: 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
             margin-left: 37px !important;
-            width: calc(100% - 37px);
+            width: calc(100% - 37px) !important;
         `
         : `
             transition: none !important;
-            margin-left: 0 !important;
-            width: 100% !important;
+            margin-left: 0 !important;;
+            width: 100% !important;;
         `}
     }
-`;
-
-const HoverWrapper = styled.div`
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    background: rgba(0, 0, 0, 0.7);
-    z-index: 1000;
 `;
 
 // need to get at paper within select
@@ -113,37 +98,18 @@ class LeftTopSectionGrid extends React.Component {
         }
     };
 
-    handleSidebarStatus = (status) => {
-        const { setSidebarStatus } = this.props[STORE_KEYS.SETTINGSSTORE];
-        const { showDepthChartMode } = this.props[STORE_KEYS.VIEWMODESTORE];
-        const { showOrderFormWith } = this.props[STORE_KEYS.ORDERFORMTOGGLE];
-        setSidebarStatus(status);
-        if (status === 'closed') {
-            showDepthChartMode(false);
-            showOrderFormWith(orderFormToggleKeys.offToggleKey);
-        }
-    };
-
     render() {
         const {
-            viewMode, isSidebarOpen, depositActiveCoin, isSettingsOpen, setUserDropDownOpen, graphSwitchMode,
+            viewMode, isSidebarOpen, depositActiveCoin, isSettingsOpen, setUserDropDownOpen,
         } = this.props[STORE_KEYS.VIEWMODESTORE];
         const { isOrderBookBreakDownStop, isOrderBookDataLoaded } = this.props[STORE_KEYS.ORDERBOOKBREAKDOWN];
         const { isNoExchanges } = this.props[STORE_KEYS.LOWESTEXCHANGESTORE];
         const { isEmptyExchange } = this.props[STORE_KEYS.EXCHANGESSTORE];
         const { isLoggedIn } = this.props[STORE_KEYS.TELEGRAMSTORE];
-        const { convertState } = this.props[STORE_KEYS.CONVERTSTORE];
-        const {
-            isArbitrageMode,
-            tradeColStatus,
-            sidebarStatus,
-        } = this.props[STORE_KEYS.SETTINGSSTORE];
+        const { isUserDropDownOpen } = this.props[STORE_KEYS.VIEWMODESTORE];
         const {
             isMobileDevice,
-            isSmallWidth,
         } = this.props;
-
-        const isArbitrageMonitorMode = isArbitrageMode && (convertState !== STATE_KEYS.coinSearch);
         let SelectedComponent = PayApp;
         if (isSettingsOpen) {
             SelectedComponent = SettingsPanel;
@@ -155,12 +121,6 @@ class LeftTopSectionGrid extends React.Component {
                     : ((!isOrderBookBreakDownStop && isOrderBookDataLoaded && !isEmptyExchange)
                         ? OrderBookRecentTradesContainer
                         : (!isNoExchanges ? ExchangeCellsV2 : SettingsPanel)));
-
-            if (SelectedComponent === ExchangeCellsV2 && isLoggedIn) {
-                // setUserDropDownOpen(true);
-            } else {
-                // setUserDropDownOpen(false);
-            }
         } else if (viewMode === viewModeKeys.advancedModeKey) {
             SelectedComponent = (!isOrderBookBreakDownStop && isOrderBookDataLoaded && !isEmptyExchange)
                 ? OrderBookRecentTradesContainer
@@ -174,21 +134,10 @@ class LeftTopSectionGrid extends React.Component {
         } else if (viewMode === viewModeKeys.exchangesModeKey) {
             SelectedComponent = ExchangeCellsV2;
         }
-        const isDonutMode = (convertState !== STATE_KEYS.coinSearch) && graphSwitchMode;
 
         return (
-            <StyledLeftTopSectionGrid
-                id="left-sidebar"
-                full={(isArbitrageMonitorMode && tradeColStatus === 'closed') || sidebarStatus === 'closed'}
-                isSidebarOpen={isSidebarOpen}
-                isMobileDevice={isMobileDevice}
-                isSmallWidth={isSmallWidth}
-                isTrading={isArbitrageMonitorMode && tradeColStatus === 'closed'}
-                isSidebar={sidebarStatus === 'open'}
-            >
-                {/* { isDonutMode && <HoverWrapper /> } */}
+            <StyledLeftTopSectionGrid isSidebarOpen={isSidebarOpen} id="left-sidebar">
                 <SelectedComponent/>
-                <SidebarToggleButton sidebarStatus={sidebarStatus} setSidebarStatus={this.handleSidebarStatus}/>
             </StyledLeftTopSectionGrid>
         );
     }
@@ -203,7 +152,5 @@ export default withStyles(styles)(inject(
     STORE_KEYS.SETTINGSSTORE,
     STORE_KEYS.PAYAPPSTORE,
     STORE_KEYS.EXCHANGESSTORE,
-    STORE_KEYS.ORDERBOOKBREAKDOWN,
-    STORE_KEYS.CONVERTSTORE,
-    STORE_KEYS.ORDERFORMTOGGLE
+    STORE_KEYS.ORDERBOOKBREAKDOWN
 )(observer(LeftTopSectionGrid)));

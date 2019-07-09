@@ -46,8 +46,7 @@ class ViewModeStore {
     @observable graphSwitchMode = false; // false: donut, true: portfolio
     @observable isFirstLoad = true; // true: first-loading
     @observable isAdvancedAPIMode = false;
-    @observable rightTopSectionGridMode = 'graph';
-    @observable masterSwtichMode = false;
+    @observable isReportMode = false;
 
     statesSequence = null;
 
@@ -125,8 +124,8 @@ class ViewModeStore {
         this.tradingViewMode = mode;
     }
 
-    @action.bound setRightTopSectionGridMode(mode) {
-        this.rightTopSectionGridMode = mode;
+    @action.bound setReportMode(mode) {
+        this.isReportMode = mode;
     }
 
     @action.bound toggleSearchEnabled(isSearchEnabled) {
@@ -157,11 +156,6 @@ class ViewModeStore {
     }
 
     @action.bound setGraphSwitchMode(mode) {
-        if (this.masterSwtichMode === false) this.graphSwitchMode = mode;
-    }
-
-    @action.bound setMasterSwitchMode(mode) {
-        this.masterSwtichMode = mode;
         this.graphSwitchMode = mode;
     }
 

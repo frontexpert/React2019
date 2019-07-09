@@ -27,7 +27,6 @@ class SettingsStore {
     @observable tradingHistory = false;
     @observable accessLevel = 'Level 1';
     @observable language = '';
-
     @observable defaultFiat = '';
     @observable defaultFiatSymbol = '';
     @observable currentFiatPrice = 1;
@@ -35,7 +34,6 @@ class SettingsStore {
     @observable defaultCryptoSymbol = '';
     @observable defaultCryptoPrice = 0;
     @observable isDefaultCrypto = false;
-
     @observable defaultTelegram = '';
     @observable defaultURL = '';
     @observable referredBy = 'shaunmacdonald';
@@ -53,14 +51,10 @@ class SettingsStore {
     @observable isAutoConvert = autoConvertOptions.Off;
     @observable swap = 'Convert';
     @observable c1 = 'All Coins';
-    @observable c2 = 'USDT';
+    @observable c2 = 'All Coins';
     @observable autoFlip = 'Auto Flip';
     @observable slider = 'Best Execution';
     @observable timer = 30;
-    @observable timerAfter = 'After 2 transactions';
-
-    @observable tradeColStatus = 'open';
-    @observable sidebarStatus = 'open';
 
     isLoggedIn = false;
     PortfolioData = null;
@@ -194,8 +188,6 @@ class SettingsStore {
         if (this.isRealTrading) {
             this.setShortSellWith(false);
         }
-
-        this.setIsDefaultCrypto(false);
     };
 
     getSettingsFromWs = () => {
@@ -301,14 +293,6 @@ class SettingsStore {
                         ? data.Settings.timer
                         : this.timer;
                     localStorage.setItem('timer', this.timer.toString());
-                    this.timerAfter = data.Settings.timerAfter != null
-                        ? data.Settings.timerAfter
-                        : this.timerAfter;
-                    localStorage.setItem('timerAfter', this.timerAfter.toString());
-                    this.tradeColStatus = data.Settings.tradeColStatus != null
-                        ? data.Settings.tradeColStatus
-                        : this.tradeColStatus;
-                    localStorage.setItem('tradeColStatus', this.tradeColStatus.toString());
                     this.swap = data.Settings.swap != null
                         ? data.Settings.swap
                         : this.swap;
@@ -364,11 +348,9 @@ class SettingsStore {
         this.isExporting = localStorage.getItem('isExporting') === 'true';
         this.isAutoConvert = localStorage.getItem('isAutoConvert') || autoConvertOptions.Partial;
         this.timer = localStorage.getItem('timer') || 30;
-        this.timerAfter = localStorage.getItem('timerAfter') || 'After 2 transactions';
-        this.tradeColStatus = localStorage.getItem('tradeColStatus') || 'open';
         this.swap = localStorage.getItem('swap') || 'Convert';
         this.c1 = localStorage.getItem('c1') || 'All Coins';
-        this.c2 = localStorage.getItem('c2') || 'USDT';
+        this.c2 = localStorage.getItem('c2') || 'All Coins';
         this.autoFlip = localStorage.getItem('autoFlip') || 'Auto Flip';
         this.slider = localStorage.getItem('slider') || 'Best Execution';
 
@@ -400,9 +382,6 @@ class SettingsStore {
         localStorage.setItem('autoPaybackBct', this.autoPaybackBct.toString());
         localStorage.setItem('isAutoConvert', this.isAutoConvert.toString());
         localStorage.setItem('timer', this.timer.toString());
-        localStorage.setItem('timerAfter', this.timerAfter.toString());
-        localStorage.setItem('tradeColStatus', this.tradeColStatus.toString());
-        localStorage.setItem('sidebarStatus', this.sidebarStatus.toString());
         localStorage.setItem('swap', this.swap.toString());
         localStorage.setItem('c1', this.c1.toString());
         localStorage.setItem('c2', this.c2.toString());
@@ -440,8 +419,6 @@ class SettingsStore {
                 isExporting: this.isExporting,
                 isAutoConvert: this.isAutoConvert,
                 timer: this.timer,
-                timerAfter: this.timerAfter,
-                tradeColStatus: this.tradeColStatus,
                 swap: this.swap,
                 c1: this.c1,
                 c2: this.c2,
@@ -493,16 +470,15 @@ class SettingsStore {
     @action.bound setArbitrageMode() {
         this.isArbitrageMode = !this.isArbitrageMode;
 
-        // if (this.isArbitrageMode) {
-        //     this.setC2('USDT');
-        //     this.setSwap('Convert');
-        //     this.setIsAutoConvert(autoConvertOptions.Partial);
-        //     this.setShortSellWith(false);
-        // } else {
-        //     this.setC2('All Coins');
-        //     // this.setSwap('Swap');
-        //     this.setSwap('Convert');
-        // }
+        if (this.isArbitrageMode) {
+            this.setC2('USDT');
+            this.setSwap('Convert');
+            this.setIsAutoConvert(autoConvertOptions.Partial);
+            this.setShortSellWith(false);
+        } else {
+            this.setC2('All Coins');
+            this.setSwap('Swap');
+        }
 
         this.updateSettingsToWs();
     }
@@ -517,9 +493,8 @@ class SettingsStore {
                 this.setIsAutoConvert(autoConvertOptions.Partial);
                 this.setShortSellWith(false);
             } else {
-                this.setC2('USDT');
-                // this.setSwap('Swap');
-                this.setSwap('Convert');
+                this.setC2('All Coins');
+                this.setSwap('Swap');
             }
             this.updateSettingsToWs();
         }
@@ -631,9 +606,6 @@ class SettingsStore {
         if (!this.isDefaultCrypto && symbol === 'USDT') {
             return this.defaultFiat;
         }
-        if (this.isDefaultCrypto) {
-            return this.defaultCryptoSymbol;
-        }
         return symbol;
     }
 
@@ -692,8 +664,7 @@ class SettingsStore {
             this.setShortSellWith(false);
             this.setSwap('Convert');
         } else {
-            // this.setSwap('Swap');
-            this.setSwap('Convert');
+            this.setSwap('Swap');
             if (!this.isShortSell) {
                 this.setC1('My Coins');
             }
@@ -703,27 +674,7 @@ class SettingsStore {
     }
 
     @action.bound setTimer(value) {
-        // this.timer = value;
-        // this.updateSettingsToWs();
-    }
-
-    @action.bound setTimerAfter(value) {
-        this.timerAfter = value;
-        if (value === 'After 2 transactions') {
-            this.setArbitrageModeWith(true);
-        } else {
-            this.setArbitrageModeWith(false);
-        }
-        this.updateSettingsToWs();
-    }
-
-    @action.bound setTradeColStatus(value) {
-        this.tradeColStatus = value;
-        this.updateSettingsToWs();
-    }
-
-    @action.bound setSidebarStatus(value) {
-        this.sidebarStatus = value;
+        this.timer = value;
         this.updateSettingsToWs();
     }
 

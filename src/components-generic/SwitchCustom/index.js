@@ -15,6 +15,34 @@ const SwitchStyleWrapper = styled.div.attrs({ className: 'switch-custom-componen
     height: ${height}px;
     cursor: pointer;
     
+    &:lang(es),&:lang(tr),&:lang(ko) {
+        width: 110px;
+        .back {
+            width: 110px;
+        }
+        .toggleOn {
+            font-size: 14px;
+        }
+        &.open {
+            .icon {
+                left: ${110 - (height - iconWidth) / 2 - iconWidth}px;
+            }
+        }
+    }
+    &:lang(in),&:lang(pl),&:lang(pt) {
+        width: 80px;
+        .back {
+            width: 80px;
+        }
+        .toggleOn {
+            font-size: 14px;
+        }
+        &.open {
+            .icon {
+                left: ${80 - (height - iconWidth) / 2 - iconWidth}px;
+            }
+        }
+    }
     .back {
         position: relative;
         border: ${borderWidth}px solid ${props => props.theme.palette.clrBackground};
@@ -104,7 +132,12 @@ class SwitchCustom extends React.Component {
             >
                 <div className="back">
                     <div className="toggleOn">
-                        {checked ? '' : 'OFF'}
+                        {checked ? '' :
+                            <FormattedMessage
+                                id="switch_custom.label_off"
+                                defaultMessage="OFF"
+                            />
+                        }
                     </div>
                     <div className="icon">
                         {/*

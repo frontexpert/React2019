@@ -48,96 +48,87 @@ const StyledWrapper = styled.div.attrs({ className: 'coin-pair-form-v2' })`
         position: relative;
         display: flex;
         margin: 0;
-        height: 60px;
+        flex: 0 0 ${props => props.theme.palette.exchHeadHeight};
         transition: all .5s;
-        border-radius: ${props => props.theme.palette.borderRadius};
-        border: 1px solid ${props => props.theme.palette.coinPairSelectBorder};
-        &:hover {
-            border: 1px solid ${props => props.theme.palette.coinPairSelectHoverBorder};
-        }
 
-        .exch-head__coin-pair {
+        .exch-head__get,
+        .exch-head__send {
             position: relative;
             display: flex;
-            flex: 1;
-            direction: ${props => props.isCoinPairInversed ? 'rtl' : 'ltr'};
-            transition: border 0.2s ease;
+            flex: 1 1;
+            padding: 0;
+            height: calc(${props => props.theme.palette.exchHeadHeight} + 2px);
+        }
 
-            .exch-head__get,
-            .exch-head__send {
-                direction: ltr;
-                position: relative;
-                display: flex;
-                flex: 1;
-                padding: 0;
-                height: calc(${props => props.theme.palette.exchHeadHeight} + 2px);
+        .exch-head__switch {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            margin: 0;
+            border: none;
+            border-radius: ${props => props.theme.palette.borderRadius};
+            // padding-bottom: 14px;
+            padding: 0px 12px;
+            cursor: pointer;
+            background: transparent;
+
+            &:hover {
+                .exch-head__switch-arrows,
+                .exch-form__switch-arrows {
+                    stroke: ${props => props.theme.palette.coinPairSwitchBtnHoverFill};
+                }
             }
 
-            .exch-head__switch {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex-direction: column;
-                margin: 0;
-                border: none;
-                border-radius: ${props => props.theme.palette.borderRadius};
-                // padding-bottom: 14px;
-                padding: 0px 12px;
-                cursor: pointer;
-                background: transparent;
+            &.switched {
+                .exch-head__switch-arrows {
+                    transform: rotate(180deg);
+                }
+            }
+
+            &.shortsell {
+                cursor: initial;
 
                 &:hover {
                     .exch-head__switch-arrows,
                     .exch-form__switch-arrows {
-                        stroke: ${props => props.theme.palette.coinPairSwitchBtnHoverFill};
+                        stroke: ${props => props.theme.palette.coinPairSwitchBtnFill};
                     }
                 }
+            }
 
-                &.switched {
-                    .exch-head__switch-arrows {
-                        transform: rotate(180deg);
-                    }
-                }
+            .exch-head__switch-arrows {
+                margin: 0 0 2px 0;
+                width: 38px;
+                height: 28px;
+                transition: all .3s;
+                transform: rotate(0deg);
+                stroke: ${props => props.theme.palette.coinPairSwitchBtnFill};
+                fill: none;
+            }
 
-                &.shortsell {
-                    cursor: initial;
-
-                    &:hover {
-                        .exch-head__switch-arrows,
-                        .exch-form__switch-arrows {
-                            stroke: ${props => props.theme.palette.coinPairSwitchBtnFill};
-                        }
-                    }
-                }
-
-                .exch-head__switch-arrows {
-                    margin: 0 0 2px 0;
-                    width: 38px;
-                    height: 28px;
-                    transition: all .3s;
-                    transform: rotate(0deg);
-                    stroke: ${props => props.theme.palette.coinPairSwitchBtnFill};
-                    fill: none;
-                }
-
-                .exch-form__switch-arrows {
-                    // margin:  0 0 4px 0;
-                    // width: 53px;
-                    // height: 20px;
-                    width: 32px;
-                    height: 24px;
-                    transition: all .3s;
-                    transform: rotate(${props => props.isCoinPairInversed ? '180' : '0'}deg);
-                    stroke: ${props => props.theme.palette.coinPairSwitchBtnFill};
-                    fill: none;
-                }
+            .exch-form__switch-arrows {
+                // margin:  0 0 4px 0;
+                // width: 53px;
+                // height: 20px;
+                width: 32px;
+                height: 24px;
+                transition: all .3s;
+                transform: rotate(0deg);
+                stroke: ${props => props.theme.palette.coinPairSwitchBtnFill};
+                fill: none;
             }
         }
 
         .exch-head__btnv2 {
-            width: 58px;
-            height: 100%;
+            width: 9%;
+            width: 100px;
             cursor: pointer;
+            margin: 0 0 0 ${props => props.theme.palette.gapSize};
+
+            &.progress {
+                border: 1px solid ${props => props.theme.palette.clrBorder};
+            }
 
             .exch-head__btnv2__content {
                 display: flex;
@@ -186,12 +177,18 @@ const StyledWrapper = styled.div.attrs({ className: 'coin-pair-form-v2' })`
                     background: ${props => props.theme.palette.coinPairSelectHoverBg};
                     border-radius: ${props => `${props.theme.palette.borderRadius} ${props.theme.palette.borderRadius} 0 0`};
                 }
+
+                .exch-dropdown__current {
+                    .ratio-input {
+                        color: ${props => props.theme.palette.coinPairSelectHoverText2} !important;
+                    }
+                }
             }
 
             .exch-dropdown__list {
                 opacity: 1;
                 visibility: visible;
-                margin-top: 11px;
+                margin-top: 12px;
                 border-top: 1px solid ${props => props.theme.palette.clrBorder};
             }
 
@@ -206,10 +203,6 @@ const StyledWrapper = styled.div.attrs({ className: 'coin-pair-form-v2' })`
                     }
                 }
             }
-
-            .exch-dropdown__wallet-btn {
-                pointer-events: auto;
-            }
         }
 
         .exch-dropdown__border {
@@ -218,9 +211,23 @@ const StyledWrapper = styled.div.attrs({ className: 'coin-pair-form-v2' })`
             width: 100%;
             height: 100%;
 
+            &:before {
+                content: '';
+                position: absolute;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                right: 0;
+                z-index: -1;
+                border-radius: ${props => props.theme.palette.borderRadius};
+                background: ${props => props.theme.palette.coinPairSelectBg};
+                border: 1px solid ${props => props.theme.palette.coinPairSelectBorder};
+            }
+
             &:hover {
                 &:before {
                     background: ${props => props.theme.palette.coinPairSelectHoverBg};
+                    border: 1px solid ${props => props.theme.palette.coinPairSelectHoverBorder};
                 }
 
                 .exch-dropdown__current {
@@ -232,6 +239,66 @@ const StyledWrapper = styled.div.attrs({ className: 'coin-pair-form-v2' })`
                         span {
                             color: ${props => props.theme.palette.coinPairSelectHoverText2} !important;
                         }
+                    }
+
+                    .ratio-input {
+                        color: ${props => props.theme.palette.coinPairSelectHoverText2} !important;
+                    }
+                }
+            }
+        }
+
+        .exch-dropdown__current {
+            width: 100%;
+            height: 100%;
+            padding: 0 10px;
+            display: flex;
+            align-items: center;
+            transition: all .1s;
+            font-size: 13px;
+            color: ${props => props.theme.palette.coinPairSelectText2};
+
+            .exch-dropdown__title {
+                font-size: 13px;
+                color: ${props => props.theme.palette.coinPairSelectText2};
+
+                span {
+                    font-size: 40px;
+                    font-weight: 600;
+                    color: ${props => props.theme.palette.coinPairSelectHoverText2};
+                }
+            }
+
+            .flex-1 {
+                flex: 1;
+                display: flex;
+                align-items: center;
+
+                // &:first-child {
+                //     width: 45%;
+                // }
+                //
+                // &:last-child {
+                //     width: 85%;
+                //     justify-content: flex-end;
+                // }
+
+                .ratio-input {
+                    position: relative;
+                    width: 100%;
+                    height: 100%;
+                    background: transparent;
+                    border: none;
+                    border-radius: ${props => props.theme.palette.borderRadius};
+                    font-size: 38px;
+                    font-weight: 600;
+                    color: ${props => props.theme.palette.coinPairSelectHoverText};
+                    text-align: right;
+                    outline: none;
+                    cursor: pointer;
+
+                    @media (max-width: 1390px) {
+                        font-size: 32px;
                     }
                 }
             }
@@ -291,7 +358,7 @@ const StyledWrapper = styled.div.attrs({ className: 'coin-pair-form-v2' })`
             position: absolute;
             // height: max-content;
             z-index: 5;
-            left: -1px;
+            left: 0;
             right: 0;
             top: 100%;
             padding: 0;
@@ -403,7 +470,7 @@ const StyledWrapper = styled.div.attrs({ className: 'coin-pair-form-v2' })`
             }
 
             &.current {
-                background: ${props => props.theme.palette.coinPairDropDownItemHoverBg};
+                background: ${props => props.theme.palette.coinPairDropDownItemActiveBg};
 
                 .exch-dropdown__title {
                     color: ${props => props.theme.palette.coinPairDropDownItemActiveText} !important;
@@ -463,24 +530,26 @@ const StyledWrapper = styled.div.attrs({ className: 'coin-pair-form-v2' })`
             left: 0;
             right: 0;
             top: 0;
-            height: 58px;
+            height: 60px;
             background: ${props => props.theme.palette.coinPairDropDownItemBg};
+            border: 1px solid ${props => props.theme.palette.coinPairDropDownBorder};
+            border-radius: ${props => `${props.theme.palette.borderRadius} ${props.theme.palette.borderRadius} 0 0`};
 
             .exch-search__icon {
-                // background-color: #454c73;
+                background-color: #454c73;
                 position: absolute;
-                left: 15px;
+                right: 0px;
                 top: 50%;
                 transform: translateY(-50%);
-                width: 26px;
-                height: 30px;
-                margin: 0 12px
+                width: 60px;
+                height: 60px;
+                padding: 15px;
                 fill: ${props => props.theme.palette.clrHighContrast};
                 z-index: 1;
             }
 
             .exch-search__input {
-                font-size: 24px;
+                font-size: 30px;
                 position: absolute;
                 width: 100%;
                 left: 0;
@@ -488,7 +557,7 @@ const StyledWrapper = styled.div.attrs({ className: 'coin-pair-form-v2' })`
                 right: 0;
                 bottom: 0;
                 color: ${props => props.theme.palette.coinPairSelectText};
-                padding: 5px 10px 5px 85px;
+                padding: 0 120px 0 20px;
                 border: none;
                 background: transparent;
                 margin: auto 0;
@@ -511,7 +580,7 @@ const StyledWrapper = styled.div.attrs({ className: 'coin-pair-form-v2' })`
     }
 
     .exch-dropdown__title {
-        padding: 0 12px;
+        padding: 0 0 0 10px;
         margin: 0;
         line-height: 1;
         font-weight: 500;
@@ -543,296 +612,246 @@ const StyledWrapper = styled.div.attrs({ className: 'coin-pair-form-v2' })`
         height: calc(${props => props.theme.palette.exchHeadHeight} + 2px);
         visibility: hidden;
         opacity: 0;
-        border-radius: ${props => props.theme.palette.borderRadius};
-        border: 1px solid ${props => props.theme.palette.coinPairSelectBorder};
 
-        .exch-form__coin-pair {
+        .exch-form__get,
+        .exch-form__send {
             position: relative;
+            flex: 1 1;
             display: flex;
-            flex: 1;
-            direction: ${props => props.isCoinPairInversed ? 'rtl' : 'ltr'};
+            align-items: center;
+            padding: 1px 1px 1px 10px;
+            height: 100%;
+            // overflow: hidden;
 
-
-
-            .exch-form__get,
-            .exch-form__send {
-                position: relative;
-                flex: 1 1;
-                display: flex;
-                // direction: ${props => props.isCoinPairInversed ? 'rtl' : 'ltr'};
-                align-items: center;
-                justify-content: space-between;
-
-                &:hover {
-                    &:before {
-                        background: ${props => props.theme.palette.coinPairSelectHoverBg};
-                    }
-                }
-
+            &:hover {
                 &:before {
-                    content: '';
-                    position: absolute;
-                    left: 0;
-                    top: 1px;
-                    bottom: 1px;
-                    right: 0;
-                    z-index: -1;
-                    border: none;
-                }
-
-                .exch-dropdown__title {
-                    font-size: 13px;
-                    color: ${props => props.theme.palette.coinPairSelectText};
-
-                    span {
-                        font-size: 33px;
-                        font-weight: 500;
-                        color: ${props => props.theme.palette.coinPairSelectText};
-                    }
-                }
-                .orderhistory__wallet-btn {
-                    height: 45px;
+                    background: ${props => props.theme.palette.coinPairSelectHoverBg};
+                    border: 1px solid ${props => props.theme.palette.coinPairSelectHoverBorder};
                 }
             }
 
-            .exch-form__input {
-                direction: ltr;
+            &:before {
+                content: '';
                 position: absolute;
+                left: 0;
                 top: 0;
-                width: 260px;
-                font-size: 24px;
-                text-align: center;
-                color: #0000;
-                // font-size: 33px;
-                // font-weight: 500;
-                height: 100%;
-                // width: 100%;
-                // text-align: right;
-                padding: 4px 0;
-                border: none;
+                bottom: 0;
+                right: 0;
+                z-index: -1;
                 border-radius: ${props => props.theme.palette.borderRadius};
-                // color: ${props => props.theme.palette.coinPairSelectText2};
-                outline: none;
-                background: transparent;
-                z-index: 1;
-                margin-top: 0;
-                caret-color: white;
-                caret-width: 2px;
-
-                &.right {
-                    // text-align: left;
-                }
-
-                @media (max-width: 1390px) {
-                    font-size: 32px;
-                }
-                &::selection {
-                    color: #0000;
-                }
+                border: 1px solid ${props => props.theme.palette.coinPairSelectBorder};
+                background: ${props => props.theme.palette.coinPairSelectBg};
             }
 
-            .exch-form__send {
-                padding: ${props => props.isCoinPairInversed ? '1px 12px 1px 0' : '1px 0 1px 12px'};
-                .exch-form__input {
-                    // text-align: ${props => props.isCoinPairInversed ? 'left' : 'right'};
-                    // color: ${props => props.theme.palette.coinPairSelectText};
-                    ${props => props.isCoinPairInversed ? 'left: 0' : 'right: 0'};
-                    ${props => props.isCoinPairInversed ? 'margin-left: 0' : 'margin-right: 0'};
+            .exch-dropdown__title {
+                font-size: 13px;
+                color: ${props => props.theme.palette.coinPairSelectText};
+
+                span {
+                    font-size: 40px;
+                    font-weight: 600;
+                    color: ${props => props.theme.palette.coinPairSelectText};
                 }
-                .orderhistory__wallet-btn div >div {
-                    height: 45px !important;
-                    .infoIcon {
-                        ${props => props.isCoinPairInversed ? 'right: -20px; left: initial;' : 'left: -20px; right: initial;'}
-                    }
-                }
-            }
-
-            .exch-form__get {
-                padding: ${props => props.isCoinPairInversed ? '1px 0 1px 12px' : '1px 12px 1px 0'};
-                .exch-form__input {
-                    // text-align: ${props => props.isCoinPairInversed ? 'right' : 'left'};
-                    cursor: inherit;
-                    ${props => props.isCoinPairInversed ? 'right: 0' : 'left: 0'};
-                    ${props => props.isCoinPairInversed ? 'margin-right: 0' : 'margin-left: 0'};
-                }
-                .orderhistory__wallet-btn div >div {
-                    height: 45px !important;
-                    svg {
-                        ${props => props.isCoinPairInversed ? 'right: -8px; left: initial;' : 'left: -8px; right: initial;'}
-                    }
-                    .infoIcon {
-                        ${props => props.isCoinPairInversed ? 'left: -20px; right: initial;' : 'right: -20px; left: initial;'}
-                    }
-                }
-                .range-slider {
-                    pointer-events: none;
-                }
-            }
-
-            .exch-form__sep {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex-direction: column;
-                margin: 0 4px;
-                border: none;
-                border-radius: ${props => props.theme.palette.borderRadius};
-                height: calc(${props => props.theme.palette.exchHeadHeight} + 2px);
-                cursor: pointer;
-                background: transparent;
-
-                ${props => props.isCoinPairInversed ? `
-                    transform: rotate(180deg);
-                ` : ''};
-
-                .exch-form__switch-arrows {
-                    stroke: ${props => props.theme.palette.coinPairSwitchBtnHoverFill};
-                    .arrow_top {
-                        fill: ${props => props.isCoinPairInversed ? 'none' : props.theme.palette.coinPairSellArrow};
-                    }
-                    .arrow_bottom {
-                        fill: ${props => props.isCoinPairInversed ? props.theme.palette.coinPairBuyArrow : 'none'};
-                    }
-                }
-
-                &.shortsell {
-                    cursor: initial;
-
-                    &:hover {
-                        .exch-form__switch-arrows {
-                            stroke: ${props => props.theme.palette.coinPairSwitchBtnFill};
-                        }
-                    }
-                }
-
-                &.switched {
-                    .exch-form__switch-arrows {
-                        transform: rotate(180deg);
-                    }
-                }
-
-                .exch-form__switch-arrows {
-                    width: 58px;
-                    transition: all .3s;
-                    transform: rotate(${props => props.isCoinPairInversed ? '180' : '0'}deg);
-                    stroke: ${props => props.theme.palette.coinPairSwitchBtnFill};
-
-                    .arrow_top {
-                        margin-right: -10px;
-                    }
-                    .arrow_bottom {
-                        margin-left: -10px;
-                    }
-                }
-
-                .type-label {
-                    color: white;
-                    position: absolute;
-                    font-size: 9px;
-                    font-weight: 700;
-                    transform: rotate(${props => props.isCoinPairInversed ? '180' : '0'}deg);
-                }
-
-                .type-label {
-                    top: 15px;
-                }
-            }
-
-            &.progress:not(.completed) {
-                .exch-form__submitv2 {
-                    .exch-form__progress {
-                        display: block;
-
-                        span {
-                            display: inline-block;
-                        }
-
-                        &__label {
-                            font-size: 10px;
-                        }
-
-                        &__value {
-                            font-size: 37px;
-                            font-weight: 600;
-                            padding-right: 5px;
-                        }
-
-                        &__percent {
-                            font-weight: 400;
-                            font-size: 22px;
-                            line-height: 10px;
-                            font-family: Arial, Helvetica, sans-serif;
-                            margin-left: -4px;
-
-                            small {
-                                font-size: 10px;
-                            }
-                        }
-                    }
-
-                    & > span, .btn-text {
-                        display: none;
-                    }
-                }
-            }
-
-            &.progress,
-            &.completed {
-                .exch-form__input {
-                    fill: ${props => props.theme.palette.coinPairSelectText};
-                    color: ${props => props.theme.palette.coinPairSelectText2};
-                    pointer-events: none;
-                }
-
-                .exch-form__send,
-                .exch-form__get {
-                    &:before {
-                        // background: ${props => props.theme.palette.coinPairDropDownItemBg};
-                        border: 1px solid ${props => props.theme.palette.coinPairDropDownItemBorder};
-                    }
-                }
-
-                .exch-dropdown__title {
-                    color: ${props => props.theme.palette.coinPairSelectText2};
-
-                    span {
-                        color: ${props => props.theme.palette.coinPairSelectText2};
-                    }
-                }
-
-                .exch-dropdown__icon {
-                    opacity: .25;
-                    filter: grayscale(1);
-                }
-
-                .exch-form__sep {
-                    // pointer-events: none;
-                }
-            }
-
-            &.amountInput {
-                .exch-form__sep {
-                    // pointer-events: none;
-                }
-            }
-
-            &.completed {
-                .exch-form__submitv2 {
-                    .exch-form__progress {
-                        display: none;
-                    }
-                }
-            }
-
-            .range-slider {
-                position: absolute;
-                left: 1px;
-                right: 1px;
-                bottom: -6px;
-                z-index: 1;
             }
         }
 
+        .exch-form__input {
+            position: relative;
+            font-size: 38px;
+            font-weight: 600;
+            height: 100%;
+            width: 100%;
+            text-align: right;
+            padding: 4px 10px;
+            border: none;
+            border-radius: ${props => props.theme.palette.borderRadius};
+            color: ${props => props.theme.palette.coinPairSelectText2};
+            outline: none;
+            background: transparent;
+            z-index: 1;
+            margin-top: 0;
+            caret-color: white;
+            caret-width: 2px;
+
+            @media (max-width: 1390px) {
+                font-size: 32px;
+            }
+        }
+
+        .exch-form__send {
+            .exch-form__input {
+                color: ${props => props.theme.palette.coinPairSelectText};
+            }
+        }
+
+        .exch-form__get {
+            .exch-form__input {
+                cursor: pointer;
+            }
+        }
+
+        .exch-form__sep {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            margin: 0;
+            border: none;
+            border-radius: ${props => props.theme.palette.borderRadius};
+            // padding-bottom: 6px;
+            padding: 0 12px;
+            height: calc(${props => props.theme.palette.exchHeadHeight} + 2px);
+            cursor: pointer;
+            background: transparent;
+
+            &:hover {
+                .exch-form__switch-arrows {
+                    stroke: ${props => props.theme.palette.coinPairSwitchBtnHoverFill};
+                }
+            }
+
+            &.shortsell {
+                cursor: initial;
+
+                &:hover {
+                    .exch-form__switch-arrows {
+                        stroke: ${props => props.theme.palette.coinPairSwitchBtnFill};
+                    }
+                }
+            }
+
+            &.switched {
+                .exch-form__switch-arrows {
+                    transform: rotate(180deg);
+                }
+            }
+
+            .exch-form__switch-arrows {
+                // width: 53px;
+                // height: 20px;
+                width: 32px;
+                height: 24px;
+                transition: all .3s;
+                transform: rotate(0deg);
+                stroke: ${props => props.theme.palette.coinPairSwitchBtnFill};
+                fill: none;
+            }
+        }
+
+        &.progress:not(.completed) {
+            .exch-form__submitv2 {
+                .exch-form__progress {
+                    display: block;
+
+                    span {
+                        display: inline-block;
+                    }
+
+                    &__label {
+                        font-size: 10px;
+                    }
+
+                    &__value {
+                        font-size: 37px;
+                        font-weight: 600;
+                        padding-right: 5px;
+                    }
+
+                    &__percent {
+                        font-weight: 400;
+                        font-size: 22px;
+                        line-height: 10px;
+                        font-family: Arial, Helvetica, sans-serif;
+                        margin-left: -4px;
+
+                        small {
+                            font-size: 10px;
+                        }
+                    }
+                }
+
+                & > span, .btn-text {
+                    display: none;
+                }
+            }
+        }
+
+        &.progress,
+        &.completed {
+            .exch-form__input {
+                fill: ${props => props.theme.palette.coinPairSelectText};
+                color: ${props => props.theme.palette.coinPairSelectText2};
+                pointer-events: none;
+            }
+
+            .exch-form__send,
+            .exch-form__get {
+                &:before {
+                    background: ${props => props.theme.palette.coinPairDropDownItemBg};
+                    border: 1px solid ${props => props.theme.palette.coinPairDropDownItemBorder};
+                }
+            }
+
+            .exch-dropdown__title {
+                color: ${props => props.theme.palette.coinPairSelectText2};
+
+                span {
+                    color: ${props => props.theme.palette.coinPairSelectText2};
+                }
+            }
+
+            .exch-dropdown__icon {
+                opacity: .25;
+                filter: grayscale(1);
+            }
+
+            .exch-form__sep {
+                pointer-events: none;
+            }
+        }
+
+        &.amountInput {
+            // .exch-form__send,
+            // .exch-form__get {
+            //     &:before {
+            //         background: ${props => props.theme.palette.coinPairDropDownItemBg};
+            //         border: 1px solid ${props => props.theme.palette.coinPairDropDownItemBorder};
+            //     }
+            // }
+
+            // .exch-dropdown__title {
+            //     color: ${props => props.theme.palette.coinPairSelectText2};
+            //
+            //     span {
+            //         color: ${props => props.theme.palette.coinPairSelectText2};
+            //     }
+            // }
+
+            // .exch-dropdown__icon {
+            //     opacity: .25;
+            //     filter: grayscale(1);
+            // }
+
+            .exch-form__sep {
+                pointer-events: none;
+            }
+        }
+
+        &.completed {
+            .exch-form__submitv2 {
+                .exch-form__progress {
+                    display: none;
+                }
+            }
+        }
+
+        .range-slider {
+            position: absolute;
+            left: 0; // 58px;
+            right: 0; // 10px;
+            bottom: -6px;
+            z-index: 1;
+        }
     }
 
     // Came out since exch-head is also using these

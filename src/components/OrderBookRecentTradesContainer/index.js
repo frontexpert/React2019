@@ -7,8 +7,16 @@ import OrderBook from '../OrderBook';
 import { withOrderFormToggleData } from '../../hocs/OrderFormToggleData';
 import { orderFormToggleKeys } from '../../stores/OrderFormToggle';
 import LeftLowerSectionGrid from '../../grid/LeftLowerSectionGrid';
+// import MattriotSwitch from '../MattriotSwitch';
+// import TopSwitch from '../TopSwitch';
+// import SideHeader from '../SideHeader';
+// import AvatarImage from '../SideHeader/AvatarImage';
+// import UserAvatarComponent from '../SideHeader/UserAvatarComponent';
+// import WorldBookIconComponent from '../SideHeader/WorldBookIconComponent';
 import WalletHeader from '../PayApp/PayWindow/Header';
+// import { Wrapper } from '../PayApp/PayWindow/Components';
 import DataLoader from '../../components-generic/DataLoader';
+import UserAvatarPopupMenu from '../SideHeader/UserAvatarPopupMenu';
 import { STATE_KEYS } from '../../stores/ConvertStore';
 
 const AdvancedDropdownGrid = styled.div`
@@ -22,13 +30,47 @@ const AdvancedDropdownGrid = styled.div`
     grid-template-rows: 60px auto ${props => !props.open ? '263px' : ''};
     grid-template-columns: 100%;
     grid-gap: 12px;
+    .order-book-side-wrapper {
+        height: ${props => props.height}px;
+    }
+`;
+
+const OrderBookHeaderWrapper = styled.div`
+    grid-area: orderheader;
+    display: flex;
+    border: 1px solid ${props => props.theme.palette.orderBookHeaderBorder};
+    border-bottom: 0;
+    border-radius: ${props => props.theme.palette.borderRadius} ${props => props.theme.palette.borderRadius} 0 0;
+    overflow: hidden;
+`;
+
+const OrderBookHeader = styled.div`
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: 0;
+    padding: 4px 15px;
+    min-height: 60px;
+    background: ${props => props.theme.palette.orderBookHeaderBg};
+    color: ${props => props.theme.palette.orderBookHeaderText};
+    font-weight: 600;
+    font-size: 18px;
+    
+    span:last-child {
+        font-size: 13px;
+        font-weight: normal;
+        color: ${props => props.theme.palette.orderBookHeaderText2};
+    }
 `;
 
 const OrderBookWrapper = styled.div.attrs({ className: 'order-book-wrapper' })`
+    margin-top: 12px;
+    height: calc(100% - 72px);
     position: relative;
     grid-area: ordercontent;
     // padding-top: 14px;
-    background: ${props => props.theme.palette.clrChartBackground};
+    background: ${props => props.theme.palette.orderBookTableCellBg};
     border: 1px solid ${props => props.theme.palette.orderBookHeaderBorder};
     // border-top: none;
     // border-radius: 0 0 ${props => props.theme.palette.borderRadius} ${props => props.theme.palette.borderRadius};
@@ -100,7 +142,55 @@ const TriangleOpenedIcon = props => (
 );
 
 class DropdownsGridAreaContainer extends React.Component {
-    state = {};
+    state = {
+        isArbOpen: true,
+        isLogoutModalOpen: false,
+    };
+    wrapperRef = null;
+
+    componentDidMount() {
+        document.addEventListener('mousedown', this.handleClickOutside);
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('mousedown', this.handleClickOutside);
+    }
+
+    handleClickOutside = (event) => {
+        const { isUserDropDownOpen } = this.props;
+        const { isLogoutModalOpen } = this.state;
+        if (isUserDropDownOpen && this.wrapperRef && this.wrapperRef.contains
+            && !this.wrapperRef.contains(event.target) && !isLogoutModalOpen) {
+            this.toggleDropDown();
+        }
+    };
+
+    toggleLogoutModal = (isLogoutModalOpen) => {
+        this.setState(prevState => ({
+            isLogoutModalOpen: (typeof isLogoutModalOpen === 'boolean') ? isLogoutModalOpen : !prevState.isLogoutModalOpen,
+        }));
+    };
+
+    toggleDropDown = () => {
+        const {
+            // isArbitrageMode,
+            // convertState,
+            isUserDropDownOpen,
+            setUserDropDownOpen,
+        } = this.props;
+        /*
+        const { isArbOpen } = this.state;
+
+        if (isArbitrageMode && convertState !== STATE_KEYS.coinSearch) {
+            this.setState({
+                isArbOpen: !isArbOpen,
+            });
+        } else {
+            setUserDropDownOpen(!isUserDropDownOpen);
+        }
+        */
+        setUserDropDownOpen(!isUserDropDownOpen);
+    };
 
     render() {
         const {
@@ -108,50 +198,91 @@ class DropdownsGridAreaContainer extends React.Component {
             toggleViewMode,
             selectedBase,
             selectedQuote,
-        } = this.props;
-        const open = toggleMode === orderFormToggleKeys.offToggleKey;
-
-        const {
+            baseFromInstrument,
+            quoteFromInstrument,
+            isRegularMarket,
+            isUserDropDownOpen,
+            isArbCondition,
+            isProfileLogoExists,
+            logoURL,
+            setLoginBtnLocation,
+            setUserDropDownOpen,
             isArbitrageMode,
-            tradeColStatus,
             convertState,
+            isLoggedIn,
         } = this.props;
+        const { isLogoutModalOpen } = this.state;
+        /*
+        if (isArbitrageMode && convertState !== STATE_KEYS.coinSearch) {
+            this.setState({
+                isArbOpen: !isArbOpen,
+            });
+        }
+        */
+        const open = toggleMode === orderFormToggleKeys.offToggleKey;
         const isArbitrageMonitorMode = isArbitrageMode && (convertState !== STATE_KEYS.coinSearch);
-        const showOrderForm = (!isArbitrageMonitorMode || (isArbitrageMonitorMode && tradeColStatus === 'open')) && !open;
-
         return (
             <AutoSizer>
                 {({ width, height }) => {
                     return (
-                        <AdvancedDropdownGrid open={open} height={height}>
-                            <WalletHeader
-                                isOrderbook
-                                isSeparate
-                                width={width}
-                                height={!open ? (height - 277) : height}
-                            />
+                        <AdvancedDropdownGrid open={open} height={height} innerRef={ref => this.wrapperRef = ref}>
+                            {/*
+                            <OrderBookHeaderWrapper>
+                                <WorldBookIconComponent hide={true}/>
+                                <OrderBookHeader>
+                                    <span>Order Book (Global)</span>
+                                    <span>{selectedBase + ' / ' + selectedQuote} {!isRegularMarket ? '(Buy: ' + quoteFromInstrument + ')' : ''}</span>
+                                </OrderBookHeader>
+                            </OrderBookHeaderWrapper>
+                            */}
 
-                            {(!isArbitrageMonitorMode || (isArbitrageMonitorMode && tradeColStatus === 'open')) &&
-                            <OrderBookWrapper open={open}>
-                                {(selectedBase && selectedQuote) ? (
-                                    <OrderBook wrapperWidth={width} wrapperHeight={!open ? (height - 277) : height}/>
-                                ) : (
-                                    <DataLoader width={100} height={100}/>
-                                )}
-                                {!open &&
-                                    <ToggleBtn
-                                        onClick={() => {
-                                            toggleViewMode();
-                                        }}
-                                        open={open}
-                                    >
-                                        {open ? <TriangleOpenedIcon open={open}/> : <TriangleClosedIcon open={open}/>}
-                                    </ToggleBtn>
-                                }
-                            </OrderBookWrapper>
+                            {/* <SideHeader isWorldBook={false}/> */}
+                            {isArbitrageMonitorMode &&
+                                <WalletHeader
+                                    isOrderbook
+                                    isSeparate
+                                    width={width}
+                                    height={!open ? (height - 277) : height}
+                                />
                             }
-
-                            {showOrderForm && <LeftLowerSectionGrid/>}
+                            {(isUserDropDownOpen || isArbitrageMonitorMode) ?
+                                <UserAvatarPopupMenu
+                                    isLoggedIn={isLoggedIn}
+                                    isProfileLogoExists={isProfileLogoExists}
+                                    logoURL={logoURL}
+                                    setLoginBtnLocation={setLoginBtnLocation}
+                                    onClose={this.toggleDropDown}
+                                    isArbitrageMonitorMode={isArbitrageMonitorMode}
+                                    isLogoutModalOpen={isLogoutModalOpen}
+                                    toggleLogoutModal={this.toggleLogoutModal}
+                                /> :
+                                <div className="order-book-side-wrapper">
+                                    <WalletHeader
+                                        isOrderbook
+                                        isSeparate
+                                        width={width}
+                                        height={!open ? (height - 277) : height}
+                                    />
+                                    <OrderBookWrapper open={open}>
+                                        {(selectedBase && selectedQuote) ? (
+                                            <OrderBook wrapperWidth={width} wrapperHeight={!open ? (height - 277) : height}/>
+                                        ) : (
+                                            <DataLoader width={100} height={100}/>
+                                        )}
+                                        {!open &&
+                                        <ToggleBtn
+                                            onClick={() => {
+                                                toggleViewMode();
+                                            }}
+                                            open={open}
+                                        >
+                                            {open ? <TriangleOpenedIcon open={open}/> : <TriangleClosedIcon open={open}/>}
+                                        </ToggleBtn>
+                                        }
+                                    </OrderBookWrapper>
+                                    {!open && <LeftLowerSectionGrid/>}
+                                </div>
+                            }
                         </AdvancedDropdownGrid>
                     );
                 }}

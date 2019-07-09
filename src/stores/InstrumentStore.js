@@ -96,7 +96,7 @@ class InstrumentStore {
     @observable isLoaded = false;
     @observable Bases = [];
     @observable Quotes = [];
-    @observable RouterCoin = '';
+
     @observable selectedBase = null;
     @observable selectedQuote = null;
     @observable selectedBaseEnabled = false;
@@ -107,15 +107,30 @@ class InstrumentStore {
     @observable recentQuotes = ['BTC', 'ETH', 'USDT'];
 
     constructor () {
+        this.instrumentsReaction = this.instrumentsReaction.bind(this);
         this.baseCoinsReaction = this.baseCoinsReaction.bind(this);
         this.__setDefaultBasesQuotes();
+
+        this.instrumentsReaction(
+            async (base, quote) => {
+                if (base && quote) {
+                    if (localStorage.getItem('isArbitrageMode') === 'true') {
+                        if (base !== 'USDT') {
+                            this.setQuote('USDT');
+                        }
+                    }
+                }
+            },
+            true
+        );
     }
 
     async __setDefaultBasesQuotes () {
         this.Bases = await getBases();
         this.Quotes = await getQuotesForBase(defaultBase);
-        this.setBaseSync(this.RouterCoin ? this.RouterCoin: defaultBase);
-        this.setQuote(this.RouterCoin ? defaultBase : defaultQuote);
+
+        this.setBaseSync(defaultBase);
+        this.setQuote(defaultQuote);
 
         this.isLoaded = true;
     }
@@ -141,11 +156,6 @@ class InstrumentStore {
 
         const selectedBaseMap = this.Bases.find(x => x.symbol === base);
         this.selectedBaseEnabled = !!selectedBaseMap && selectedBaseMap.enabled;
-    }
-
-    @action.bound
-    setRouterCoin (coin) {
-        this.RouterCoin = coin;
     }
 
     @action.bound
@@ -205,7 +215,7 @@ class InstrumentStore {
         this.isConfirmMode = isConfirmMode;
     }
 
-    instrumentsReaction  = (reactionHandler, fireImmediately = false) => {
+    instrumentsReaction (reactionHandler, fireImmediately = false) {
         return reaction(
             () => this.selectedInstrumentPair,
             ([base, quote]) => {

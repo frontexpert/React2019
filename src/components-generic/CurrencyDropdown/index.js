@@ -14,7 +14,7 @@ import {
     SearchInputWrapper, SearchInput,
     ItemList, ListStyleWrapper, ListItem, SearchIcon
 } from '../SelectDropdown/Components';
-import { CoinIcon } from '../CoinIcon';
+import CoinIcon from '../CoinIcon';
 
 const Dropdown = styled.div`
     position: absolute;
@@ -24,7 +24,7 @@ const Dropdown = styled.div`
     z-index: 100;
     width: ${props => (!props.alignLeft || !props.alignRight) ? props.width + 'px' : 'unset'};
     height: ${props => props.height}px;
-    right: 10px;
+    left: 12px;
     margin: 0;
     padding: 0;
     display: flex;
@@ -113,30 +113,28 @@ class CurrencyDropdown extends Component {
         setTimeout(this.updateTableItems);
     };
 
-    handleSelectItem = (currency, symbol, price, isDefaultCrypto, disableCrypto) => () => {
-        if (!disableCrypto) {
-            this.props.setDefaultCurrency(currency, symbol, price, isDefaultCrypto);
+    handleSelectItem = (currency, symbol, price, isDefaultCrypto) => () => {
+        this.props.setDefaultCurrency(currency, symbol, price, isDefaultCrypto);
 
-            this.setState({ searchValue: '' });
+        this.setState({ searchValue: '' });
 
-            setTimeout(() => {
-                // let newQuote = isDefaultCrypto ? this.props[STORE_KEYS.SETTINGSSTORE].defaultCryptoSymbol : 'F:' + this.props[STORE_KEYS.SETTINGSSTORE].defaultFiat;
-                let newQuote = '';
+        setTimeout(() => {
+            // let newQuote = isDefaultCrypto ? this.props[STORE_KEYS.SETTINGSSTORE].defaultCryptoSymbol : 'F:' + this.props[STORE_KEYS.SETTINGSSTORE].defaultFiat;
+            let newQuote = '';
 
-                if (isDefaultCrypto) {
-                    newQuote = this.props[STORE_KEYS.SETTINGSSTORE].defaultCryptoSymbol;
-                } else {
-                    newQuote = 'USDT';
-                }
+            if (isDefaultCrypto) {
+                newQuote = this.props[STORE_KEYS.SETTINGSSTORE].defaultCryptoSymbol;
+            } else {
+                newQuote = 'USDT';
+            }
 
-                // this.props.setQuote(newQuote);
-                // this.props.addRecentQuote(newQuote);
+            this.props.setQuote(newQuote);
+            this.props.addRecentQuote(newQuote);
 
-                if (this.props.onChange) {
-                    this.props.onChange(currency, symbol, price, isDefaultCrypto);
-                }
-            });
-        }
+            if (this.props.onChange) {
+                this.props.onChange(currency, symbol, price, isDefaultCrypto);
+            }
+        });
 
         this.props.toggleDropDown(false);
 
@@ -229,7 +227,6 @@ class CurrencyDropdown extends Component {
                 if (weight >= 0) {
                     tableItems.push({
                         weight,
-                        isCrypto: false,
                         value: items[i],
                     });
                 }
@@ -249,43 +246,44 @@ class CurrencyDropdown extends Component {
             const portfolioData = props.portfolioData;
             for (let i = 0; i < portfolioData.length; i++) {
                 try {
-                    if (portfolioData[i].Coin === 'BTC') {
+                    if (!portfolioData[i].Coin.startsWith('F:') && portfolioData[i].coin !== 'USDT') {
                         const weight = this.isCryptoSearched(portfolioData[i], searchValue);
-                        const obj = {
-                            weight,
-                            isCrypto: true,
-                            value: portfolioData[i],
-                        };
                         if (weight >= 0) {
-                            cryptoTable.push(obj);
-                            break;
+                            cryptoTable.push({
+                                weight,
+                                value: portfolioData[i],
+                            });
                         }
                     }
                 } catch (e) {
                     console.log(e);
                 }
             }
-            activeOptionIdx = 0;
+
+            cryptoTable = sortBy(cryptoTable, item => item.weight).map(item => ({
+                ...item.value,
+                isCrypto: true,
+            }));
+            activeOptionIdx = cryptoTable.findIndex(item => item.Name === this.props.value);
         }
 
-        this.setState({ tableItems: cryptoTable.concat(tableItems) }, () => {
+        this.setState({ tableItems: tableItems.concat(cryptoTable) }, () => {
             this.dropdownScrollRef.scrollTop = activeOptionIdx * (isMobile ? 80 : 60);
         });
     };
 
     itemCellRenderer = ({ rowData }) => {
-        const { value, isMobile, disableCrypto } = this.props;
+        const { value, isMobile } = this.props;
         const { searchValue } = this.state;
 
         if (rowData.isCrypto) {
-            rowData = rowData.value;
             const isSelected = rowData.Name === value;
             const coinSymbol = rowData.Coin.replace('F:', '');
             return (
                 <ListItem
                     className={isSelected ? 'active' : ''}
                     isMobile={isMobile}
-                    onClick={this.handleSelectItem(rowData.Name, coinSymbol, rowData.Price || 0, true, disableCrypto)}
+                    onClick={this.handleSelectItem(rowData.Name, coinSymbol, rowData.Price || 0, true)}
                 >
                     <CoinIcon value={coinSymbol} size={28}/>&nbsp;&nbsp;
                     <div className="bigger">{highlightSearchDom(rowData.Coin.replace('F:', ''), searchValue)} - {highlightSearchDom(rowData.Name, searchValue)}</div>
@@ -298,7 +296,7 @@ class CurrencyDropdown extends Component {
             <ListItem
                 className={isSelected ? 'active' : ''}
                 isMobile={isMobile}
-                onClick={this.handleSelectItem(rowData.code, rowData.symbol, 1, false, false)}
+                onClick={this.handleSelectItem(rowData.code, rowData.symbol, 1, false)}
             >
                 <img src={`/img/icons-coin/${rowData.code.toLowerCase()}.png`} className="flag" alt=""/>
                 <div className="bigger">{highlightSearchDom(rowData.symbol, searchValue)} - {highlightSearchDom(rowData.code, searchValue)} ({highlightSearchDom(rowData.name, searchValue)})</div>

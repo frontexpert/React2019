@@ -3,7 +3,7 @@ import React from 'react';
 import COIN_DATA_MAP from '../../../../mock/coin-data-map';
 
 const CoinIcon = ({
-    showTether = false, value, defaultFiat, toggleDropdown, opacity = 1,
+    showTether = false, value, defaultFiat, toggleDropdown,
 }) => {
     if (typeof value === 'string') {
         return (COIN_DATA_MAP[value] && COIN_DATA_MAP[value].file)
@@ -16,7 +16,6 @@ const CoinIcon = ({
                             : COIN_DATA_MAP[value].file.indexOf('svg') < 0
                                 ? `url('img/icons-coin/${COIN_DATA_MAP[value].file}') no-repeat`
                                 : `url('img/sprite-coins-view.svg#coin-${value.toLowerCase()}') no-repeat`,
-                        opacity,
                     }}
                     onClick={toggleDropdown || null}
                 />
@@ -36,7 +35,6 @@ const CoinIcon = ({
                     background: value.file.indexOf('svg') < 0
                         ? `url('img/icons-coin/${value.file}') no-repeat`
                         : `url('img/sprite-coins-view.svg#coin-${value.symbol.toLowerCase()}') no-repeat`,
-                    opacity,
                 }}
                 onClick={toggleDropdown || null}
             />

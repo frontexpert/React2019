@@ -39,16 +39,6 @@ class ConnectionLost extends Component {
         } = this.props;
         const isConnected = isLoggedIn ? (isPrivateConnected && isPublicConnected) : isPublicConnected;
 
-        if (!isConnected) {
-            let err = {
-                isPrivateConnected,
-                isPublicConnected,
-                isLoggedIn,
-                date: new Date(),
-            };
-            console.log('connection issue', err);
-        }
-
         return (
             <Wrapper visible={isConnected}>
                 <Label>Connection Lost...</Label>

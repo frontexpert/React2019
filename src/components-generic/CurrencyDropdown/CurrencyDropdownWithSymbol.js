@@ -4,7 +4,7 @@ import { inject, observer } from 'mobx-react';
 import { STORE_KEYS } from '../../stores';
 import CurrencyDropdown from './index';
 import { SelectedItem } from '../../components/PayApp/PayWindow/Header/Components';
-import { CoinIcon, BTCFontIcon } from '../CoinIcon';
+import CoinIcon from '../CoinIcon';
 
 class CurrencyDropdownWithSymbol extends Component {
     state = {
@@ -50,14 +50,13 @@ class CurrencyDropdownWithSymbol extends Component {
     render() {
         const { isOpen } = this.state;
         const {
-            isColorfulToggle = false,
             isChild = false,
             isDisabled = false,
             isMobile = false,
             isMobileAbsolute = false,
             type = 'currency',
             hasBorder = true,
-            alignLeft = false,
+            alignLeft = true,
             alignRight = true,
             alignTop = true,
             width = 350,
@@ -67,8 +66,6 @@ class CurrencyDropdownWithSymbol extends Component {
             onChange,
             showFiat,
             symbolSize,
-            symbol = false,
-            disableCrypto,
         } = this.props;
         const {
             defaultFiat, defaultFiatSymbol, defaultCrypto, defaultCryptoSymbol, isDefaultCrypto,
@@ -82,21 +79,19 @@ class CurrencyDropdownWithSymbol extends Component {
         return (
             <div
                 ref={ref => this.wrapperRef = ref}
-                className="dropdown-wrapper btc-wrapper"
-                style={this.props.style}
+                className="dropdown-wrapper"
             >
-                <SelectedItem isChild onClick={this.toggleDropDown} size={symbolSize} isColorfulToggle={isColorfulToggle}>
+                <SelectedItem isChild onClick={this.toggleDropDown} size={symbolSize}>
                     {isFiat ? (
                         <Fragment>
                             {showFiat && (
                                 <span className="fiat-label">{value}</span>
                             )}
-                            {symbol ? <span className="CurrencySymbol">{defaultFiat}</span> : <span>{defaultFiatSymbol}</span>}
+                            {defaultFiatSymbol}
                         </Fragment>
-                    ) : (/* defaultCryptoSymbol === 'BTC' ? <BTCFontIcon /> : */(
-                        /* <CoinIcon value={defaultCryptoSymbol} size={coinSize}/> */
-                        <span className="CurrencySymbol">{defaultCryptoSymbol}</span>
-                    ))}
+                    ) : (
+                        <CoinIcon value={defaultCryptoSymbol} size={coinSize}/>
+                    )}
                 </SelectedItem>
 
                 {isOpen && (
@@ -115,7 +110,6 @@ class CurrencyDropdownWithSymbol extends Component {
                         toggleDropDown={this.toggleDropDown}
                         isDisabled={isDisabled}
                         onChange={onChange}
-                        disableCrypto={disableCrypto}
                     />
                 )}
             </div>

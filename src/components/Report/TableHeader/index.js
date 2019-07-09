@@ -11,10 +11,6 @@ const Wrapper = styled.div`
     padding: 5px 10px 5px 0;
     justify-content: space-between;
     align-items: center;
-    background-color: ${props => props.theme.palette.clrMainWindow};
-    color: ${props => props.theme.palette.clrPurple};
-    border-bottom: 1px solid #454c73;
-    border-top: 1px solid #454c73;
 `;
 
 const Description = styled.div`

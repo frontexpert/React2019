@@ -11,14 +11,13 @@ import { MAX_PRICES_LENGTH } from '../../../stores/PriceChartStore';
 
 const ChartWrapper = styled.div`
     position: absolute;
-    ${props => props.isBorderHidden && 'border: none !important;'}
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: ${props => props.theme.palette.clrPriceChartAreaBackground};
+    background-color: ${props => props.theme.palette.clrBackground};
     padding-bottom: ${props => (props.isLowerSectionOpened ? '15px' : '0')};
-    border-radius: ${props => props.theme.palette.borderRadius};
+    border-top-left-radius: ${props => props.theme.palette.borderRadius};
     border-style: solid;
     border-color: ${props => props.theme.palette.clrBorder};
     border-width: 1px 0 ${props => (props.isLowerSectionOpened ? '0' : '1px')} 1px;
@@ -31,16 +30,13 @@ class PriceChartCanvas extends Component {
         super(props);
 
         this.defaultFiat = undefined;
-
         this.chartInitialized = false;
-        this.c1 = undefined;
-        this.c2 = undefined;
+        this.activeCoin = undefined;
     }
 
     componentDidUpdate() {
         const {
             [STORE_KEYS.PRICECHARTSTORE]: { priceData },
-            [STORE_KEYS.SETTINGSSTORE]: { defaultFiatSymbol },
         } = this.props;
 
         if (!priceData.length) {
@@ -50,24 +46,19 @@ class PriceChartCanvas extends Component {
         if (this.chartInitialized) {
             this.updateChart();
         } else {
-            const startTime = moment()
-                .subtract(90, 'seconds')
-                .valueOf();
-            const endTime = moment()
-                .add(90, 'seconds')
-                .valueOf();
-            const data = priceData.map(item => ({ x: item[0], y: item[1] }));
-
+            const startTime = moment().subtract(120, 'seconds').valueOf();
+            const endTime = moment().add(60, 'seconds').valueOf();
             this.chartInitialized = true;
             this.chart = new LineChart({
                 el: this.el,
                 maxDataLength: MAX_PRICES_LENGTH,
-                data,
+                data: this.patchPriceData(priceData),
                 config: {
                     startTime,
                     endTime,
+                    minRangeForZoom: moment().subtract(1, 'hour').valueOf(),
+                    timeLimitWhenShift: (endTime - startTime) * 0.1,
                 },
-                coin: defaultFiatSymbol,
             });
         }
     }
@@ -83,40 +74,45 @@ class PriceChartCanvas extends Component {
         }
     };
 
+    patchPriceData = priceData => priceData.map(item => ({ x: item[0], y: item[1] }));
+
     updateChart = () => {
         const {
-            [STORE_KEYS.ORDERBOOKBREAKDOWN]: { MidPrice },
+            [STORE_KEYS.PRICECHARTSTORE]: { priceData },
         } = this.props;
 
-        const nextItem = { x: new Date().getTime(), y: MidPrice };
+        const nextItemArray = priceData[priceData.length - 1];
+        const nextItem = { x: nextItemArray[0], y: nextItemArray[1] };
+
         this.chart.lineTo(nextItem);
     };
 
     render() {
         const {
             [STORE_KEYS.PRICECHARTSTORE]: { priceData },
-            [STORE_KEYS.YOURACCOUNTSTORE]: { selectedCoin, quoteSelectedCoin },
+            [STORE_KEYS.YOURACCOUNTSTORE]: { selectedCoin },
             [STORE_KEYS.SETTINGSSTORE]: { defaultFiat },
             isLowerSectionOpened,
             height,
-            isBorderHidden,
         } = this.props;
 
         const isLoadingGraph =
             !priceData.length ||
             this.defaultFiat !== defaultFiat ||
-            this.c1 !== selectedCoin ||
-            this.c2 !== quoteSelectedCoin;
+            (selectedCoin !== '' && this.activeCoin !== selectedCoin);
 
-        if (isLoadingGraph) {
+        if (this.activeCoin !== selectedCoin) {
             this.destroyChart();
-            this.c1 = selectedCoin;
-            this.c2 = quoteSelectedCoin;
+            this.activeCoin = selectedCoin;
+        }
+
+        if (this.defaultFiat !== defaultFiat) {
+            this.destroyChart();
             this.defaultFiat = defaultFiat;
         }
 
         return (
-            <ChartWrapper isLowerSectionOpened={isLowerSectionOpened} isBorderHidden={isBorderHidden}>
+            <ChartWrapper isLowerSectionOpened={isLowerSectionOpened}>
                 <canvas ref={el => (this.el = el)} />
                 <WalletPopup isGlobal={true} maxHeight={height} />
                 {isLoadingGraph && <DataLoader width={100} height={100} />}
@@ -125,11 +121,6 @@ class PriceChartCanvas extends Component {
     }
 }
 
-export default inject(
-    STORE_KEYS.PRICECHARTSTORE,
-    STORE_KEYS.YOURACCOUNTSTORE,
-    STORE_KEYS.SETTINGSSTORE,
-    STORE_KEYS.ORDERBOOKBREAKDOWN
-)(
+export default inject(STORE_KEYS.PRICECHARTSTORE, STORE_KEYS.YOURACCOUNTSTORE, STORE_KEYS.SETTINGSSTORE)(
     observer(PriceChartCanvas)
 );

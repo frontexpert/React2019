@@ -104,7 +104,7 @@ const LeftLowerSectionGrid = ({
                                     <LimitOrderEntryForm showModal={showModal}/>
                                 </BuySellOrderWrapper>
 
-                                <BuySellOrderWrapper id="buy-sell-wrapper-stop" height={height} width={width}>
+                                <BuySellOrderWrapper id="buy-sell-wrapper-stop" height={wrapperHeight} width={width}>
                                     <StopOrderEntryForm showModal={showModal}/>
                                 </BuySellOrderWrapper>
 

@@ -35,12 +35,12 @@ class ExchangeList extends React.Component {
     }
 
     isSearched = (item, query) => {
+        const lowerCaseQuery = query.toString().toLowerCase();
+        let srcStr = item.name ? (item.name === 'Global' ? 'all' : item.name.toString().toLowerCase()) : '';
+
         if (!query) {
             return 999;
         }
-
-        const lowerCaseQuery = query.toString().toLowerCase();
-        let srcStr = item.name ? (item.name === 'Global' ? 'all' : item.name.toString().toLowerCase()) : '';
 
         const srcContains = srcStr.includes(lowerCaseQuery);
         const srcWeight = Math.abs(lowerCaseQuery.length - srcStr.length);
@@ -86,21 +86,18 @@ class ExchangeList extends React.Component {
     };
 
     changeMenu = (menu) => (e) => {
-        const { setRightTopSectionGridMode } = this.props[STORE_KEYS.VIEWMODESTORE];
+        const { setReportMode } = this.props[STORE_KEYS.VIEWMODESTORE];
 
         e.stopPropagation();
+        // this.props.changeMenu(menu);
         if (menu === 'transaction') {
-            setRightTopSectionGridMode('report');
-        } else if (menu === 'trading') {
-            setRightTopSectionGridMode('trading');
-        } else {
-            this.props.changeMenu(menu);
+            setReportMode(true);
         }
     };
 
     itemCellRenderer = ({ rowData }) => {
         const {
-            value, items, searchValue, exchanges, selectedExchange, selectedMenu, setExchangeActive,
+            value, items, searchValue, exchanges, selectedExchange, selectedMenu,
         } = this.props;
 
         const isSelected = rowData.name === value;
@@ -128,7 +125,7 @@ class ExchangeList extends React.Component {
             >
                 {isGlobal
                     ? (
-                        <GlobalIcon size={38} marginRight={12} color="#fff"/>
+                        <GlobalIcon size={38} marginRight={15} color="#fff"/>
                     ) : (
                         <LogoWrapper size={38}>
                             <Logo src={`/img/exchange/${rowData.icon}`} alt=""/>
@@ -144,14 +141,13 @@ class ExchangeList extends React.Component {
                 />}
 
                 {isExchangeSelected && (
-                    <Fragment>
-                        {!isGlobal ?
-                            <ApiIcon
-                                marginLeft={5.5}
-                                active={selectedMenu === 'api'}
-                                isApiSynced={isApiSynced}
-                                onClick={this.changeMenu('api')}
-                            /> : null}
+                    <Fragment style={{ marginTop: 7 }}>
+                        <ApiIcon
+                            marginLeft={5.5}
+                            active={selectedMenu === 'api'}
+                            isApiSynced={isApiSynced}
+                            onClick={this.changeMenu('api')}
+                        />
 
                         <Tooltip
                             arrow
@@ -159,7 +155,7 @@ class ExchangeList extends React.Component {
                             position="bottom"
                             // followCursor
                             theme="bct"
-                            title="Reports"
+                            title="Your Access is Restricted to Level 1"
                             distance={30}
                             style={{ marginLeft: 15 }}
                         >
@@ -176,7 +172,7 @@ class ExchangeList extends React.Component {
                             position="bottom"
                             // followCursor
                             theme="bct"
-                            title="Accounts"
+                            title="Your Access is Restricted to Level 1"
                             distance={30}
                             style={{ marginLeft: 15 }}
                         >
@@ -186,27 +182,27 @@ class ExchangeList extends React.Component {
                                 onClick={this.changeMenu('trading')}
                             />
                         </Tooltip>
-                        {!isGlobal ?
-                            <Tooltip
-                                arrow
-                                animation="shift"
-                                position="bottom"
-                                // followCursor
-                                theme="bct"
-                                title="Your Access is Restricted to Level 1"
-                                distance={30}
-                                style={{ marginLeft: 15 }}
-                            >
-                                <BalanceIcon
+
+                        <Tooltip
+                            arrow
+                            animation="shift"
+                            position="bottom"
+                            // followCursor
+                            theme="bct"
+                            title="Your Access is Restricted to Level 1"
+                            distance={30}
+                            style={{ marginLeft: 15 }}
+                        >
+                            <BalanceIcon
                                 // marginLeft={15}
-                                    active={selectedMenu === 'balance'}
+                                active={selectedMenu === 'balance'}
                                 // onClick={this.changeMenu('balance')}
-                                />
-                            </Tooltip> : null}
+                            />
+                        </Tooltip>
                     </Fragment>
                 )}
 
-                {activeExchange && setExchangeActive && (
+                {activeExchange && (
                     <div
                         className="api-link"
                         onClick={(e) => { e.stopPropagation(); }}

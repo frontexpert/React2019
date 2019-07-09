@@ -187,6 +187,7 @@
   "data_loader_done.label_done": "किया हुआ",
   "sms_verification.label_enter_mobile_number": "मोबाइल फोन नंबर दर्ज करें",
   "sms_verification.label_what_code": "कोड क्या है?",
+  "switch_custom.label_off": "बंद",
 
   "button.save": "बचाना",
   "button.confirm": "की पुष्टि करें",
@@ -215,6 +216,5 @@
   "order_book.buy_book.label_max_order_size": "अधिकतम आदेश आकार: ",
   "settings.label_auto_flip": "ऑटो फ्लिप",
   "settings.label_swaps": "विनिमय",
-  "settings.label_is_auto_convert": "ऑटो कन्वर्ट",
-  "settings.label_support_center": "मंच सहायता केंद्र"
+  "settings.label_is_auto_convert": "ऑटो कन्वर्ट"
 }

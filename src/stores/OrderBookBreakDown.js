@@ -26,15 +26,8 @@ class OrderBookBreakDownStore {
     @observable quote = ''; // incoming data feed's quote coin
     @observable isOrderBookBreakDownStop = false; // FALSE: no data stream, TRUE: data stream exists
     @observable isOrderBookDataLoaded = false;
-    @observable totalOrderSize = 0;
-    @observable totalOrderAmount = 0;
-    @observable maxBidPrice = 0;
-    @observable minBidPrice = 0;
-    @observable maxAskPrice = 0;
-    @observable minAskPrice = 0;
-    @observable MidPrice = 0;
-    @observable maxOrderAmount = 0;
     @observable maxOrderSize = 0;
+    @observable maxOrderAmount = 0;
     @observable isRegularMarket = true;
 
     @computed get asksForOrderBook() {
@@ -229,7 +222,7 @@ class OrderBookBreakDownStore {
             Symbol = '',
         } = {}
     ) {
-        if (!pageIsVisible() || this.convertState !== STATE_KEYS.coinSearch) return;
+        if (!pageIsVisible() /* || this.convertState !== STATE_KEYS.coinSearch */) return;
         // --- check if data feed is exist in correct coin pair --- //
         // try {
         //     this.base = Symbol.split('-')[0];
@@ -253,56 +246,14 @@ class OrderBookBreakDownStore {
 
                 updateMapStoreFromArrayForOrderBook(this.AsksForOrderBook, Asks, asksRowCount, true);
                 updateMapStoreFromArrayForOrderBook(this.BidsForOrderBook, Bids, bidsRowCount, false);
-                let totalOrderSize = 0;
-                let totalOrderAmount = 0;
-                let maxOrderAmount = 0;
                 let maxOrderSize = 0;
-                let maxAskPrice = Asks.length ? Asks[0][0] : 0;
-                let minAskPrice = Asks.length ? Asks[0][0] : 0;
+                let maxOrderAmount = 0;
                 for (let i = 0; i < Asks.length; i++) {
-                    const orderSum = Number(Asks[i][1]) * Number(Asks[i][0]);
-                    totalOrderSize += orderSum;
-                    totalOrderAmount += Number(Asks[i][1]);
-                    if (maxAskPrice < Number(Asks[i][0])) {
-                        maxAskPrice = Number(Asks[i][0]);
-                    }
-                    if (minAskPrice > Number(Asks[i][0])) {
-                        minAskPrice = Number(Asks[i][0]);
-                    }
-                    if (maxOrderAmount < orderSum) {
-                        maxOrderAmount = orderSum;
-                    }
-                    if (maxOrderSize < Number(Asks[i][1])) {
-                        maxOrderSize = Number(Asks[i][1]);
-                    }
+                    maxOrderSize += Number(Asks[i][1]) * Number(Asks[i][0]);
+                    maxOrderAmount += Number(Asks[i][1]);
                 }
-
-                let maxBidPrice = Bids.length ? Bids[0][0] : 0;
-                let minBidPrice = Bids.length ? Bids[0][0] : 0;
-                for (let i = 0; i < Bids.length; i++) {
-                    const orderSum = Number(Bids[i][1]) * Number(Bids[i][0]);
-                    if (maxBidPrice < Number(Bids[i][0])) {
-                        maxBidPrice = Number(Bids[i][0]);
-                    }
-                    if (minBidPrice > Number(Bids[i][0])) {
-                        minBidPrice = Number(Bids[i][0]);
-                    }
-                    if (maxOrderAmount < orderSum) {
-                        maxOrderAmount = orderSum;
-                    }
-                    if (maxOrderSize < Number(Bids[i][1])) {
-                        maxOrderSize = Number(Bids[i][1]);
-                    }
-                }
-                this.totalOrderSize = totalOrderSize;
-                this.totalOrderAmount = totalOrderAmount;
-                this.maxBidPrice = maxBidPrice;
-                this.minBidPrice = minBidPrice;
-                this.maxAskPrice = maxAskPrice;
-                this.minAskPrice = minAskPrice;
-                this.MidPrice = MidPrice;
-                this.maxOrderAmount = maxOrderAmount;
-                this.maxOrderSize = maxOrderSize;
+                this.maxOrderSize = customDigitFormatWithNoTrim(maxOrderSize) + ' ' + this.quote;
+                this.maxOrderAmount = customDigitFormatWithNoTrim(maxOrderAmount) + ' ' + this.base;
 
                 const isOrderBookDataLoaded = Asks.length > 0 && Bids.length > 0;
                 if (this.isOrderBookDataLoaded !== isOrderBookDataLoaded) this.isOrderBookDataLoaded = isOrderBookDataLoaded;

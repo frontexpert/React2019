@@ -6,7 +6,6 @@ import { toFixedWithoutRounding } from '../../../utils';
 // import BillsInner from './BillsInner';
 import BillsInner from './BillsInnerV2';
 import { Wrapper, RefWrapper } from './Components';
-import BillChip from './BillChipV2';
 
 class BillsModal extends Component {
     componentDidMount() {

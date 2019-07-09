@@ -15,8 +15,6 @@ export default class QRCodePortal extends React.Component {
         this.el.style.position = 'absolute';
         this.el.style.transformOrigin = 'top left';
         this.el.style.zIndex = 100000;
-        this.el.style.transformStyle = 'preserve-3d';
-        this.el.style.perspective = '1000px';
 
         this.refreshQR();
 
@@ -36,16 +34,14 @@ export default class QRCodePortal extends React.Component {
 
     refreshQR = () => {
         const depositEl = document.getElementById(this.props.wrapperId);
-        const wrapperEl = depositEl.closest('.ReactVirtualized__Table__rowColumn');
-        const pos = wrapperEl.getBoundingClientRect();
-        this.el.style.left = (pos.left - 1) + 'px';
-        this.el.style.top = pos.top + 'px';
+        const pos = depositEl.getBoundingClientRect();
+        this.el.style.left = pos.x + 'px';
+        this.el.style.top = pos.top + pos.height + 3 + 'px';
         if (window.innerWidth > 1500) {
             this.el.style.transform = 'scale(1)';
         } else {
             this.el.style.transform = 'scale(0.75)';
         }
-        this.el.style.transformOrigin = 'right top';
     };
 
     render() {

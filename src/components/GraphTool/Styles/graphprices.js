@@ -39,7 +39,7 @@ GraphPrices.Graphprices = styled.div`
     background: ${props => props.theme.palette.clrBackground};
     will-change: transform;
     border-radius: ${props => props.theme.palette.borderRadius};
-    // overflow: hidden;
+    overflow: hidden;
     flex-direction: column;
     width: 100%;
     transition: width .25s linear;
@@ -87,7 +87,7 @@ GraphPrices.Item = styled.div`
     width: 100%;
     min-height: 82px;
     cursor: pointer;
-    // overflow: hidden;
+    overflow: hidden;
     color: ${(props) => props.active ? props.theme.palette.clraccentD : props.theme.palette.clrtextD};
     background: ${(props) => props.active ? props.theme.palette.exchBarActiveItem : props.theme.palette.exchBarItemBg};
 
@@ -156,7 +156,7 @@ GraphPrices.Trader = styled.div`
     text-align: left;
     text-overflow: ellipsis !important;
     display: block;
-    // overflow: hidden;
+    overflow: hidden;
     text-transform: lowercase;
     
     ::first-letter {

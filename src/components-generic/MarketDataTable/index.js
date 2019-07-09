@@ -5,8 +5,10 @@ import styled from 'styled-components';
 
 const StyledTable = styled(Table)`
     width: ${props => props.width}px;
+    // height: ${props => props.height}px;
+    // border-top: 1px solid ${props => props.theme.palette.orderBookTableSpreadBorder};
     font-size: 16px;
-    font-weight: 400;
+    font-weight: 600;
     color: ${props => props.theme.palette.orderBookTableCellText};
     
     .ReactVirtualized__Grid {
@@ -22,7 +24,7 @@ const StyledTable = styled(Table)`
     }
     
     .ReactVirtualized__Table__row {
-        border-bottom: 1px solid ${props => props.theme.palette.orderBookHistoryCellInnerborder};
+        border-bottom: 2px solid ${props => props.theme.palette.orderBookHistoryCellInnerborder};
         // background: ${props => props.theme.palette.orderBookTableCellBg};
         
         :last-child {
@@ -46,25 +48,21 @@ const StyledTable = styled(Table)`
         align-items: center;
         justify-content: center;
         margin: 0;
-        padding: 0 12px;
+        padding: 0 15px;
         height: 100%;
         text-overflow: inherit;
         color: ${props => props.theme.palette.orderBookTableCellText};
         
         &:not(:last-child) {
-            border-right: 1px solid ${props => props.theme.palette.orderBookHistoryCellInnerborder};
+            border-right: 2px solid ${props => props.theme.palette.orderBookHistoryCellInnerborder};
         }
     }
     
     .ReactVirtualized__Table__headerRow {
         background: ${props => props.theme.palette.orderBookTableHeaderBg};
-        border-color: ${props => props.theme.palette.orderBookHeaderBorder};
-        border-style: solid;
-        border-width: 1px 0;
-        border-top: 1px solid ${props => props.theme.palette.orderBookHeaderBorder};
-        color: ${props => props.theme.palette.orderBookHeaderText2};
+        border-bottom: 2px solid ${props => props.theme.palette.orderBookHeaderBorder};
+        color: ${props => props.theme.palette.orderBookTableCellText};
         text-transform: none;
-        font-size: 16px;
         
         .line-break {
             text-align: center;
@@ -81,11 +79,11 @@ const StyledTable = styled(Table)`
         align-items: center;
         justify-content: stretch;
         margin: 0;
-        padding: 0 12px;
+        padding: 0 15px;
         height: 100%;
         
         &:not(:last-child) {
-            border-right: 1px solid ${props => props.theme.palette.orderBookHistoryCellInnerborder};
+            border-right: 2px solid ${props => props.theme.palette.orderBookHeaderBorder}7f;
         }
         &:first-child {
             white-space: nowrap;
@@ -94,9 +92,8 @@ const StyledTable = styled(Table)`
         &:last-child {
             // padding: 0;
         }
-        &:first-child > .full-width {
-            display: flex !important;
-            justify-content: center;
+        &:first-child {
+            padding: 0 0 0 15px;
         }
         &:last-child>div, &:first-child .max-order-size-wrapper{
             width: auto; 
@@ -104,90 +101,49 @@ const StyledTable = styled(Table)`
             text-overflow: ellipsis;
         }
     }
-
-    &#global-order-sell-book {
-        .ReactVirtualized__Table__row {
-            &:nth-last-child(2) {
-                border-bottom: 0;
-            }
-        }
-    }
-
-    @media (max-width: 1856px) {
-        .ReactVirtualized__Table__headerRow {
-            font-size: 14px;
-        }
-    }
-
-    @media (max-width: 1652px) {
-        .ReactVirtualized__Table__headerRow {
-            font-size: 12px;
-        }
-    }
-
-    @media (max-width: 1500px) {
-        .ReactVirtualized__Table__headerRow {
-            font-size: 14px;
-        }
-    }
-
-    @media (max-width: 1252px) {
-        .ReactVirtualized__Table__headerRow {
-            font-size: 12px;
-        }
-    }
-
-    @media (max-width: 849px) {
-        .ReactVirtualized__Table__headerRow {
-            font-size: 16px;
-        }
-    }
-
-    @media (max-width: 664px) {
-        .ReactVirtualized__Table__headerRow {
-            font-size: 14px;
-        }
-    }
-
-    @media (max-width: 565px) {
-        .ReactVirtualized__Table__headerRow {
-            font-size: 12px;
-        }
-    }
-
-    @media (max-width: 505px) {
-        .ReactVirtualized__Table__headerRow {
-            font-size: 10px;
-        }
-    }
 `;
 
-const cellToObservedCell = Cell =>
-    observer(({ marketDataMap, index }) => {
-        return (
-            <React.Fragment>
-                {marketDataMap && marketDataMap.has(index) && (
-                    <Cell index={index} data={marketDataMap.get(index)} />
-                )}
-            </React.Fragment>
-        );
-    });
+const cellToObservedCell = Cell => observer(({ marketDataMap, index }) => {
+    return (
+        <React.Fragment>
+            {marketDataMap && marketDataMap.has(index) && (
+                <Cell index={index} data={marketDataMap.get(index)} />
+            )}
+        </React.Fragment>
+    );
+});
 
 export const ObservedCellRenderer = Cell => {
     const ObservedCell = cellToObservedCell(Cell);
     return ({ rowIndex: index, rowData: marketDataMap }) => {
-        return <ObservedCell index={index} marketDataMap={marketDataMap} />;
+        return (
+            <ObservedCell
+                index={index}
+                marketDataMap={marketDataMap}
+            />
+        );
     };
 };
 
 // subtract material select out of height
 export default ({
-    children, width, height, rowHeight, marketDataMap, disableHeader = true, rowCount, ...props
+    children,
+    width,
+    height,
+    rowHeight,
+    marketDataMap,
+    disableHeader = true,
+    rowCount,
+    ...props
 }) => {
     return (
         <StyledTable
             {...props}
-            {...(disableHeader ? { disableHeader } : { headerHeight: 32 })}
+            {...(
+                disableHeader
+                    ? { disableHeader }
+                    : { headerHeight: 32 }
+            )}
             height={height}
             // borders on rows were 1px too wide
             width={width - 2}

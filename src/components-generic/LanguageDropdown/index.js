@@ -26,7 +26,7 @@ const Dropdown = styled.div`
     flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
-    background: ${props => props.theme.palette.clrChartBackground};
+    background: ${props => props.theme.palette.clrBackground};
     border: 1px solid ${props => props.theme.palette.clrBorder};
     ${props => props.hasBorder ? '' : (props.alignTop ? 'border-bottom: 0' : 'border-top: 0')};
     border-radius: ${props => props.hasBorder
@@ -140,10 +140,11 @@ class LanguageDropdown extends Component {
     updateTableItems = (propsInput) => {
         let props = propsInput || this.props;
         let tableItems = [];
+
         if (props && props.items && props.items.length) {
             const items = props.items;
             for (let i = 0; i < items.length; i++) {
-                const weight = this.isSearched(items[i].name, this.state.searchValue);
+                const weight = this.isSearched(items[i], this.state.searchValue);
 
                 if (weight >= 0) {
                     tableItems.push({

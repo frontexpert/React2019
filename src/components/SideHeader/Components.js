@@ -6,21 +6,20 @@ import { darkTheme } from '../../theme/core';
 const { palette } = darkTheme;
 
 export const DropdownWrapper = styled.div.attrs({ className: 'user-avatar-dropdown-wrapper' })`
-    position: absolute;
-    top: ${props => props.isArbCondition ? '72px' : '0'};
+    top: ${props => props.isArbCondition ? 'calc(100% + 12px)' : ''};
     left: -1px;
-    right: 0;
     display: flex;
     flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
     margin: 0;
-    border: ${props => !props.isArbCondition ? '1px solid ' + props.theme.palette.userMenuPopupBorder : '0px'};
+    border: 1px solid ${palette.userMenuPopupBorder};
     border-top: 0;
     border-radius: ${palette.borderRadius};
     padding: 0;
+    width: ${props => props.leftSidebarWidth ? ((props.leftSidebarWidth) + 'px') : '200px'};
     height: ${props => props.gridHeight ? (props.isArbCondition ? ((props.gridHeight - 101) + 'px') : ((props.gridHeight - 29) + 'px')) : '100vh'};
-    background: ${props => props.theme.palette.clrChartBackground};;
+    background: transparent;
     // Higher than order table
     z-index: 999;
     box-shadow: 2px 0 0 2px rgba(0, 0, 0, .2);
@@ -31,7 +30,7 @@ export const DropdownWrapper = styled.div.attrs({ className: 'user-avatar-dropdo
         background: ${props => props.theme.palette.clrLightRed};
         color: ${props => props.theme.palette.clrHighContrast};
         outline: none;
-        margin-right: 12px;
+        margin-right: 15px;
         height: 31px;
         max-width: 110px;
         width: auto;
@@ -151,6 +150,7 @@ export const DropdownMenu = styled.div`
         // border: 1px solid ${palette.userMenuPopupBorder};
         // border-top: none;
         border-radius: ${palette.borderRadius}; // 0 0 ${palette.borderRadius} ${palette.borderRadius};
+        background: ${palette.userMenuPopupBg};
         overflow: hidden;
         
         .ps__rail-y {
@@ -182,12 +182,15 @@ export const DropdownMenuItem = styled.div`
     padding: ${props => props.isColumn ? 0 : '10px 0'};
     width: 100%;
     min-height: 60px;
+    background: ${palette.userMenuPopupMenuItemBg};
     cursor: auto;
     // z-index: 100;
-    ${props => props.isChildOpen && 'max-height: 130px;'}
     
     ${props => (props.opened && props.isFullHeight) ? 'flex: 1;' : ''};
     ${props => (!props.opened && props.isFullHeight) ? `border-bottom: 1px solid ${palette.userMenuPopupMenuItemBorder};` : ''};
+    ${props => props.opened ? `
+        height: min-content !important;
+    ` : ''};
 
     // &:last-child {
     //     border-bottom: none;
@@ -219,17 +222,17 @@ export const DropdownMenuItem = styled.div`
         margin: 0;
         border: none;
         padding: 0;
-        width: 68px;
+        width: 55px;
         height: 100%;
         
         svg, svg * {
-            fill: ${props => props.opened ? palette.settingsSelectedText : palette.userMenuPopupMenuItem} !important;
+            fill: ${palette.userMenuPopupMenuItem} !important;
         }
     }
     
     .label-wrapper {
         flex: 1;
-        color: ${props => props.opened ? palette.settingsSelectedText : palette.userMenuPopupMenuItem};
+        color: ${palette.userMenuPopupMenuItem};
         font-size: 17px;
         font-weight: bold;
     }
@@ -241,12 +244,12 @@ export const DropdownMenuItem = styled.div`
 
         .icon-wrapper {
             svg, svg * {
-                fill: ${props => props.opened ? palette.settingsSelectedText : palette.userMenuPopupMenuItemHover} !important;
+                fill: ${palette.userMenuPopupMenuItemHover} !important;
             }
         }
         
         .label-wrapper {
-            color: ${props => props.opened ? palette.settingsSelectedText : palette.userMenuPopupMenuItemHover};
+            color: ${palette.userMenuPopupMenuItemHover};
         }
     }
 
@@ -358,10 +361,9 @@ export const OpenArrow = props => (
 );
 
 const CloseSvg = styled.svg`
-    margin-right: ${props => props.large ? '0' : '25px'};
-    width: ${props => props.large ? '25px' : '15px'};
-    height: ${props => props.large ? '25px' : '15px'};
-    cursor: pointer;
+    margin-right: 25px;
+    width: 15px;
+    height: 15px;
 
     &, & * {
         fill: ${palette.userMenuPopupMenuItem} !important;
@@ -382,167 +384,4 @@ export const Tab = styled.div`
     color: ${props => props.active ? props.theme.palette.orderHistoryHeaderTabActive : props.theme.palette.orderHistoryHeaderTab};
     cursor: pointer;
     margin-right: ${props => props.marginRight ? 10 :  0}px;
-`;
-
-
-const ThreeDotSvg = styled.svg`
-    width: 30px;
-    height: 100%;
-    fill: ${props => props.theme.palette.clrHighContrast};
-    cursor: pointer;
-`;
-
-export const ThreeDotIcon = (props) => (
-    <div className="exchange-child">
-        <ThreeDotSvg
-            viewBox="0 0 38 38"
-            role="img"
-            aria-hidden="true"
-            {...props}
-        >
-            <path d="M10.5 10l17 0"/>
-            <path d="M10.5 19l17 0"/>
-            <path d="M10.5 28l17 0"/>
-        </ThreeDotSvg>
-    </div>
-);
-
-const GlobalSvg = styled.svg`
-    width: ${props => props.size ? props.size : 16}px !important;
-    height: ${props => props.size ? props.size : 16}px !important;
-    margin-right: ${props => props.marginRight !== undefined ? props.marginRight : 4}px;
-    fill: ${props => props.isDisabled ? props.theme.palette.clrBorder : (props.color ? props.color : props.theme.palette.orderFormHeaderText)} !important;
-`;
-
-export const GlobalIcon = props => (
-    <GlobalSvg viewBox="0 0 12.33 12.33" {...props}>
-        <path d="M1.1,3.78a5.21,5.21,0,0,0,1.67.64A7.55,7.55,0,0,1,4.26.89l-.73.33-.23.13a.27.27,0,0,1-.4-.08c-.1-.15,0-.3.12-.41A5.9,5.9,0,0,1,5,.12,6.16,6.16,0,1,1,.19,7.63,6,6,0,0,1,1.65,2c.1-.12.21-.2.37-.12s.2.29.06.48c-.3.39-.57.79-.85,1.19C1.18,3.6,1.15,3.69,1.1,3.78Zm10.35.56c-.28.12-.55.25-.83.35S10,4.87,9.74,5c-.11,0-.1.1-.1.18,0,.59,0,1.18,0,1.76a.26.26,0,0,1-.35.28c-.18,0-.21-.18-.21-.35,0-.37,0-.75,0-1.12,0-.2,0-.4,0-.57l-2.64.23V8.59h.1a14.85,14.85,0,0,0,3.18-.37,5,5,0,0,0,1.64-.66A.63.63,0,0,0,11.69,7c0-.13,0-.26.05-.39A5.32,5.32,0,0,0,11.45,4.34ZM5.85,8.62V5.36L3.26,5.13a0,0,0,0,0,0,0A10.1,10.1,0,0,0,3.43,8.3a.22.22,0,0,0,.12.11c.22,0,.43.07.65.09C4.75,8.55,5.29,8.58,5.85,8.62ZM9,4.57A6.5,6.5,0,0,0,7.63,1.31,2.25,2.25,0,0,0,6.78.69L6.44.58V4.8ZM5.85,4.8V.6l-.09,0a2.39,2.39,0,0,0-1.27.94,6.21,6.21,0,0,0-1,2.32c0,.21-.09.43-.14.69Zm-5-.48a.93.93,0,0,0-.05.1A5.24,5.24,0,0,0,.59,6.61c.08.77,0,.78.88,1.24a5.24,5.24,0,0,0,1.36.42V8.16A10.48,10.48,0,0,1,2.69,5.1c0-.1,0-.13-.12-.15A6.1,6.1,0,0,1,.89,4.32ZM8,.91A7.13,7.13,0,0,1,9.56,4.42a5.3,5.3,0,0,0,1.66-.64A5.44,5.44,0,0,0,8,.91Zm-1.6,10.8c1-.1,1.94-1.47,2.25-2.68l-2.25.16Zm-.58,0V9.19L3.62,9a4.52,4.52,0,0,0,1.6,2.43A5.29,5.29,0,0,0,5.85,11.76Zm-1.57-.33s0-.06,0-.06A6.22,6.22,0,0,1,3,9a.2.2,0,0,0-.19-.16,6.36,6.36,0,0,1-.78-.2c-.36-.11-.71-.25-1.09-.38A5.72,5.72,0,0,0,4.28,11.43Zm7.09-3.19a7.64,7.64,0,0,1-1.93.63.34.34,0,0,0-.15.18c-.17.39-.29.81-.48,1.19s-.48.78-.72,1.18A5.73,5.73,0,0,0,11.37,8.24Z" />
-    </GlobalSvg>
-);
-
-export const DropdownFullHeight = styled.div`
-    position: absolute;
-    left: 0;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 100000;
-    // width: ${props => props.width ?  props.width : 180}px;
-    // height: ${props => props.height ?  props.height : 500}px;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: flex-start;
-    background: ${props => props.theme.palette.clrBackground};
-    border-radius: ${props => `0 0 ${props.theme.palette.borderRadius} ${props.theme.palette.borderRadius}`};
-    box-shadow: 2px 0 0 2px rgba(0, 0, 0, .2);
-`;
-
-export const IconWrapper = styled.div`
-    width: 100% !important;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    &.exchange-wrapper {
-        width: fit-content;
-        padding-right: 10px;
-
-        & > div:first-child {
-            span {
-                width: auto;
-                font-size: 20px;
-            }
-        }
-    }
-`;
-
-export const ItemList = styled.div`
-    position: relative;
-    width: 100%;
-    height: 100%;
-    margin-top: ${props => props.isMarginTop ? '12px' : ''};
-    overflow: hidden;
-    flex-grow: 1;
-    flex-shrink: 1;
-    display: flex;
-    background: transparent;
-    border: 1px solid ${props => props.theme.palette.clrBorder};
-    border-radius: ${props => props.theme.palette.borderRadius};
-`;
-
-
-export const ListStyleWrapper = styled.div`
-    width: ${props => props.width - 2}px;
-    height: ${props => props.isMarginTop ? props.height - 12 : props.height}px;
-    box-shadow: ${props => !props.isMarginTop ? '5px 5px 38px 11px rgba(0,0,0,1)' : ''};
-
-    .scrollbar-container {
-        height: min-content;
-        max-height: 100%;
-        overflow: hidden;
-        
-        &.d-flex {
-            flex-wrap: wrap;
-        }
-    }
-
-    .ps__rail-y {
-        right: 0 !important;
-        background-color: ${props => props.theme.palette.clrBackground} !important;
-        border-left: 1px solid ${props => props.theme.palette.clrInnerBorder};
-        border-bottom-right-radius: ${props => props.theme.palette.borderRadius};
-        opacity: 0 !important;
-
-        .ps__thumb-y {
-            z-index: 9999;
-            cursor: pointer;
-            
-            &:before {
-                background-color: ${props => props.theme.palette.clrBorder};
-            }
-        }
-    }
-    
-    .ReactVirtualized__Table__rowColumn {
-        height: 100%;
-        margin: 0;
-    }
-    
-    .ReactVirtualized__Table__row {
-        background: ${props => props.theme.palette.clrBackground};
-        border-bottom: 1px solid ${props => props.theme.palette.clrInnerBorder};
-
-        &:last-child {
-            border-bottom: none;
-        }
-
-        &:hover {
-            background: ${props => props.theme.palette.clrMouseHover};
-        }
-        
-        &:active {
-            background: ${props => props.theme.palette.clrMouseClick};
-        }
-        
-        &:hover,
-        &:active {
-            .deposit-dropdown-name {
-                color: ${props => props.theme.palette.clrHighContrast} !important;
-            }
-        }
-    }
-    
-    .ReactVirtualized__Table__Grid {
-        outline: none !important;
-    }
-`;
-
-export const LanguageWrapper = styled.div`
-    position: absolute;
-    right: 10px;
-    bottom: 0;
 `;

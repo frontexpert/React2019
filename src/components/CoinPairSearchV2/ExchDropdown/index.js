@@ -174,14 +174,9 @@ class ExchDropdown extends React.PureComponent {
                     </div>
 
                     <div className={'exch-search ' + (isOpen ? '' : 'hidden')}>
-
-                        <svg className="exch-search__icon" xmlns="http://www.w3.org/2000/svg" data-name="Layer 1" viewBox="0 0 100 100" x="0px" y="0px">
-                            <path d="M38,76.45A38.22,38.22,0,1,1,76,38.22,38.15,38.15,0,0,1,38,76.45Zm0-66.3A28.08,28.08,0,1,0,65.84,38.22,28,28,0,0,0,38,10.15Z"/>
-                            <rect x="73.84" y="54.26" width="10.15" height="49.42" transform="translate(-32.73 79.16) rotate(-45.12)"/>
-                        </svg>
-                        {/* <svg className="exch-search__icon" role="img" aria-hidden="true">
+                        <svg className="exch-search__icon" role="img" aria-hidden="true">
                             <use xmlnsXlink="http://www.w3.org/1999/xlink" xlinkHref="img/sprite-basic.svg#search"/>
-                        </svg> */}
+                        </svg>
 
                         <input
                             className="exch-search__input"

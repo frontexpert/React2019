@@ -187,6 +187,7 @@
   "data_loader_done.label_done": "TERMINAT",
   "sms_verification.label_enter_mobile_number": "Introduceți numărul de telefon mobil",
   "sms_verification.label_what_code": "Care este codul?",
+  "switch_custom.label_off": "OFF",
 
   "button.save": "Salvați",
   "button.confirm": "A confirma",
@@ -215,6 +216,5 @@
   "order_book.buy_book.label_max_order_size": "Dimensiunea maximă a comenzii: ",
   "settings.label_auto_flip": "Auto Flip",
   "settings.label_swaps": "schimb",
-  "settings.label_is_auto_convert": "Convertire automată",
-  "settings.label_support_center": "Centrul de asistență pentru platforme"
+  "settings.label_is_auto_convert": "Convertire automată"
 }

@@ -6,7 +6,7 @@ export const Wrapper = styled.section`
     width: ${props => props.width}px;
     height: ${props => props.height}px;
     border-radius: ${props => props.theme.palette.borderRadius};
-    // overflow: hidden;
+    overflow: hidden;
     opacity: ${props => props.isLoading ? 0.7 : 1};
 `;
 
@@ -26,7 +26,7 @@ export const DepthChartWrapper = styled.div`
     position: absolute;
     top: 0;
     border-radius: ${props => props.theme.palette.borderRadius};
-    // overflow: hidden;
+    overflow: hidden;
 
     .gray {
         color: #575D63;
@@ -41,8 +41,7 @@ export const DepthChartWrapper = styled.div`
         z-index: 2;
 
         div.tooltip-wrapper {
-            position: relative;
-            z-index: 9999;
+            position: absolute;
 
             div.circle {
                 width: 10px;
@@ -56,15 +55,18 @@ export const DepthChartWrapper = styled.div`
 
             div.tooltip {
                 position: relative;
-                // margin-left: -50%;
-                // margin-right: 50%;
+                margin-left: -50%;
+                margin-right: 50%;
                 opacity: 1;
-                padding: 1px 1px;
+                padding: 1px 2px;
                 color: #FFF;
+                font-size: 14px;
+                font-weight: 600;
+                line-height: 18px;
                 border: 1px solid ${props => props.theme.palette.clrseparatorD};
                 border-radius: 11px;
                 border-color: #747BA6;
-                background-color: ${props => props.colorMode === 'Buy' ? '#01AF67' : props.theme.palette.dodgerBlue};
+                background-color: ${props => props.colorMode === 'Buy' ? '#01AF67' : '#B41E1E'};
                 transform: translate(0, 235px);
                 box-shadow: 0px 2px 6px 0px rgba(0, 0, 0, 0.4);                
 
@@ -81,17 +83,16 @@ export const DepthChartWrapper = styled.div`
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-size: 10px;
                     svg {
                         flex: auto;
                         width: 20px;
-                        height: 12px;
-                        padding-top: 1px;
+                        margin-top: 3px;
+                        height: 15px;
                         fill: #FFF;
                     }
                     img {
-                        width: 12px;
-                        height: 12px;
+                        width: 16px;
+                        height: 16px;
                         margin: 0;
 
                         &.left {
@@ -207,9 +208,9 @@ export const Overlapper = styled.div`
     width: ${props => props.width}px;
     height: 100%;
     pointer-events: none;
-    background-image: ${props => props.isSpread ? 'linear-gradient(to right, rgba(50, 200, 153, .07), rgba(102, 203, 255, .7))' : 'linear-gradient(to top right, rgba(102, 203, 255, .2), rgba(102, 203, 255, .08), transparent, transparent)'};
-    border-left: 1px dashed ${props => props.isSpread ? 'rgba(50, 200, 153, .7)' : 'rgba(102, 203, 255, .7)'};
-    border-right: 1px dashed ${props => props.isSpread ? 'rgba(102, 203, 255, .7)' : 'rgba(50, 200, 153, .7)'};
+    background-image: ${props => props.isSpread ? 'linear-gradient(to right, rgba(50, 200, 153, .07), rgba(200, 50, 50, .07))' : 'linear-gradient(to top right, rgba(200, 50, 50, .2), rgba(200, 50, 50, .08), transparent, transparent)'};
+    border-left: 1px dashed ${props => props.isSpread ? 'rgba(50, 200, 153, .7)' : 'rgba(200, 50, 50, .7)'};
+    border-right: 1px dashed ${props => props.isSpread ? 'rgba(200, 50, 50, .7)' : 'rgba(50, 200, 153, .7)'};
     border-width: ${props => props.border ? '1px' : '0'};
 `;
 
@@ -257,20 +258,18 @@ export const ExchangeLabel = styled.div`
 `;
 
 export const ZoomWrapper = styled.div`
-    position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
 `;
 
 export const ZoomOut = styled.img`
-    width: ${props => props.isMobile ? '3rem' : '2rem'};
-    height: ${props => props.isMobile ? '3rem' : '2rem'};
-    border: 2px solid ${props => props.theme.palette.clrBorder};
+    width: ${props => props.isMobile ? '3rem' : '1.5rem'};
+    height: ${props => props.isMobile ? '3rem' : '1.5rem'};
+    border: 1px solid ${props => props.theme.palette.clrBorder};
     background-color: ${props => props.theme.palette.clrBackground};
-    padding: 8px;
-    margin: 2px;
-    border-radius: 50%;
+    padding: 4px;
+    border-radius: ${props => props.theme.palette.borderRadius} 0 0 ${props => props.theme.palette.borderRadius};
     transform: translate(-100%, 0);
     
     &:hover {
@@ -283,21 +282,7 @@ export const ZoomOut = styled.img`
 export const ZoomIn = styled(ZoomOut)`
     position: relative;
     left: -1px;
-    border-radius: 50%;
-`;
-
-export const Loading = styled.div`
-    position: absolute;
-    display: block;
-    width: ${props => props.isMobile ? '3rem' : '2rem'};
-    height: ${props => props.isMobile ? '3rem' : '2rem'};
-    border-radius: 50%;
-    border: 2px solid transparent;
-    border-top-color: #fff;
-    -webkit-animation: iECmZH 1s linear infinite;
-    animation: iECmZH 1s linear infinite;
-    z-index: 99999;
-    left: ${props => props.mode === 'in' ? '5px' : props.isMobile ? '-46px' : '-30px'};
+    border-radius: 0 ${props => props.theme.palette.borderRadius} ${props => props.theme.palette.borderRadius} 0;
 `;
 
 const GlobalSvg = styled.svg`

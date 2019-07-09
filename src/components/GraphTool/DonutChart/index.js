@@ -8,7 +8,7 @@ import isEqual from 'lodash/isEqual';
 import { STORE_KEYS } from '../../../stores';
 import { customDigitFormat, capitalizeFirstLetter, format2DigitStringForDonut } from '../../../utils';
 import {
-    Wrapper, DonutChartWrapper, Donut, HoverLabel, ArbSwitcher, SvgComplete
+    DonutChartWrapper, Donut, HoverLabel, ArbSwitcher, SvgComplete
 } from './Components';
 import { STATE_KEYS } from '../../../stores/ConvertStore';
 import DataLoader from '../../../components-generic/DataLoader';
@@ -73,12 +73,11 @@ class DonutChart extends Component {
     componentDidMount() {
         const {
             [STORE_KEYS.LOWESTEXCHANGESTORE]: { updateHoverExchangeFromDonut },
-            donutChatId,
         } = this.props;
 
-        const chart = am4core.create(donutChatId, am4charts.PieChart);
+        const chart = am4core.create('donut-chart', am4charts.PieChart);
 
-        // chart.innerRadius = am4core.percent(45);
+        chart.innerRadius = am4core.percent(45);
 
         chart.data = data;
 
@@ -91,11 +90,10 @@ class DonutChart extends Component {
         // pieSeries.colors.list = colors;
         pieSeries.slices.template.stroke = am4core.color('#fff');
         pieSeries.slices.template.strokeWidth = 2;
-        pieSeries.slices.template.strokeOpacity = 0.1;
         pieSeries.slices.template.cornerRadius = 8;
         // pieSeries.slices.template.tooltipText = "{category}: {value}%";
         pieSeries.slices.template.tooltipText = '';
-        pieSeries.slices.template.fillOpacity = 0.3;
+        pieSeries.slices.template.fillOpacity = 1;
 
         // for opacity of user interaction
         pieSeries.slices.template.events.disableType('hit');
@@ -216,7 +214,7 @@ class DonutChart extends Component {
         }
     }
 
-    updateChartData(plan, colorMode) {
+    updateChartData(plan) {
         data = [];
         let totalAmount = 0;
         if (plan && plan.length) {
@@ -259,7 +257,7 @@ class DonutChart extends Component {
             this.chart.data = data;
             // this.pieSeries.colors.list = colors.slice(0, this.chart.data.length).reverse();
             this.pieSeries.slices.template.states.getKey('hover').properties.shiftRadius = data.length > 1 ? 0.1 : 0;
-            this.chartColors = getChartColors(data.length, colorMode);
+            this.chartColors = getChartColors(data.length);
             this.pieSeries.colors.list = this.chartColors;
             this.pieSeries.slices.template.adapter.add('hidden', hideSmall);
         }
@@ -273,12 +271,11 @@ class DonutChart extends Component {
             [STORE_KEYS.ORDERENTRY]: orderEntryStore,
             [STORE_KEYS.CONVERTSTORE]: convertStore,
             [STORE_KEYS.SETTINGSSTORE]: settingsStore,
-            [STORE_KEYS.VIEWMODESTORE]: viewModeStore,
-            [STORE_KEYS.ORDERBOOK]: orderBookStore,
+            // [STORE_KEYS.VIEWMODESTORE]: viewModeStore,
             width,
             height,
-            isExchangeCellsV2,
-            donutChatId,
+            isVisible,
+            isLoggedIn,
         } = this.props;
         const {
             averagePrice,
@@ -295,8 +292,7 @@ class DonutChart extends Component {
         const {
             getLocalPrice, getLocalCurrency, isArbitrageMode, setArbitrageMode,
         } = settingsStore;
-        const { graphSwitchMode } = viewModeStore;
-        const { isCoinPairInversed } = orderBookStore;
+        // const { graphSwitchMode, setGraphSwitchMode } = viewModeStore;
 
         selectedBase = (selectedBase || '').replace('F:', '');
         selectedQuote = (selectedQuote || '').replace('F:', '');
@@ -304,7 +300,7 @@ class DonutChart extends Component {
         this.convertState = convertStore.convertState;
 
         if (hoverIndex === -1) {
-            this.updateChartData(Plan, isCoinPairInversed);
+            this.updateChartData(Plan);
         }
         if (this.pieSeries && this.pieSeries.slices) {
             if (hoverExchange) {
@@ -326,25 +322,23 @@ class DonutChart extends Component {
                 });
             }
         }
-        const isDonutMode = (convertStore.convertState !== STATE_KEYS.coinSearch) && graphSwitchMode;
+        const isDonutMode = (convertStore.convertState !== STATE_KEYS.coinSearch) && !isArbitrageMode;
 
         return (
-            <Wrapper
-                width={width}
-                height={height}
-                isDonutMode={isDonutMode}
-            >
+            <Fragment>
                 {
-                    isDonutMode && isExchangeCellsV2 &&
+                    isDonutMode &&
                     <ExchangeCellsV2 isDonutMode={isDonutMode}/>
                 }
                 <DonutChartWrapper
-                    width={width}
+                    id="graph-chart"
+                    width={width / 2}
                     height={height}
+                    isVisible={isVisible}
                     disableTransition={this.disableTransition}
-                    switchMode={!isDonutMode}
+                    switchMode={isArbitrageMode}
                 >
-                    <Donut id={donutChatId} width={width * 0.9} height={height * 0.9} />
+                    <Donut id="donut-chart" width={width} height={height} />
 
                     {(convertStore.convertState === STATE_KEYS.submitOrder || isDelayed) && (
                         <DataLoader width={120} height={120} />
@@ -400,7 +394,7 @@ class DonutChart extends Component {
                     */}
                 </DonutChartWrapper>
                 {/* <SplineAreaChartHighCharts width={width} height={height} switchMode={isArbitrageMode}/> */}
-            </Wrapper>
+            </Fragment>
         );
     }
 }
@@ -410,7 +404,6 @@ export default inject(
     STORE_KEYS.ORDERENTRY,
     STORE_KEYS.INSTRUMENTS,
     STORE_KEYS.CONVERTSTORE,
-    STORE_KEYS.SETTINGSSTORE,
-    STORE_KEYS.VIEWMODESTORE,
-    STORE_KEYS.ORDERBOOK,
+    STORE_KEYS.SETTINGSSTORE
+    // STORE_KEYS.VIEWMODESTORE,
 )(observer(DonutChart));

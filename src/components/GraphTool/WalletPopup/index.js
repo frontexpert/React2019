@@ -6,7 +6,7 @@ import { inject, observer } from 'mobx-react';
 import TradingViewToggleButton from '../TradingViewToggleButton';
 import { STORE_KEYS } from '../../../stores';
 import { viewModeKeys } from '../../../stores/ViewModeStore';
-import { formatStringForMKTCAP, unifyDigitString, numberWithCommas } from '../../../utils';
+import { formatStringForMKTCAP, unifyDigitString } from '../../../utils';
 import {
     CoinPriceWrapper,
     Wrapper,
@@ -19,7 +19,8 @@ import {
     GlobalIconNew,
     StatusSection,
     SectionTitle,
-    SectionValue
+    SectionValue,
+    GlobalLabel
 } from './Components';
 import CurrencyDropdownWithSymbol from '../../../components-generic/CurrencyDropdown/CurrencyDropdownWithSymbol';
 // import SmallLinks from './SmallLinks';
@@ -32,7 +33,7 @@ class WalletPopup extends Component {
         const {
             OrderEventsData, selectedCoin, changeInPercent, baseSymbol : selectedBase, quoteSymbol : selectedQuote,
             price, isGlobal, viewMode, isLoggedIn, getDefaultPrice, getLocalCurrency, selectedExchange, baseFiatPrice,
-            exchanges, getActiveExchanges, marketExchanges, maxHeight, tradingViewMode,
+            exchanges, getActiveExchanges, marketExchanges, maxHeight,
         } = this.props;
 
         let activeCoin = (viewMode === viewModeKeys.advancedModeKey) ? selectedBase : selectedCoin;
@@ -53,10 +54,7 @@ class WalletPopup extends Component {
                 const marketCap = data.Marketcap;
                 const volume24h = data.Volume24h;
                 const Price = data.Price;
-
-                let rate = getLocalCurrency(selectedBase) === getLocalCurrency(selectedQuote) ?
-                    1 :
-                    numberWithCommas(getDefaultPrice(price, selectedQuote));
+                let rate = unifyDigitString(getDefaultPrice(price, selectedQuote));
 
                 let ratioPriceLeft = 1;
                 let ratioPriceRight = rate;
@@ -91,51 +89,132 @@ class WalletPopup extends Component {
 
                 return price ? (
                     <div>
+                        {/*
+                        <CoinPriceWrapper isGlobal={isGlobal} className="price-labels-wrapper">
+                            {(selectedExchange.name === 'Global' && activeCoin !== '')
+                                ? (
+                                    <GlobalIcon/>
+                                ) : (
+                                    <LogoWrapper>
+                                        <Logo src={`/img/exchange/${selectedExchange.icon}`} alt=""/>
+                                    </LogoWrapper>
+                                )
+                            }
+
+                            <CoinPriceBox>
+                                <LabelPrice>
+                                    <span>{ratioPriceLeft} {getLocalCurrency(selectedBase)} = {ratioPriceRight} {getLocalCurrency(selectedQuote)}</span>
+                                </LabelPrice>
+                            </CoinPriceBox>
+                        </CoinPriceWrapper>
+                        */}
+
                         <Wrapper isGlobal={true} className="price-labels-wrapper">
                             <StatusSection>
-                                {!isGlobal && (
-                                    <Fragment>
-                                        <SectionTitle>
-                                            {(countExchange !== 1 || selectedName === '')
-                                                ? (
-                                                    <GlobalIconNew/>
-                                                ) : (
-                                                    <LogoWrapper>
-                                                        <Logo src={`/img/exchange/${selectedIcon}`} alt=""/>
-                                                    </LogoWrapper>
-                                                )
-                                            }
-                                            <div>
-                                                &nbsp;<span>{`${getLocalCurrency(selectedBase)}/`}</span>
-                                            </div>
-                                            <CurrencyDropdownWithSymbol
-                                                alignRight={false}
-                                                coinSize={25}
-                                                showFiat={false}
-                                                symbolSize={33}
-                                                symbol={true}
-                                                disableCrypto
-                                            />
-                                        </SectionTitle>
-                                        &nbsp;
-                                        <SectionValue>
-                                            <CoinPriceBox>
-                                                <LabelPrice>
-                                                    {rate}
-                                                </LabelPrice>
-                                                <div>
-                                                    {activeCoin !== '' && (
-                                                        <span className={percentClassName}>
-                                                            {changeInPercentSign + Math.abs(changeInPercent.toFixed(2))}%
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </CoinPriceBox>
-                                        </SectionValue>
-                                    </Fragment>
-                                )}
+                                <SectionTitle>
+                                    {(countExchange !== 1 || selectedName === '')
+                                        ? (
+                                            <GlobalIconNew/>
+                                        ) : (
+                                            <LogoWrapper>
+                                                <Logo src={`/img/exchange/${selectedIcon}`} alt=""/>
+                                            </LogoWrapper>
+                                        )
+                                    }
+                                    <GlobalLabel>{getActiveExchanges(exchanges)}</GlobalLabel>
+                                    <span>{`(${getLocalCurrency(selectedBase)}/${getLocalCurrency(selectedQuote)})`}&nbsp;</span>
+                                </SectionTitle>
+
+                                <SectionValue>
+                                    <CoinPriceBox>
+                                        <CurrencyDropdownWithSymbol
+                                            alignRight={false}
+                                            coinSize={33}
+                                            symbolSize={33}
+                                            maxHeight={maxHeight}
+                                        />
+
+                                        <LabelPrice>
+                                            {rate}
+                                        </LabelPrice>
+                                        <div>
+                                            {activeCoin !== '' && (
+                                                <span className={percentClassName}>
+                                                    {changeInPercentSign + Math.abs(changeInPercent.toFixed(2))}%
+
+                                                    {/* <svg className="sprite-icon close" role="img" aria-hidden="true">
+                                                        <use xmlnsXlink="http://www.w3.org/1999/xlink" xlinkHref="img/sprite-basic.svg#arrow-drop"/>
+                                                    </svg> */}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </CoinPriceBox>
+                                </SectionValue>
                                 <TradingViewToggleButton />
                             </StatusSection>
+
+                            {/*
+                            <StatusSection>
+                                <SectionTitle className="setAlignCenter">
+                                    <span>
+                                        {getLocalCurrency(selectedBase)}&nbsp;
+                                        <FormattedMessage
+                                            id="graph_tool.wallet_popup.label_mrkt_cup"
+                                            defaultMessage="Mkt Cap"
+                                        />
+                                    </span>
+                                </SectionTitle>
+                                <SectionValue>
+                                    {activeCoin !== '' && (
+                                        <VolumeCell>
+                                            {(marketCap > 0.0001 && !isBCT) ? (
+                                                <CurrencyDropdownWithSymbol
+                                                    alignRight={false}
+                                                    coinSize={25}
+                                                />
+                                            ) : 'N/A'}
+                                            {formatStringForMKTCAP(getDefaultPrice(marketCap, selectedQuote))}
+                                        </VolumeCell>
+                                    )}
+                                </SectionValue>
+                            </StatusSection>
+
+                            <StatusSection>
+                                <SectionTitle className="setAlignCenter">
+                                    <span>
+                                        {getLocalCurrency(selectedBase)}&nbsp;
+                                        <FormattedMessage
+                                            id="graph_tool.wallet_popup.label_volume"
+                                            defaultMessage="Vol. (24hr)"
+                                        />
+                                    </span>
+                                </SectionTitle>
+                                <SectionValue>
+                                    <VolumeCell>
+                                        <div className="value">
+                                            {volume24h > 0.0001 ? (
+                                                <CurrencyDropdownWithSymbol
+                                                    alignRight={false}
+                                                    coinSize={25}
+                                                />
+                                            ) : 'N/A'}
+                                        </div>
+                                        {formatStringForMKTCAP(getDefaultPrice(volume24h, selectedQuote))}
+                                    </VolumeCell>
+                                </SectionValue>
+                            </StatusSection>
+
+                            {activeCoin !== '' && (
+                                <StatusSection>
+                                    <SectionTitle className="setAlignCenter">
+                                        <span>{getLocalCurrency(selectedBase)}</span>
+                                    </SectionTitle>
+                                    <SectionValue className="linkWrapper">
+                                        <SmallLinks />
+                                    </SectionValue>
+                                </StatusSection>
+                            )}
+                            */}
                         </Wrapper>
                     </div>
                 ) : <Fragment/>;
@@ -173,7 +252,6 @@ export default compose(
             },
             [STORE_KEYS.VIEWMODESTORE]: {
                 viewMode,
-                tradingViewMode,
             },
             [STORE_KEYS.TELEGRAMSTORE]: {
                 isLoggedIn,
@@ -197,7 +275,6 @@ export default compose(
             quoteSymbol,
             price,
             viewMode,
-            tradingViewMode,
             isLoggedIn,
             getDefaultPrice,
             baseFiatPrice,

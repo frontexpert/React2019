@@ -34,7 +34,7 @@ const IconSvg = styled.svg`
     }
     
     .cls-2, .cls-3 {
-        fill: ${props => props.theme.palette.clrBorder};
+        fill: ${props => props.active ? props.theme.palette.clrBlue : props.theme.palette.clrBorder};
     }
     
     .cls-3 {

@@ -4,16 +4,11 @@ import { inject, observer } from 'mobx-react';
 
 import CoinPairSearchContainerV2 from '../components/CoinPairSearchV2';
 import GraphTool from '../components/GraphTool';
-import TradingViewAdv from '../components/GraphTool/TradingViewAdv';
 import Report from '../components/Report';
-
 import { STORE_KEYS } from '../stores';
-import { STATE_KEYS } from '../stores/ConvertStore';
 
 const StyledRightTopSectionGrid = styled.div`
     grid-area: righttopsection;
-    margin-left: 12px;
-    ${props => (props.isMobileDevice || props.isSmallWidth) ? 'display: none;' : 'flex: 1;'}
 `;
 
 const GraphGrid = styled.div`
@@ -33,14 +28,11 @@ const SearchBarGridArea = styled.div`
     align-items: stretch;
     justify-content: flex-start;
     min-width: 0;
-    background-color: ${props => props.theme.palette.clrChartBackground};
-    // ${props => (props.full) ? 'margin-left: -72px;' : ''}
 `;
 
 const ChartGridArea = styled.div`
     grid-area: chart;
     position: relative;
-    // ${props => (props.full) ? 'margin-left: -72px;' : ''}
 `;
 
 class RightTopSectionGrid extends React.Component {
@@ -73,38 +65,21 @@ class RightTopSectionGrid extends React.Component {
     };
 
     render() {
-        const { rightTopSectionGridMode } = this.props[STORE_KEYS.VIEWMODESTORE];
-        const {
-            [STORE_KEYS.SETTINGSSTORE]: {
-                tradeColStatus,
-                isArbitrageMode,
-                sidebarStatus,
-            },
-            [STORE_KEYS.CONVERTSTORE]: { convertState },
-        } = this.props;
-        const {
-            isMobileDevice,
-            isSmallWidth,
-        } = this.props;
-        const isArbitrageMonitorMode = isArbitrageMode && (convertState !== STATE_KEYS.coinSearch);
+        const { isReportMode } = this.props[STORE_KEYS.VIEWMODESTORE];
 
         return (
-            <StyledRightTopSectionGrid isMobileDevice={isMobileDevice} isSmallWidth={isSmallWidth} id="right-top">
+            <StyledRightTopSectionGrid id="right-top">
                 <GraphGrid>
-                    <SearchBarGridArea full={(isArbitrageMonitorMode && tradeColStatus === 'closed') || sidebarStatus === 'closed'}>
+                    <SearchBarGridArea>
                         <CoinPairSearchContainerV2 openExchBar={this.openExchBar}/>
                     </SearchBarGridArea>
 
-                    <ChartGridArea id="graph" full={(isArbitrageMonitorMode && tradeColStatus === 'closed') || sidebarStatus === 'closed'}>
+                    <ChartGridArea id="graph">
                         {
-                            rightTopSectionGridMode === 'graph' && <GraphTool/>
+                            isReportMode ? <Report/> : <GraphTool/>
                         }
-                        {
-                            rightTopSectionGridMode === 'report' && <Report/>
-                        }
-                        {
-                            rightTopSectionGridMode === 'trading' && <TradingViewAdv/>
-                        }
+                        <Report/>
+                        {/* <GraphTool/> */}
                     </ChartGridArea>
                 </GraphGrid>
             </StyledRightTopSectionGrid>
@@ -114,6 +89,4 @@ class RightTopSectionGrid extends React.Component {
 
 export default inject(
     STORE_KEYS.VIEWMODESTORE,
-    STORE_KEYS.SETTINGSSTORE,
-    STORE_KEYS.CONVERTSTORE,
 )(observer(RightTopSectionGrid));

@@ -19,7 +19,6 @@ import {
     ZoomWrapper,
     ZoomOut,
     ZoomIn,
-    Loading,
     GlobalIcon,
     Logo
 } from './DepthChartComponents';
@@ -28,14 +27,13 @@ import { getScreenInfo } from '../../../utils';
 
 let chart;
 
-class _Chart extends React.Component {
+class _Chart extends React.PureComponent {
     constructor(props) {
         super(props);
 
         this.state = {
             overLapWidth: 0,
             colorMode: 'Buy',
-            zoomingMode: null,
         };
         this.onResizeListener = this.onResizeListener.bind(this);
 
@@ -45,7 +43,6 @@ class _Chart extends React.Component {
         this.tickInterval = 1;
 
         this.overLap = {
-            overLapScale: 1,
             overLapLeft: 0,
             overLapSpread: 0,
             overLapBorder: false,
@@ -60,7 +57,7 @@ class _Chart extends React.Component {
     componentWillReceiveProps(nextProps) {
         // theme comes through here to react to dark/light toggle
         const {
-            midMarket, sell, buy, theme, height, width, baseCur, quoteCur, symbol, updateSpread,
+            midMarket, sell, buy, theme, height, width, baseCur, quoteCur, symbol,
         } = nextProps;
 
         if (sell && buy && sell.length > 1 && buy.length > 1) {
@@ -68,13 +65,7 @@ class _Chart extends React.Component {
 
             if (chart === undefined || this.symbol !== symbol) {
                 this.symbol = symbol;
-                const newSpread = Math.min(sell[sell.length - 1].x - midMarket, midMarket - buy[0].x);
-                const overLapSpread = Math.abs(sell[0].x - buy[buy.length - 1].x);
-                const overLapWidth = width * overLapSpread / (2 * newSpread);
-                const spreadRateToUpdate = overLapWidth / (100 * this.overLap.overLapScale);
-
-                this.spread = newSpread * spreadRateToUpdate;
-                updateSpread(this.spread);
+                this.spread = Math.min(sell[sell.length - 1].x - midMarket, midMarket - buy[0].x);
 
                 chart = Highcharts.chart('depth_chart_container', initConfiguration(baseCur, quoteCur, midMarket, buy, sell, theme, height, width, this.spread, this.setTooltipColorMode));
 
@@ -99,21 +90,11 @@ class _Chart extends React.Component {
                 const spread = Math.min(sell[sell.length - 1].x - midMarket, midMarket - buy[0].x);
                 this.spread = spread;
 
-                const overLapSpread = Math.abs(sell[0].x - buy[buy.length - 1].x);
-                const overLapWidth = width * overLapSpread / (2 * this.spread);
-                const spreadRateToUpdate = overLapWidth / (100 * this.overLap.overLapScale);
-
-                this.spread = spread * spreadRateToUpdate;
-
                 chart.update(updateConfig(buy, sell, height, width));
                 chart.xAxis[0].setExtremes(midMarket - this.spread, midMarket + this.spread);
                 this.setOverLapData(width, buy, sell);
             }
         }
-
-        this.setState({
-            zoomingMode: null,
-        });
     }
 
     componentWillUnmount() {
@@ -136,7 +117,6 @@ class _Chart extends React.Component {
                 let overLapSpread = sell[0].x - buy[buy.length - 1].x;
                 if (overLapSpread === 0) {
                     this.overLap = {
-                        overLapScale: 1,
                         overLapLeft: 0,
                         overLapSpread,
                         overLapBorder: false,
@@ -160,7 +140,6 @@ class _Chart extends React.Component {
                 }
 
                 this.overLap = {
-                    overLapScale: this.overLap.overLapScale,
                     overLapLeft,
                     overLapSpread,
                     overLapBorder,
@@ -170,7 +149,6 @@ class _Chart extends React.Component {
                 });
             } else {
                 this.overLap = {
-                    overLapScale: 1,
                     overLapLeft: 0,
                     overLapSpread: 0,
                     overLapBorder: false,
@@ -197,15 +175,8 @@ class _Chart extends React.Component {
             } = this.props;
 
             this.spread = this.spread / 2;
-            this.overLap.overLapScale *= 2;
-            if (this.spread < spreadMin) {
-                this.overLap.overLapScale *= this.spread * 2 / spreadMin;
-                this.spread = spreadMin;
-            }
+            if (this.spread < spreadMin) this.spread = spreadMin;
             updateSpread(this.spread);
-            this.setState({
-                zoomingMode: 'in',
-            });
         } catch (e) {
             console.log('zoomIn error!', e);
         }
@@ -218,15 +189,8 @@ class _Chart extends React.Component {
             } = this.props;
 
             this.spread = 2 * this.spread;
-            this.overLap.overLapScale /= 2;
-            if (this.spread > spreadMax) {
-                this.overLap.overLapScale *= this.spread / (2 * spreadMax);
-                this.spread = spreadMax;
-            }
+            if (this.spread > spreadMax) this.spread = spreadMax;
             updateSpread(this.spread);
-            this.setState({
-                zoomingMode: 'out',
-            });
         } catch (e) {
             console.log('zoomOut error!', e);
         }
@@ -239,10 +203,6 @@ class _Chart extends React.Component {
                 selectedExchange, exchanges, getActiveExchanges,
                 [STORE_KEYS.EXCHANGESSTORE]: { marketExchanges },
             } = this.props;
-
-            const {
-                zoomingMode,
-            } = this.state;
 
             const {
                 isMobileDevice,
@@ -290,7 +250,6 @@ class _Chart extends React.Component {
                                     isMobile={isMobileDevice && !isMobilePortrait}
                                     onClick={this.zoomIn}
                                 />
-                                {(zoomingMode === 'in' || zoomingMode === 'out') && <Loading mode={zoomingMode} />}
                             </ZoomWrapper>
                         </MidMarketWrapper>
                     )}

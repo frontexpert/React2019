@@ -187,6 +187,7 @@
   "data_loader_done.label_done": "СДЕЛАННЫЙ",
   "sms_verification.label_enter_mobile_number": "Введите номер мобильного телефона",
   "sms_verification.label_what_code": "Какой код?",
+  "switch_custom.label_off": "OFF",
 
   "button.save": "Сохранить",
   "button.confirm": "Подтвердить",
@@ -215,6 +216,5 @@
   "order_book.buy_book.label_max_order_size": "МАКС. РАЗМЕР ЗАКАЗА: ",
   "settings.label_auto_flip": "Авто флип",
   "settings.label_swaps": "Своп",
-  "settings.label_is_auto_convert": "Авто Конвертировать",
-  "settings.label_support_center": "Центр поддержки платформ"
+  "settings.label_is_auto_convert": "Авто Конвертировать"
 }

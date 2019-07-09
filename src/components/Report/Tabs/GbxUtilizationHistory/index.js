@@ -1,22 +1,17 @@
 import React from 'react';
 import styled from 'styled-components';
-import { inject, observer } from 'mobx-react';
-import { compose, withProps } from 'recompose';
-
-import { gbxUtilizationDropdowns } from '../../constants';
-import { STORE_KEYS } from '../../../../stores';
 
 import TabHeader from '../../TabHeader';
 import TabSubHeader from '../../TabSubHeader';
 import TableHeader from '../../TableHeader';
 import ReportTable from '../../Table';
-import { checkDateIsBetweenTwo } from '../..';
+
+import { gbxUtilizationColumns, gbxUtilizationDropdowns } from '../../constants';
 
 const Wrapper = styled.div`
     width: 100%;
-    height: 100%;
     text-align: center;
-    overflow: hidden;
+    background-color: #fff;
 `;
 
 class GbxUtilizationHistory extends React.Component {
@@ -25,60 +20,23 @@ class GbxUtilizationHistory extends React.Component {
 
         this.state = {
             isExchBarOpen: false,
-            startDate: undefined,
-            endDate: undefined,
         };
     }
 
-    changeStartDate = (date) => {
-        this.setState({
-            startDate: date,
-        });
-    }
-
-    changeEndDate = (date) => {
-        this.setState({
-            endDate: date,
-        });
-    }
-
     render() {
-        const gbxUtilizationColumns = this.props.OrderHistoryData;
-        let filteredColumns = [];
-        const { startDate, endDate } = this.state;
-        for (let i = 0; i < gbxUtilizationColumns.length; i++) {
-            let ithDate = new Date(gbxUtilizationColumns[i].timeUnFormatted);
-            if (checkDateIsBetweenTwo(ithDate, startDate, endDate) === true) {
-                filteredColumns.push(gbxUtilizationColumns[i]);
-            }
-        }
         return (
             <Wrapper>
-                <TabHeader
-                    tab="gbxUtilizationHistory"
-                    changeStartDate={this.changeStartDate}
-                    changeEndDate={this.changeEndDate}
-                >
-                </TabHeader>
+                <TabHeader tab="gbxUtilizationHistory"/>
                 <TabSubHeader
                     dropdowns={gbxUtilizationDropdowns}
                     tab="gbxUtilizationHistory"
                 />
                 <TableHeader/>
-                <ReportTable columns={filteredColumns}/>
+                <ReportTable columns={gbxUtilizationColumns}/>
+                <TableHeader/>
             </Wrapper>
         );
     }
 }
 
-export default compose(
-    inject(
-        STORE_KEYS.ORDERHISTORY
-    ),
-    observer,
-    withProps(
-        ({
-            [STORE_KEYS.ORDERHISTORY]: { OrderHistoryData },
-        }) => ({ OrderHistoryData })
-    )
-)(GbxUtilizationHistory);
+export default GbxUtilizationHistory;

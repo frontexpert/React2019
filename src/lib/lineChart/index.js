@@ -1,19 +1,17 @@
-import Chart from 'chart.js';
+import Chartjs from 'chart.js';
 import moment from 'moment';
+import max from 'lodash.max';
+import min from 'lodash.min';
 import 'chartjs-plugin-zoom';
 
 import documentVisibilityListener from '../../utils/documentVisibilityListener';
-import {
-    ANIMATION_DURATION, SHIFT_CHART_DURATION, SHIFT_CHART_QUALIFIER
-} from './constants';
-import { formatCoinString } from '../../utils';
 import PulsateDotSrc from './pulsateDot.svg';
-import './customScaleTypes';
+
+const ANIMATION_DURATION = 1000;
+const SHIFT_CHART_DURATION = 500;
 
 const PulsateDot = new Image();
 PulsateDot.src = PulsateDotSrc;
-
-Chart.defaults.global.animation.duration = 200;
 
 export default class LineChart {
     constructor(props) {
@@ -21,9 +19,8 @@ export default class LineChart {
         this.maxDataLength = props.maxDataLength;
         this.initialDataLength = props.data.length;
         this.config = props.config;
-        this.chart = new Chart(this.el, this.getConfig(props.data, props.config));
+        this.chart = new Chartjs(this.el, this.getConfig(props.data, props.config));
         this.removeVisibilityListener = documentVisibilityListener(this.onChangeVisibility);
-        this.coin = props.coin;
 
         // helpers
         this.updateInProgress = false;
@@ -34,31 +31,24 @@ export default class LineChart {
         this.shiftChartTimer = undefined;
         this.drawLineTimer = undefined;
         this.clearUpdateProgressTimer = undefined;
-        this.mouseMoveTimer = undefined;
     }
 
     // getDefault gradient for line chart
     getLineGradient = () => {
         const ctx = this.el.getContext('2d');
         const gradient = ctx.createLinearGradient(0, 0, 0, this.el.offsetHeight);
-        gradient.addColorStop(0, 'rgba(15, 68, 149, 0.3)');
-        // gradient.addColorStop(1, 'rgba(33, 27, 88, 0.4)');
-        // gradient.addColorStop(0, '#20223e');
-        // gradient.addColorStop(1, '#20223e');
+        gradient.addColorStop(0, 'rgba(48, 147, 253, 0.2)');
+        gradient.addColorStop(1, 'rgba(33, 27, 88, 0.2)');
 
         return gradient;
     };
 
     getConfig = (data, config = {}) => {
         let pointStyle = [];
-        const now = Date.now();
-        let zoomMin = now;
-        let zoomMax = config.endTime;
         if (data.length) {
             pointStyle = Array(data.length - 1)
                 .fill('')
                 .concat([PulsateDot]);
-            zoomMin = data[0].x;
         }
 
         return {
@@ -82,13 +72,7 @@ export default class LineChart {
 
             options: {
                 maintainAspectRatio: false,
-                maxTickDecimalPoints: 0,
                 customLine: {},
-                elements: {
-                    line: {
-                        tension: 0, // disables bezier curves
-                    },
-                },
                 scales: {
                     xAxes: [
                         {
@@ -98,55 +82,33 @@ export default class LineChart {
                             bounds: 'ticks',
                             ticks: {
                                 source: 'auto',
-                                autoSkip: true,
-                                autoSkipPadding: 100,
-                                maxRotation: 0,
-                                // move ticks inside the chart
-                                padding: -20,
                             },
                             time: {
                                 min: config.startTime,
                                 max: config.endTime,
                                 displayFormats: {
-                                    hour: 'H:mm',
-                                    minute: 'H:mm',
                                     second: 'H:mm:ss',
-                                    millisecond: 'H:mm:ss',
                                 },
                             },
                             gridLines: {
                                 color: '#191D3E',
-                                tickMarkLength: 0,
-                                drawBorder: false,
-                            },
-                            afterFit: chart => {
-                                chart.minSize.height = 0;
-                                chart.paddingLeft = 0;
                             },
                         }
                     ],
                     yAxes: [
                         {
                             id: 'price',
-                            type: config.maxTicksLimit ? 'fixed-grid-rows-scale' : 'custom-min-max-scale',
                             position: 'right',
                             scaleLabel: {
                                 display: false,
                             },
                             ticks: {
                                 source: 'labels',
-                                maxTicksLimit: config.maxTicksLimit || 8,
                             },
                             gridLines: {
                                 color: '#191D3E',
                             },
                             offset: config.yAxesOffset,
-                            afterFit: chart => {
-                                chart.margins.top = 0;
-                                chart.margins.bottom = 0;
-                                chart.paddingTop = 0;
-                                chart.paddingBottom = 0;
-                            },
                         }
                     ],
                 },
@@ -156,34 +118,33 @@ export default class LineChart {
                 tooltips: {
                     enabled: false,
                 },
-                hover: {
-                    animationDuration: 0, // duration of animations when hovering an item
-                },
                 // Container for pan options
                 pan: {
+                    // Boolean to enable panning
                     enabled: true,
+
+                    // Panning directions. Remove the appropriate direction to disable
+                    // Eg. 'y' would only allow panning in the y direction
                     mode: 'x',
                     rangeMin: {
-                        x: zoomMin,
+                        // Format of min zoom range depends on scale type
+                        x: config.minRangeForZoom,
                     },
-                    rangeMax: {
-                        x: zoomMax,
-                    },
-                    onPan: this.onZoom,
                 },
 
                 // Container for zoom options
                 zoom: {
+                    // Boolean to enable zooming
                     enabled: true,
+
+                    // Zooming directions. Remove the appropriate direction to disable
+                    // Eg. 'y' would only allow zooming in the y direction
                     mode: 'x',
-                    speed: 0.016,
+                    speed: 0.008,
                     rangeMin: {
-                        x: zoomMin,
+                        // Format of min zoom range depends on scale type
+                        x: config.minRangeForZoom,
                     },
-                    rangeMax: {
-                        x: zoomMax,
-                    },
-                    onZoom: this.onZoom,
                 },
             },
             // Chart.js plugin:
@@ -198,11 +159,6 @@ export default class LineChart {
                                 e.x >= e.chart.chartArea.left && e.x <= e.chart.chartArea.right ? e.x : undefined;
                             chart.options.customLine.y =
                                 e.y >= e.chart.chartArea.top && e.y <= e.chart.chartArea.bottom ? e.y : undefined;
-                            clearTimeout(this.mouseMoveTimer);
-                            this.mouseMoveTimer = setTimeout(() => {
-                                chart.options.customLine.x = undefined;
-                                chart.options.customLine.y = undefined;
-                            }, 5000);
                         }
                         if (e.type === 'mouseout') {
                             chart.options.customLine.x = undefined;
@@ -288,12 +244,12 @@ export default class LineChart {
 
         // draw box for price at Y-axes for cursor
         ctx.beginPath();
-        ctx.moveTo(right - 12, y);
-        ctx.lineTo(right - 5, y - 10);
+        ctx.moveTo(right - 7, y);
+        ctx.lineTo(right, y - 10);
         ctx.lineTo(right + width, y - 10);
         ctx.lineTo(right + width, y + 10);
-        ctx.lineTo(right - 5, y + 10);
-        ctx.lineTo(right - 12, y);
+        ctx.lineTo(right, y + 10);
+        ctx.lineTo(right - 7, y);
         ctx.fillStyle = '#7F88C2';
         ctx.fill();
 
@@ -301,35 +257,35 @@ export default class LineChart {
         ctx.fillStyle = '#fff';
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'center';
-        ctx.fillText(
-            `${this.coin} ${formatCoinString(valueAtCursor, this.chart.options.maxTickDecimalPoints)}`,
-            right - 5 + width / 2,
-            y
-        );
+        ctx.fillText(`${(Math.round(valueAtCursor * 100) / 100).toFixed(2)}`, right + width / 2, y);
     };
 
     drawTimeLabel(x, valueAtCursor) {
         const {
             chart: { ctx },
             chartArea: { bottom },
+            scales: {
+                time: { width },
+            },
         } = this.chart;
         // draw box for price at Y-axes for cursor
-        let labelWidth = 60;
+        let labelWidth = 50;
         let offsetY = 0;
         let labelHeight = 20;
         ctx.beginPath();
-        ctx.moveTo(x - labelWidth / 2, bottom + offsetY);
-        ctx.lineTo(x + labelWidth / 2, bottom + offsetY);
-        ctx.lineTo(x + labelWidth / 2, bottom + offsetY - labelHeight);
-        ctx.lineTo(x - labelWidth / 2, bottom + offsetY - labelHeight);
-        ctx.lineTo(x - labelWidth / 2, bottom + offsetY);
+        ctx.moveTo(x, bottom + offsetY);
+        ctx.lineTo(x + labelWidth, bottom + offsetY);
+        ctx.lineTo(x + labelWidth + 7, bottom + offsetY + labelHeight / 2);
+        ctx.lineTo(x + labelWidth, bottom + offsetY + labelHeight);
+        ctx.lineTo(x, bottom + offsetY + labelHeight);
+        ctx.lineTo(x, bottom + offsetY);
         ctx.fillStyle = '#7F88C2';
         ctx.fill();
         // draw price at Y-axes for cursor
         ctx.fillStyle = '#fff';
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'center';
-        ctx.fillText(`${valueAtCursor}`, x, bottom - labelHeight / 2);
+        ctx.fillText(`${valueAtCursor}`, x + labelWidth / 2, bottom + labelHeight / 2);
     }
 
     drawLine = (x1, y1, x2, y2) => {
@@ -346,71 +302,102 @@ export default class LineChart {
     };
 
     // function to calculate offset based on time and distance
-    // http://gizma.com/easing/
-    easeOutQuart = (t, b, c, d) => {
-        t /= d;
-        t--;
-        return c * (t * t * t * t * t + 1) + b;
-    };
+    // https://github.com/bameyrick/js-easing-functions/blob/master/src/index.ts
+    easeOutQuart = (elapsed, initialValue, amountOfChange, duration) =>
+        amountOfChange * ((elapsed = elapsed / duration - 1) * elapsed * elapsed * elapsed * elapsed + 1) +
+        initialValue;
 
     onChangeVisibility = status => {
         this.tabStatus = status;
     };
 
-    onZoom = ({ chart }) => {
-        const { data } = chart.data.datasets[0];
-        if (!data.length) {
-            return;
-        }
-
-        const {
-            time: { min, max },
-        } = chart.scales;
-        const timeAxesDuration = max - min;
-
-        const lastItem = data[data.length - 1];
-        if (lastItem.x + timeAxesDuration * SHIFT_CHART_QUALIFIER * 2 > max) {
-            this.chart.config.options.scales.xAxes[0].time.max =
-                lastItem.x + timeAxesDuration * SHIFT_CHART_QUALIFIER * 2;
-            this.chart.update({ duration: 0 });
-        }
-    };
-
     // function to animate line
-    animateLine = (lastItem, nextItem, timestamp, isFirstCall) => {
+    animateLine = (targetCoordinates, animationStartTs, isFirstCall) => {
         if (!this.chart || this.tabStatus === 'hidden') {
             return;
         }
 
-        const elapsed = Date.now() - timestamp;
+        const elapsed = Date.now() - animationStartTs;
+        let poppedItem;
 
-        if (elapsed >= ANIMATION_DURATION) {
-            this.chart.data.datasets[0].data.pop();
-            this.chart.data.datasets[0].data.push(nextItem);
-            this.chart.update({ duration: 0 });
+        if (isFirstCall) {
+            // move blue dot to the last item
+            this.chart.data.datasets[0].pointStyle.unshift('');
+        } else {
+            // remove most recent item
+            poppedItem = this.chart.data.datasets[0].data.pop();
+        }
+
+        const dataset = this.chart.data.datasets[0].data;
+        const prevItem = dataset[dataset.length - 1];
+
+        const coordinates = {
+            x: this.easeOutQuart(elapsed, prevItem.x, targetCoordinates.x - prevItem.x, ANIMATION_DURATION),
+            y: this.easeOutQuart(elapsed, prevItem.y, targetCoordinates.y - prevItem.y, ANIMATION_DURATION),
+        };
+
+        if (coordinates.x <= targetCoordinates.x || coordinates.x >= prevItem.x) {
+            this.chart.data.datasets[0].data.push(coordinates);
+        } else if (poppedItem) {
+            this.chart.data.datasets[0].data.push(poppedItem);
+        }
+        this.chart.update();
+
+        if (elapsed < ANIMATION_DURATION) {
+            setTimeout(() => this.animateLine(targetCoordinates, animationStartTs), 0);
+        }
+    };
+
+    // adjust prices axes
+    adjustAxesPrices = nextItem => {
+        let {
+            price: { min: priceMin, max: priceMax },
+        } = this.chart.scales;
+
+        const { data: currentData } = this.chart.data.datasets[0];
+
+        if (!currentData.length) {
             return;
         }
 
-        const coordinates = {
-            x: this.easeOutQuart(elapsed, lastItem.x, nextItem.x - lastItem.x, ANIMATION_DURATION),
-            y: this.easeOutQuart(elapsed, lastItem.y, nextItem.y - lastItem.y, ANIMATION_DURATION),
-        };
+        const { data: dataModels } = this.chart.getDatasetMeta(0);
 
-        let itemAdded = isFirstCall;
-        if (coordinates.x <= nextItem.x && coordinates.x >= lastItem.x) {
-            itemAdded = false;
-            if (isFirstCall) {
-                this.chart.data.datasets[0].pointStyle.unshift('');
-            } else {
-                this.chart.data.datasets[0].data.pop();
+        const chartWidth = this.chart.width;
+
+        const visibleData = [];
+        let lastAddedItemIndex = -1;
+        for (let i = 0; i < dataModels.length; i++) {
+            const item = dataModels[i];
+            if (item._model.x > 0 && item._model.x < chartWidth) {
+                visibleData.push(currentData[i].y);
+                lastAddedItemIndex = i;
             }
-            this.chart.data.datasets[0].data.push(coordinates);
-            this.chart.update();
         }
 
-        if (elapsed < ANIMATION_DURATION) {
-            setTimeout(() => this.animateLine(lastItem, nextItem, timestamp, itemAdded), ANIMATION_DURATION / 50);
+        if (lastAddedItemIndex === dataModels.length - 1) {
+            visibleData.push(nextItem.y);
         }
+
+        let updateBeforeAnimation = false;
+        let maxVisiblePrice = max(visibleData);
+        let minVisiblePrice = min(visibleData);
+        const priceDifference = maxVisiblePrice - minVisiblePrice;
+        const qualifier = priceDifference * 0.1;
+        maxVisiblePrice += qualifier;
+        minVisiblePrice -= qualifier;
+        // const tickStep = ticksAsNumbers[0] - ticksAsNumbers[1];
+        const tickStep = Math.pow(10, Math.round(maxVisiblePrice - minVisiblePrice).toString().length - 1);
+        if (maxVisiblePrice > priceMax || maxVisiblePrice < priceMax - tickStep) {
+            this.chart.config.options.scales.yAxes[0].ticks.max =
+                maxVisiblePrice - (maxVisiblePrice % tickStep) + tickStep;
+            updateBeforeAnimation = true;
+        }
+        if (minVisiblePrice < priceMin || minVisiblePrice > priceMin + tickStep) {
+            this.chart.config.options.scales.yAxes[0].ticks.min = minVisiblePrice - (minVisiblePrice % tickStep);
+            updateBeforeAnimation = true;
+        }
+
+        return updateBeforeAnimation;
     };
 
     // shift time axes
@@ -418,11 +405,13 @@ export default class LineChart {
         const {
             time: { min: timeMin, max: timeMax },
         } = this.chart.scales;
-        const timeAxesDuration = timeMax - timeMin;
-        if (nextItem.x + timeAxesDuration * SHIFT_CHART_QUALIFIER > timeMax) {
+        const { data: currentData } = this.chart.data.datasets[0];
+        const lastItem = currentData[currentData.length - 1];
+        const timeToShift = moment(timeMax).subtract(this.config.timeLimitWhenShift);
+        if (moment(lastItem.x).isBefore(timeToShift) && moment(timeToShift).isBefore(nextItem.x)) {
             // the line reaches the edge
-            this.chart.config.options.scales.xAxes[0].time.max = nextItem.x + timeAxesDuration / 2;
-            this.chart.config.options.scales.xAxes[0].time.min = nextItem.x - timeAxesDuration / 2;
+            this.chart.config.options.scales.xAxes[0].time.max = moment(timeMax).add(60, 'seconds');
+            this.chart.config.options.scales.xAxes[0].time.min = moment(timeMin).add(60, 'seconds');
             return true;
         }
 
@@ -435,7 +424,6 @@ export default class LineChart {
         clearTimeout(this.shiftChartTimer);
         clearTimeout(this.drawLineTimer);
         clearTimeout(this.clearUpdateProgressTimer);
-        clearTimeout(this.mouseMoveTimer);
 
         if (this.removeVisibilityListener) {
             this.removeVisibilityListener();
@@ -447,13 +435,13 @@ export default class LineChart {
         }
     };
 
-    lineTo = nextItem => {
-        if (this.updateInProgress || !this.chart) {
+    lineTo = (nextItem) => {
+        if (this.updateInProgress) {
             // block all updates while current animation is in progress
             return Promise.resolve();
         }
 
-        let { data: currentData, pointStyle } = this.chart.data.datasets[0];
+        const { data: currentData, pointStyle } = this.chart.data.datasets[0];
 
         if (!currentData.length) {
             // add first item without animation
@@ -475,43 +463,14 @@ export default class LineChart {
 
         if (currentData.length >= this.maxDataLength) {
             // slice history prices
-            const nextData = currentData.slice(currentData.length - this.initialDataLength);
-            this.chart.data.datasets[0].data = nextData;
+            this.chart.data.datasets[0].data = currentData.slice(currentData.length - this.initialDataLength);
             this.chart.data.datasets[0].pointStyle = pointStyle.slice(currentData.length - this.initialDataLength);
-            const nextMinTime = nextData.length && nextData[0].x;
-            if (nextMinTime) {
-                const {
-                    time: { min: timeMin },
-                } = this.chart.scales;
-                if (timeMin < nextMinTime) {
-                    this.chart.config.options.scales.xAxes[0].time.min = nextMinTime;
-                }
-                this.chart.options.pan.rangeMin.x = nextMinTime;
-                this.chart.options.zoom.rangeMin.x = nextMinTime;
-            }
             this.chart.update({ duration: 0 });
-            currentData = nextData;
-        }
-
-        if (this.config.removeRecurringPricesAtTheEnd) {
-            let recurringItemsCount = 1;
-            for (let i = currentData.length - 2; i >= 0; i--) {
-                if (lastItem.y === currentData[i].y) {
-                    recurringItemsCount += 1;
-                } else {
-                    break;
-                }
-            }
-
-            if (recurringItemsCount > 2) {
-                this.chart.data.datasets[0].data = currentData.slice(0, -recurringItemsCount + 1).concat([lastItem]);
-                this.chart.data.datasets[0].pointStyle = pointStyle.slice(recurringItemsCount - 2);
-            }
         }
 
         return new Promise(resolve => {
             // adjust and shift chart
-            const updateBeforeAnimation = this.shiftChartTimeline(nextItem);
+            const updateBeforeAnimation = this.shiftChartTimeline(nextItem) || this.adjustAxesPrices(nextItem);
 
             const timeToFinishPrevAnimation = Math.max(
                 ANIMATION_DURATION - (Date.now() - this.lineAnimationStartedAt),
@@ -529,21 +488,12 @@ export default class LineChart {
 
             this.drawLineTimer = setTimeout(() => {
                 const currentTs = Date.now();
-                const {
-                    time: { min: timeMin, max: timeMax },
-                } = this.chart.scales;
-                const timeAxesDuration = timeMax - timeMin;
-                const nextMaxTime = nextItem.x + timeAxesDuration / 2;
-                this.chart.options.pan.rangeMax.x = nextMaxTime;
-                this.chart.options.zoom.rangeMax.x = nextMaxTime;
                 if (this.tabStatus === 'visible') {
                     // let's use animation only when tab is active
-                    this.animateLine(lastItem, nextItem, currentTs, true);
+                    this.animateLine(nextItem, currentTs, true);
                     this.lineAnimationStartedAt = currentTs;
-                    this.chart.options.drawingTo = nextItem.y;
                     this.clearUpdateProgressTimer = setTimeout(() => {
                         this.updateInProgress = false;
-                        this.chart.options.drawingTo = undefined;
                         resolve();
                     }, ANIMATION_DURATION);
                 } else {

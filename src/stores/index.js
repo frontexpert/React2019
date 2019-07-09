@@ -137,27 +137,19 @@ export default once(() => {
     const convertStore = ConvertStore(snackbarStore.Snackbar);
     const yourAccountStore = YourAccountStore(instrumentStore);
     const billChipStore = BillChipStore(yourAccountStore);
+    const orderHistoryStore = OrderHistory(instrumentStore);
     const exchangesStore = ExchangesStore(instrumentStore);
     const marketsStore = MarketsStore();
     const orderBookStore = OrderBookStore(instrumentStore, viewModeStore, exchangesStore, convertStore, marketsStore);
     const orderBookBreakDownStore = OrderBookBreakDownStore(instrumentStore, exchangesStore, convertStore, yourAccountStore, marketsStore);
     const recentTradesStore = RecentTradesStore(instrumentStore);
-    const marketDataGraphStore = MarketDataGraphStore(instrumentStore, periodStore);
-    const coinPriceStore = CoinPriceStore(instrumentStore);
-    const arbitrageStore = ArbitrageStore(instrumentStore);
-    const telegramStore = TelegramStore(yourAccountStore, snackbarStore.Snackbar);
-    const settingsStore = SettingsStore(telegramStore, yourAccountStore);
-    const portfolioDataStore = PortfolioDataStore(settingsStore);
-    const telegramPublicStore = TelegramPublicStore(instrumentStore, telegramStore, viewModeStore);
-    const sessionStore = SessionStore(instrumentStore, yourAccountStore);
-    const priceChartStore = PriceChartStore(instrumentStore, settingsStore, marketsStore);
-    const smsAuthStore = SMSAuthStore(snackbarStore.Snackbar);
-    const networkStore = NetworkStore(settingsStore);
-    const orderHistoryStore = OrderHistory(instrumentStore, settingsStore);
     const rightRightLowerSectionGridStore = RightLowerSectionGridStore(
         orderHistoryStore.setTargetTradeHistoryTicket,
         modalStore.Modal,
     );
+    const marketDataGraphStore = MarketDataGraphStore(instrumentStore, periodStore);
+    const coinPriceStore = CoinPriceStore(instrumentStore);
+    const arbitrageStore = ArbitrageStore(instrumentStore);
     const orderEntryStore = OrderEntryStore(
         orderBookBreakDownStore.AsksForOrderBook,
         orderBookBreakDownStore.BidsForOrderBook,
@@ -169,7 +161,15 @@ export default once(() => {
         coinPriceStore,
         yourAccountStore,
     );
-    const lowestExchangeStore = LowestExchangeStore(orderEntryStore.CoinsPairSearchMarketOrderBuyForm, orderBookStore, snackbarStore.Snackbar, telegramStore, convertStore);
+    const telegramStore = TelegramStore(yourAccountStore, snackbarStore.Snackbar);
+    const settingsStore = SettingsStore(telegramStore, yourAccountStore);
+    const portfolioDataStore = PortfolioDataStore(settingsStore);
+    const lowestExchangeStore = LowestExchangeStore(orderEntryStore.CoinsPairSearchMarketOrderBuyForm, orderBookStore, snackbarStore.Snackbar, telegramStore);
+    const telegramPublicStore = TelegramPublicStore(instrumentStore, telegramStore, viewModeStore);
+    const sessionStore = SessionStore(instrumentStore, yourAccountStore);
+    const priceChartStore = PriceChartStore(instrumentStore, settingsStore, marketsStore);
+    const smsAuthStore = SMSAuthStore(snackbarStore.Snackbar);
+    const networkStore = NetworkStore(settingsStore);
 
     return ({
         [STORE_KEYS.ORDERHISTORY]: orderHistoryStore,

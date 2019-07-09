@@ -187,6 +187,7 @@
   "data_loader_done.label_done": "ERLEDIGT",
   "sms_verification.label_enter_mobile_number": "Handynummer eingeben",
   "sms_verification.label_what_code": "Was ist der Code?",
+  "switch_custom.label_off": "AUS",
 
   "button.save": "sparen",
   "button.confirm": "Bestätigen",
@@ -215,6 +216,5 @@
   "order_book.buy_book.label_max_order_size": "MAX. BESTELLGRÖSSE: ",
   "settings.label_auto_flip": "Auto Flip",
   "settings.label_swaps": "Wechsel",
-  "settings.label_is_auto_convert": "Auto konvertieren",
-  "settings.label_support_center": "Platform Support Center"
+  "settings.label_is_auto_convert": "Auto konvertieren"
 }

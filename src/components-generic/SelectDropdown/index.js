@@ -7,8 +7,9 @@ import sortBy from 'lodash/sortBy';
 import { highlightSearchDom } from '../../utils';
 import {
     DropdownWrapper, SelectedItemLabel, Dropdown, SearchInputWrapper,
-    SearchInput, ItemList, ListStyleWrapper, ListItem, SearchIcon, DropMenuIcon
+    SearchInput, ItemList, ListStyleWrapper, ListItem, SearchIcon
 } from './Components';
+import icon from './icon_drop.png';
 
 class SelectDropdown extends React.Component {
     state = {
@@ -173,7 +174,7 @@ class SelectDropdown extends React.Component {
                     }}
                 >
                     <span>{value}</span>
-                    <DropMenuIcon/>
+                    <img src={icon} alt=""/>
                 </SelectedItemLabel>
 
                 {isOpen && (

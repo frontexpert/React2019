@@ -2,8 +2,9 @@ import React from 'react';
 import { inject, observer } from 'mobx-react';
 
 import { STORE_KEYS } from '../../stores';
-import { DropdownWrapper, DropMenuIcon, SelectedItemLabel } from './Components';
+import { DropdownWrapper, SelectedItemLabel } from './Components';
 import CurrencyDropdown from '../CurrencyDropdown';
+import icon from './icon_drop.png';
 
 class CurrencySelectDropdown extends React.Component {
     state = {
@@ -37,7 +38,7 @@ class CurrencySelectDropdown extends React.Component {
     render() {
         const { isOpen } = this.state;
         const {
-            width, height, type, onClick, isFullScreen, disableCrypto,
+            width, height, type, onClick, isFullScreen,
         } = this.props;
         const {
             isDefaultCrypto, defaultFiat, defaultFiatSymbol, defaultCrypto, defaultCryptoSymbol,
@@ -63,7 +64,7 @@ class CurrencySelectDropdown extends React.Component {
                     }}
                 >
                     <span>{isFiat ? defaultFiatSymbol : defaultCryptoSymbol} - {value}</span>
-                    <DropMenuIcon/>
+                    <img src={icon} alt=""/>
                 </SelectedItemLabel>
 
                 {isOpen && (
@@ -76,7 +77,6 @@ class CurrencySelectDropdown extends React.Component {
                         value={value}
                         isFullScreen={isFullScreen}
                         toggleDropDown={this.toggleDropDown}
-                        disableCrypto={disableCrypto}
                     />
                 )}
             </DropdownWrapper>

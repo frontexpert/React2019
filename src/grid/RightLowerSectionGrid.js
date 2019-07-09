@@ -13,7 +13,7 @@ const StyledRightLowerSectionGrid = styled.div`
     // grid-area: rightlowersection;
     border-radius: ${props => props.theme.palette.borderRadius};
     border: 1px solid ${props => props.theme.palette.clrBorder};
-    // overflow: hidden;
+    overflow: hidden;
 
     position: absolute;
     width: 100%;

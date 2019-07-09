@@ -63,60 +63,9 @@ class SMSVerification extends Component {
 
     handleChangeCode = e => {
         e.stopPropagation();
+
         this.setState({
             code: e.target.value,
-        }, () => {
-            const { code: securityCode } = this.state;
-            if (securityCode.length < 4) return;
-            const { confirmAuthCode } = this.props[STORE_KEYS.SMSAUTHSTORE];
-
-            this.setState({
-                isSendingCode: true,
-            });
-
-            confirmAuthCode(securityCode)
-                .then(() => {
-                    setTimeout(() => {
-                        this.setState({
-                            isCodeSent: true,
-                            isSendingCode: false,
-                            currentView: SMS_AUTH_VIEW_STEPS.VERIFY_SUCCESS,
-                        });
-
-                        setTimeout(() => {
-                            const {
-                                [STORE_KEYS.YOURACCOUNTSTORE]: yourAccountStore,
-                                [STORE_KEYS.LOWESTEXCHANGESTORE]: lowestExchangeStore,
-                                [STORE_KEYS.TELEGRAMSTORE]: telegramStore,
-                                [STORE_KEYS.ORDERHISTORY]: orderHistoryStore,
-                                [STORE_KEYS.PORTFOLIODATASTORE]: portfolioDataStore,
-                                onClose,
-                            } = this.props;
-                            const mockUser = {
-                                id: '1020',
-                                username: '',
-                                first_name: 'SMS',
-                                last_name: 'User',
-                            };
-
-                            telegramStore.initByTelegramLogin();
-                            orderHistoryStore.requestOrderHistory();
-                            yourAccountStore.requestPositionWithReply();
-                            portfolioDataStore.initPortfolioDataStore();
-                            lowestExchangeStore.requestOrderEvents();
-                            telegramStore.loginFinishWith(mockUser);
-
-                            if (onClose) {
-                                onClose();
-                            }
-                        }, 500);
-                    }, 500);
-                })
-                .catch(err => {
-                    this.setState({
-                        isSendingCode: false,
-                    });
-                });
         });
     };
 
@@ -142,6 +91,60 @@ class SMSVerification extends Component {
                 isSendingPhoneNumber: false,
             });
         });
+    };
+
+    handleSendCode = e => {
+        e.stopPropagation();
+        const { code: securityCode } = this.state;
+        const { confirmAuthCode } = this.props[STORE_KEYS.SMSAUTHSTORE];
+
+        this.setState({
+            isSendingCode: true,
+        });
+
+        confirmAuthCode(securityCode)
+            .then(() => {
+                setTimeout(() => {
+                    this.setState({
+                        isCodeSent: true,
+                        isSendingCode: false,
+                        currentView: SMS_AUTH_VIEW_STEPS.VERIFY_SUCCESS,
+                    });
+
+                    setTimeout(() => {
+                        const {
+                            [STORE_KEYS.YOURACCOUNTSTORE]: yourAccountStore,
+                            [STORE_KEYS.LOWESTEXCHANGESTORE]: lowestExchangeStore,
+                            [STORE_KEYS.TELEGRAMSTORE]: telegramStore,
+                            [STORE_KEYS.ORDERHISTORY]: orderHistoryStore,
+                            [STORE_KEYS.PORTFOLIODATASTORE]: portfolioDataStore,
+                            onClose,
+                        } = this.props;
+                        const mockUser = {
+                            id: '1020',
+                            username: '',
+                            first_name: 'SMS',
+                            last_name: 'User',
+                        };
+
+                        telegramStore.initByTelegramLogin();
+                        orderHistoryStore.requestOrderHistory();
+                        yourAccountStore.requestPositionWithReply();
+                        portfolioDataStore.initPortfolioDataStore();
+                        lowestExchangeStore.requestOrderEvents();
+                        telegramStore.loginFinishWith(mockUser);
+
+                        if (onClose) {
+                            onClose();
+                        }
+                    }, 500);
+                }, 500);
+            })
+            .catch(err => {
+                this.setState({
+                    isSendingCode: false,
+                });
+            });
     };
 
     handleGoBack = () => {
@@ -214,9 +217,11 @@ class SMSVerification extends Component {
                     </FormattedMessage>
 
                     {(code && !isCodeSent) ? (
-                        isSendingCode &&
-                        <InputAddon>
-                            <SpinnerIcon />
+                        <InputAddon onClick={isSendingCode ? null : this.handleSendCode}>
+                            {isSendingCode
+                                ? <SpinnerIcon />
+                                : <SendIcon2 className={code == null ? 'disabled' : ''} />
+                            }
                         </InputAddon>
                     ) : (
                         <InputAddon onClick={this.handleGoBack}>

@@ -187,6 +187,7 @@
   "data_loader_done.label_done": "LÀM XONG",
   "sms_verification.label_enter_mobile_number": "Nhập số điện thoại di động",
   "sms_verification.label_what_code": "Cái mã là gì?",
+  "switch_custom.label_off": "TẮT",
 
   "button.save": "Tiết kiệm",
   "button.confirm": "Xác nhận",
@@ -215,6 +216,5 @@
   "order_book.buy_book.label_max_order_size": "KÍCH THƯỚC ĐẶT HÀNG TỐI ĐA: ",
   "settings.label_auto_flip": "Tự động lật",
   "settings.label_swaps": "Trao đổi",
-  "settings.label_is_auto_convert": "Tự động chuyển đổi",
-  "settings.label_support_center": "Trung tâm hỗ trợ nền tảng"
+  "settings.label_is_auto_convert": "Tự động chuyển đổi"
 }

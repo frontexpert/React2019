@@ -3,15 +3,14 @@ import styled from 'styled-components';
 
 export const Wrapper = styled.div.attrs({ className: 'dropmenu-wrapper' })`
     box-sizing: border-box;
-    display: flex;
-    font-weight: 700;
+    display: block;
+    font-weight: 400;
     font-size: 11px;
-    font-family: 'open_sans',sans-serif;
+    height: 35px;
     letter-spacing: 1px;
     padding: 10px;
     position: relative;
     user-select: none;
-    align-items: center;
     
     &:after {
         background-image: url(/img/icon_dp_back.svg);
@@ -25,8 +24,7 @@ export const Wrapper = styled.div.attrs({ className: 'dropmenu-wrapper' })`
         opacity: 0.6;
         position: absolute;
         right: 6px;
-        top: 50%;
-        transform: translateY(-50%);
+        top: 15px;
         width: 14px;
         z-index: 101;
     }
@@ -36,25 +34,24 @@ export const Label = styled.div`
     box-sizing: border-box;
     cursor: pointer;
     display: block;
+    height: 13px;
     padding-right: 13px;
-    font-weight: 700;
     user-select: none;
-    color: ${props => props.theme.palette.clrPurple};
     
     .label {
         box-sizing: border-box;
+        color: #09f;
         cursor: pointer;
-        display: block;
+        display: inline;
         user-select: none;
-        color: ${props => props.theme.palette.clrPurple};
     }
     
     .value {
         box-sizing: border-box;
         cursor: pointer;
-        display: block;
+        display: inline;
+        margin-left: 6px;
         user-select: none;
-        color: ${props => props.theme.palette.clrPurple};
     }
 `;
 
@@ -64,14 +61,12 @@ export const DropdownList = styled.div`
     border-top-left-radius: 3px;
     border-top-right-radius: 3px;
     box-sizing: border-box;
-    color: ${props => props.theme.palette.clrPurple};
-    background-color: ${props => props.theme.palette.clrMainWindow};
-    border: 1px solid ${props => props.theme.palette.clrPurple};
+    background-color: #fff;
     box-shadow: 0 0 5px 0 rgba(0,0,0,0.3);
     display: ${props => props.opened ? 'block' : 'none'};
     position: absolute;
     right: 0px;
-    top: 60%;
+    top: 30px;
     user-select: none;
     width: auto;
     z-index: 1000;
@@ -94,6 +89,6 @@ export const DropdownItem = styled.div`
     }
     
     ${props => props.isActive ? `
-        color: #fff;
+        color: #0057a3;
     ` : ''}
 `;

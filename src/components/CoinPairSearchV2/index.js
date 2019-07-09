@@ -19,9 +19,7 @@ import SliderInput from './SliderInput/index';
 import COIN_DATA_MAP from '../../mock/coin-data-map';
 import OrderGradientButton from '../../components-generic/GradientButtonSquare';
 import GradientButtonTimer from '../../components-generic/GradientButtonTimer';
-import ButtonLoader from '../../components-generic/ButtonLoader';
 import DataLoader from '../../components-generic/DataLoader';
-import Spinner from '../../components-generic/Spinner';
 import SwitchCustom from '../../components-generic/SwitchCustom';
 
 import {
@@ -29,18 +27,13 @@ import {
     AddonLabel,
     LoaderWrapper,
     WalletButtonCentered,
-    SearchIcon,
-    CoinWrapper
+    SearchIcon
 } from './Components';
-import ViewModeStore, { viewModeKeys } from '../../stores/ViewModeStore';
+import { viewModeKeys } from '../../stores/ViewModeStore';
 import { valueNormalized } from '../../stores/utils/OrderEntryUtils';
 import { donutChartModeStateKeys } from '../../stores/LowestExchangeStore';
-import CoinSwap from './CoinSwap';
 import CoinNameStep2 from './CoinNameStep2';
 import { orderFormToggleKeys } from '../../stores/OrderFormToggle';
-import BackgroundProgressBar from './BackgroundProgressBar';
-import { WalletGroupButton } from '../OrderHistory/OrderHistoryTable/WalletGroupButton';
-import { BTCFontIcon, CircleSpinner, WalletSideIcon } from '../OrderHistory/OrderHistoryTable/Components';
 
 const MIN_USD_AMOUNT = 20;
 
@@ -58,8 +51,8 @@ class CoinPairSearchV2 extends React.Component {
     amtInputRef = React.createRef();
     countOfTrading = 0;
     arbitrageSubmitTimer = null;
+    inProgressTradingTick = null;
     doneTradingTick = null;
-    isPaused = false;
 
     updateExecPlan = _.debounce(() => {
         const {
@@ -85,7 +78,7 @@ class CoinPairSearchV2 extends React.Component {
 
     componentDidUpdate(prevProps, prevState, snapshot) {
         const {
-            [STORE_KEYS.CONVERTSTORE]: { setConvertState, forceStopArbitrageExchange },
+            [STORE_KEYS.CONVERTSTORE]: { setConvertState },
             [STORE_KEYS.LOWESTEXCHANGESTORE]: {
                 updateExchange,
                 isDonutChartLoading,
@@ -94,7 +87,7 @@ class CoinPairSearchV2 extends React.Component {
             [STORE_KEYS.EXCHANGESSTORE]: { setExchange },
         } = this.props;
 
-        if (!forceStopArbitrageExchange && isDonutChartLoading === donutChartModeStateKeys.doneModeKey) {
+        if (isDonutChartLoading === donutChartModeStateKeys.doneModeKey) {
             setConvertState(STATE_KEYS.amtInput);
             updateExchange(-1, '');
             setExchange('Global');
@@ -125,11 +118,11 @@ class CoinPairSearchV2 extends React.Component {
         const {
             setExchFormState, setBase, setQuote,
         } = instrumentsStore;
-        const { openDepositView } = viewModeStore;
+        const { setViewMode, openDepositView } = viewModeStore;
         const {
             portfolioData, setTargetBaseCoin, setTargetQuoteCoin, isAutoTrade, setAutoTrade,
         } = yourAccountStore;
-        const { isAutoConvert } = settingsStore;
+        const { isAutoConvert, isArbitrageMode } = settingsStore;
         if (convertStore.forceStopArbitrageExchange) return;
 
         for (let i = 0; i < portfolioData.length; i++) {
@@ -155,11 +148,11 @@ class CoinPairSearchV2 extends React.Component {
         setExchFormState(true);
         // setViewMode(viewModeKeys.exchangesModeKey);
 
-        // if (isArbitrageMode /* || isAutoConvert !== autoConvertOptions.Off */) {
-        //     this.arbitrageSubmitTimer = setTimeout(() => {
-        //         this.onSubmitOrder();
-        //     }, 6000);
-        // }
+        if (isArbitrageMode /* || isAutoConvert !== autoConvertOptions.Off */) {
+            this.arbitrageSubmitTimer = setTimeout(() => {
+                this.onSubmitOrder();
+            }, 6000);
+        }
     };
 
     // Step1 exchange button
@@ -169,28 +162,20 @@ class CoinPairSearchV2 extends React.Component {
             [STORE_KEYS.VIEWMODESTORE]: viewModeStore,
             [STORE_KEYS.SETTINGSSTORE]: settingsStore,
             [STORE_KEYS.ORDERFORMTOGGLE]: orderformToggleStore,
-            [STORE_KEYS.ORDERHISTORY]: orderHistoryStore,
             [STORE_KEYS.CONVERTSTORE]: convertStore,
-            [STORE_KEYS.TELEGRAMSTORE]: telegramStore,
-            [STORE_KEYS.PORTFOLIODATASTORE]: portfolioDataStore,
         } = this.props;
 
-        if (!telegramStore.isLoggedIn) {
-            convertStore.showConvertState('Please login');
+        if (settingsStore.isArbitrageMode) {
+            viewModeStore.setGraphSwitchMode(true);
+        } else {
+            viewModeStore.setGraphSwitchMode(false);
         }
-        viewModeStore.setGraphSwitchMode(false);
-        settingsStore.setArbitrageModeWith(true);
         viewModeStore.showDepthChartMode(false);
-        orderHistoryStore.requestOrderHistory();
         orderformToggleStore.showOrderFormWith(orderFormToggleKeys.offToggleKey);
         viewModeStore.setViewMode(viewModeKeys.basicModeKey);
         viewModeStore.setTradingViewMode(false);
-        viewModeStore.setUserDropDownOpen(false);
         convertStore.setForceStopArbitrageExchange(false);
         this.initTradeWith(instrumentsStore.selectedBase, instrumentsStore.selectedQuote);
-        portfolioDataStore.setActiveState(false);
-        // settingsStore.setSidebarStatus('open');
-        settingsStore.setTradeColStatus('open');
     };
 
     handleDoneBtnClick = (isConvertSuccess) => {
@@ -203,12 +188,9 @@ class CoinPairSearchV2 extends React.Component {
             [STORE_KEYS.TELEGRAMSTORE]: telegramStore,
         } = this.props;
         const { CoinsPairSearchMarketOrderBuyForm: orderForm } = orderEntryStore;
-        const { autoFlip, isArbitrageMode, timerAfter } = settingsStore;
+        const { autoFlip, isArbitrageMode } = settingsStore;
         const {
-            setBase,
-            setQuote,
-            selectedBase,
-            selectedQuote,
+            setBase, setQuote, selectedBase, selectedQuote,
         } = instrumentStore;
         const {
             isAutoTrade, setAutoTrade, targetBaseCoin, targetQuoteCoin, getRecentPosition,
@@ -216,7 +198,7 @@ class CoinPairSearchV2 extends React.Component {
         const { isLoggedIn } = telegramStore;
         if (convertStore.forceStopArbitrageExchange) return;
 
-        if (!isLoggedIn || timerAfter === 'After 1 transaction') {
+        if (!isLoggedIn) {
             convertStore.setConvertState(STATE_KEYS.orderDone);
             this.onOrderDone(isConvertSuccess);
         } else if (isArbitrageMode) {
@@ -342,16 +324,11 @@ class CoinPairSearchV2 extends React.Component {
             [STORE_KEYS.PORTFOLIODATASTORE]: portfolioDataStore,
             [STORE_KEYS.TELEGRAMSTORE]: telegramStore,
             [STORE_KEYS.SETTINGSSTORE]: settingsStore,
-            [STORE_KEYS.ORDERBOOK]: orderBookStore,
         } = this.props;
         const { CoinsPairSearchMarketOrderBuyForm: orderForm } = orderEntryStore;
         const { setExchFormState, selectedBase, selectedQuote } = instrumentsStore;
-        const { setPortfolioGraphRange, setActiveState } = portfolioDataStore;
-        const { timerAfter, orderHistory, isDefaultCrypto } = settingsStore;
+        const { setPortfolioGraphRange } = portfolioDataStore;
         const { isLoggedIn } = telegramStore;
-        const { isCoinPairInversed } = orderBookStore;
-        const currentTransactionDirection = !isDefaultCrypto ? !isCoinPairInversed : isCoinPairInversed;
-        const is2TransactionMode = timerAfter === 'After 2 transactions' && !currentTransactionDirection;
 
         if (convertStore.forceStopArbitrageExchange) {
             return;
@@ -370,7 +347,6 @@ class CoinPairSearchV2 extends React.Component {
         if (convertStore.convertState === STATE_KEYS.amtInput) {
             lowestExchangeStore.updateConfirmed(true);
             convertStore.setConvertState(STATE_KEYS.submitOrder);
-            setActiveState(true);
             let _this = this;
 
             if (isLoggedIn) {
@@ -378,31 +354,24 @@ class CoinPairSearchV2 extends React.Component {
                 // setPortfolioGraphRange('1 min');
                 let startPoint = new Date().getTime();
 
-                let tick = setInterval(() => {
-                    if (this.isPaused) return;
-                    if (convertStore.forceStopArbitrageExchange) {
-                        clearInterval(tick);
-                        return;
-                    }
+                this.inProgressTradingTick = setInterval(() => {
+                    if (convertStore.forceStopArbitrageExchange) return;
                     let endTime = lowestExchangeStore.endPacketTime;
                     let delta = Math.abs((new Date().getTime()) - endTime);
                     let delta2 = Math.abs(new Date().getTime() - startPoint);
 
                     if ((endTime !== 0 && delta >= 3000) || (endTime === 0 && delta2 >= 30000)) {
-                        clearInterval(tick);
                         let isConvertSuccess = true;
                         if (endTime === 0 && delta2 >= 30000) {
                             convertStore.showConvertState('Order Execution is failed.');
                             isConvertSuccess = false;
                             let transaction = [selectedBase, selectedQuote, amount, price, c1BeforePosition, c2BeforePosition, 'Failed', c1BeforePosition, c2BeforePosition];
-                            orderHistory(transaction);
+                            settingsStore.orderHistory(transaction);
                         } else if (endTime !== 0 && delta >= 3000) {
-                            if (!is2TransactionMode) {
-                                convertStore.showConvertState('Order Execution is successful.');
-                            }
+                            convertStore.showConvertState('Order Execution is successful.');
                             isConvertSuccess = true;
                             let transaction = [selectedBase, selectedQuote, amount, price, c1BeforePosition, c2BeforePosition, 'Success', c1BeforePosition - amount, Number(c2BeforePosition) + Number(amount * price)];
-                            orderHistory(transaction);
+                            settingsStore.orderHistory(transaction);
                         }
                         convertStore.setConvertState(STATE_KEYS.orderDone);
                         yourAccountStore.requestPosition();
@@ -411,11 +380,13 @@ class CoinPairSearchV2 extends React.Component {
                         lowestExchangeStore.stopExecPlan();
                         lowestExchangeStore.updateExchange(-1, '');
                         setExchange('Global');
+                        if (this.inProgressTradingTick) {
+                            clearInterval(this.inProgressTradingTick);
+                        }
                         if (this.doneTradingTick) {
                             clearTimeout(this.doneTradingTick);
                         }
                         this.doneTradingTick = setTimeout(() => {
-                            if (this.isPaused) return;
                             if (convertStore.forceStopArbitrageExchange) return;
                             _this.handleDoneBtnClick(isConvertSuccess);
                         }, 2000);
@@ -428,7 +399,6 @@ class CoinPairSearchV2 extends React.Component {
                  */
                 lowestExchangeStore.startMockColorAdvance();
                 setTimeout(() => {
-                    if (this.isPaused) return;
                     convertStore.setConvertState(STATE_KEYS.orderDone);
                     lowestExchangeStore.stopExecPlan();
                     _this.handleDoneBtnClick();
@@ -562,23 +532,22 @@ class CoinPairSearchV2 extends React.Component {
             [STORE_KEYS.SETTINGSSTORE]: settingsStore,
             [STORE_KEYS.YOURACCOUNTSTORE]: { setResetC1Mode },
             [STORE_KEYS.ORDERFORMTOGGLE]: orderFormToggleStore,
-            [STORE_KEYS.PORTFOLIODATASTORE]: { setActiveState },
         } = this.props;
 
         const { setExchFormState } = instrumentsStore;
         const {
-            updateExchange, stopExecPlan, clearExecPlanInterval, resetDonutChartLoadingState,
+            updateExchange, stopExecPlan,
+            clearExecPlanInterval,
         } = lowestExchangeStore;
         const {
             setViewMode, showDepthChartMode, setTradingViewMode,
         } = viewModeStore;
         const {
             setArbitrageModeWith,
-            setIsDefaultCrypto,
         } = settingsStore;
         const { showOrderFormWith } = orderFormToggleStore;
 
-        setActiveState(false);
+        if (this.inProgressTradingTick) clearInterval(this.inProgressTradingTick);
         if (this.arbitrageSubmitTimer) clearTimeout(this.arbitrageSubmitTimer);
         if (this.doneTradingTick) clearTimeout(this.doneTradingTick);
         setTradingViewMode(false);
@@ -594,18 +563,7 @@ class CoinPairSearchV2 extends React.Component {
         showOrderFormWith(orderFormToggleKeys.offToggleKey);
         setResetC1Mode(true);
         convertStore.setConvertState(STATE_KEYS.coinSearch);
-        resetDonutChartLoadingState();
-        this.isPaused = false;
-        setIsDefaultCrypto(false);
     };
-
-    onPauseTrading = () => {
-        this.isPaused = true;
-    }
-
-    onResumeTrading = () => {
-        this.isPaused = false;
-    }
 
     onSubmitOrderByTimer = () => {
         const {
@@ -615,11 +573,11 @@ class CoinPairSearchV2 extends React.Component {
         } = this.props;
         const { isLoggedIn } = telegramStore;
 
-        // this.countOfTrading++;
-        // if (this.countOfTrading >= 2) {
-        //     this.countOfTrading = 0;
-        //     if (isLoggedIn) settingsStore.setArbitrageMode(true);
-        // }
+        this.countOfTrading++;
+        if (this.countOfTrading >= 2) {
+            this.countOfTrading = 0;
+            if (isLoggedIn) settingsStore.setArbitrageMode(true);
+        }
         this.onSubmitOrder();
     };
 
@@ -647,7 +605,6 @@ class CoinPairSearchV2 extends React.Component {
             [STORE_KEYS.MODALSTORE]: modalStore,
             [STORE_KEYS.ORDERBOOK]: orderBookStore,
             [STORE_KEYS.COINADDRESSSTORE]: coinAddressStore,
-            [STORE_KEYS.ORDERHISTORY]: orderHistoryStore,
         } = this.props;
 
         const { CoinsPairSearchMarketOrderBuyForm: orderForm } = orderEntryStore;
@@ -662,7 +619,6 @@ class CoinPairSearchV2 extends React.Component {
             setViewMode, showDepthChartMode, setTradingViewMode,
         } = viewModeStore;
         const { isLoggedIn, setLoginBtnLocation } = telegramStore;
-        const { setDownTimerCount, setMaxDownTimerCount } = orderHistoryStore;
 
         const {
             isShortSell,
@@ -679,12 +635,7 @@ class CoinPairSearchV2 extends React.Component {
             c1,
             getLocalCurrency,
             timer,
-            timerAfter,
-            accessLevel,
         } = settingsStore;
-
-        const showSlider = accessLevel !== 'Level 1' && timerAfter === 'After 1 transaction';
-
         const { createDepositAddress, coinDepositAddress } = coinAddressStore;
 
         const {
@@ -695,7 +646,9 @@ class CoinPairSearchV2 extends React.Component {
             open: modalOpened,
         } = modalStore;
 
-        const { isFetchingBestRates, isCoinPairInversed } = orderBookStore;
+        const {
+            isFetchingBestRates,
+        } = orderBookStore;
 
         const isSwapMode = swap === 'Swap';
 
@@ -747,13 +700,40 @@ class CoinPairSearchV2 extends React.Component {
         } */
 
         // ----------------------------------
-        /**
-         *  Remove BCT from C1, C2
-         */
         const bctIndexOfBase = baseList.findIndex(x => (x && x.symbol && x.symbol === 'BCT'));
         const bctIndexOfQuote = quoteList.findIndex(x => (x && x.symbol && x.symbol === 'BCT'));
-        baseList.splice(bctIndexOfBase, 1);
-        quoteList.splice(bctIndexOfQuote, 1);
+        if (isArbitrageMode) {
+            /**
+             * Set USDT in C2 always
+             */
+            const usdtIndexOfQuote = quoteList.findIndex(x => (x && x.symbol && x.symbol === 'USDT'));
+            const usdtIndexOfBase = baseList.findIndex(x => (x && x.symbol && x.symbol === 'USDT'));
+
+            if (usdtIndexOfQuote !== -1) {
+                const usdtObj = quoteList[usdtIndexOfQuote];
+                quoteList = [];
+                quoteList.push(usdtObj);
+                isArbitrageCondition = true;
+            } else {
+                quoteList.splice(bctIndexOfQuote, 1);
+            }
+            /**
+             *  Remove BCT from C1, C2
+             */
+            if (usdtIndexOfBase < bctIndexOfBase) {
+                baseList.splice(bctIndexOfBase, 1);
+                baseList.splice(usdtIndexOfBase, 1);
+            } else {
+                baseList.splice(usdtIndexOfBase, 1);
+                baseList.splice(bctIndexOfBase, 1);
+            }
+        } else {
+            /**
+             *  Remove BCT from C1, C2
+             */
+            baseList.splice(bctIndexOfBase, 1);
+            quoteList.splice(bctIndexOfQuote, 1);
+        }
 
         // ----------------------------------
         // Get coins in my wallet as MAP array
@@ -765,8 +745,23 @@ class CoinPairSearchV2 extends React.Component {
 
                 // Disabled TopGroupItems, 2019-01-11
 
-                let index = baseList.findIndex(x => x.symbol === symbol);
-                if (index !== -1) {
+                const index = baseList.findIndex(x => x.symbol === symbol);
+                if (index === -1) {
+                    if (COIN_DATA_MAP[symbol]) {
+                        coinsInMyWallet.push({
+                            ...COIN_DATA_MAP[symbol],
+                            enabled: false,
+                            position: yourAccountStore.portfolioData[i].Position,
+                        });
+                    } else {
+                        coinsInMyWallet.push({
+                            name: symbol,
+                            symbol,
+                            enabled: false,
+                            position: yourAccountStore.portfolioData[i].Position,
+                        });
+                    }
+                } else {
                     coinsInMyWallet.push(
                         {
                             ...baseList[index],
@@ -791,7 +786,6 @@ class CoinPairSearchV2 extends React.Component {
             }
         }
 
-        /*
         // ----------------------------------
         if (!isArbitrageCondition) {
             for (let i = 0; i < instrumentsStore.recentQuotes.length; i++) {
@@ -826,173 +820,159 @@ class CoinPairSearchV2 extends React.Component {
                 }
             }
         }
-        */
 
         return (
             <StyleWrapper
                 innerRef={this.wrapperRef}
                 modalOpened={modalOpened}
                 gridHeight={gridHeight}
-                isCoinPairInversed={isCoinPairInversed}
             >
                 <div
                     className={'coin-pair-form-inner-wrapper' + (convertStore.convertState !== STATE_KEYS.coinSearch ? ' open' : '')}
                 >
                     {/* ----------Step 1----------*/}
                     <div className="exch-head">
-                        <div className="exch-head__coin-pair">
-                            <div className="exch-head__send">
-                                <ExchDropdown
-                                    value={instrumentsStore.selectedBase}
-                                    onChange={(val) => {
-                                        instrumentsStore.setBase(val);
-                                        setViewMode(viewModeKeys.basicModeKey);
-                                        showDepthChartMode(false);
-                                        setTradingViewMode(false);
-                                    }}
-                                    onClick={() => {
-                                        yourAccountStore.resetWalletTableState();
-                                    }}
-                                    setSelectedCoin={yourAccountStore.setSelectedCoin}
-                                    openDepositView={viewModeStore.openDepositView}
-                                    mainItems={baseList}
-                                    topGroupEnabled
-                                    topGroupLabel="Your Coins"
-                                    topGroupItems={coinsInMyWallet}
-                                    isArbitrageMode={isArbitrageMode}
-                                    isShortSell={isShortSell}
-                                    selectedBase={selectedBase}
-                                    selectedQuote={selectedQuote}
-                                    isLeft={true}
-                                    isCoinPairInversed={isCoinPairInversed}
-                                    setCoinListOpen={setCoinListOpen}
-                                    isOpen={isOpenLeftList}
-                                    toggleDroplist={this.toggleLeftList}
-                                    defaultFiat={defaultFiat}
-                                    isLoggedIn={isLoggedIn}
-                                    setLoginBtnLocation={setLoginBtnLocation}
-                                    createDepositAddress={createDepositAddress}
-                                    coinDepositAddress={coinDepositAddress}
-                                    isMobile={isMobileDevice || screenWidth < 1024}
-                                    notifyMsg={showConvertState}
-                                    addon={
-                                        <Addon>
-                                            <AddonLabel>Store Credit</AddonLabel>
-                                            <SwitchCustom checked={isShortSell} onChange={setShortSell} />
-                                        </Addon>
-                                    }
-                                    accessLevel={accessLevel}
-                                />
-                            </div>
+                        <div className="exch-head__send">
+                            <ExchDropdown
+                                value={instrumentsStore.selectedBase}
+                                onChange={(val) => {
+                                    instrumentsStore.setBase(val);
+                                    setViewMode(viewModeKeys.basicModeKey);
+                                    showDepthChartMode(false);
+                                    setTradingViewMode(false);
+                                }}
+                                onClick={() => {
+                                    yourAccountStore.resetWalletTableState();
+                                }}
+                                setSelectedCoin={yourAccountStore.setSelectedCoin}
+                                openDepositView={viewModeStore.openDepositView}
+                                mainItems={c1 === 'All Coins' ? baseList : []}
+                                topGroupEnabled
+                                topGroupLabel="Your Coins"
+                                topGroupItems={coinsInMyWallet}
+                                isArbitrageMode={isArbitrageMode}
+                                isShortSell={isShortSell}
+                                selectedBase={selectedBase}
+                                selectedQuote={selectedQuote}
+                                isLeft={true}
+                                setCoinListOpen={setCoinListOpen}
+                                isOpen={isOpenLeftList}
+                                toggleDroplist={this.toggleLeftList}
+                                defaultFiat={defaultFiat}
+                                isLoggedIn={isLoggedIn}
+                                setLoginBtnLocation={setLoginBtnLocation}
+                                createDepositAddress={createDepositAddress}
+                                coinDepositAddress={coinDepositAddress}
+                                isMobile={isMobileDevice || screenWidth < 1024}
+                                notifyMsg={showConvertState}
+                                addon={
+                                    <Addon>
+                                        <AddonLabel>Store Credit</AddonLabel>
+                                        <SwitchCustom checked={isShortSell} onChange={setShortSell}/>
+                                    </Addon>
+                                }
+                            />
+                        </div>
 
+                        <Tooltip
+                            style={{ display : 'flex' }}
+                            arrow={true}
+                            animation="shift"
+                            position="bottom"
+                            followCursor
+                            theme="bct"
+                            title={`Convert ${instrumentsStore.selectedBase} to ${instrumentsStore.selectedQuote}`}
+                        >
                             {
                                 (isShortSell || isSwapMode) ? (
                                     <button className={'exch-head__switch' + (isSwapped ? ' switched' : '')} onClick={this.toggleSwap}>
                                         <svg className="exch-form__switch-arrows" viewBox="0 0 8.8106 6.7733">
                                             <g transform="translate(0 -290.23)" strokeMiterlimit="10" strokeWidth=".26327">
-                                                <path className="arrow_top" d="m2.1205 292.68h4.6888v0.93039c0 0.0419 0.015007 0.0782 0.045808 0.10899 0.030802 0.0305 0.067133 0.0461 0.10899 0.0461 0.045019 0 0.082403-0.0145 0.11136-0.0434l1.5506-1.5509c0.028959-0.0287 0.043439-0.0661 0.043439-0.11136 0-0.045-0.014481-0.0821-0.043702-0.1111l-1.5454-1.5459c-0.038963-0.0321-0.077664-0.0484-0.11663-0.0484-0.045282 0-0.082403 0.0145-0.1111 0.0437-0.028959 0.0287-0.043439 0.0661-0.043439 0.11136v0.93038h-4.6888c-0.042123 0-0.078454 0.015-0.10899 0.0458-0.030539 0.0311-0.046072 0.0671-0.046072 0.10926v0.93012c0 0.0421 0.015533 0.0784 0.046072 0.10926 0.030539 0.0303 0.06687 0.0458 0.10899 0.0458z" />
-                                                <path className="arrow_bottom" d="m6.6807 294.54h-4.6888v-0.93038c0-0.0421-0.015269-0.0785-0.045545-0.10873-0.031065-0.0308-0.067133-0.0463-0.10926-0.0463-0.045282 0-0.082139 0.0145-0.11163 0.0437l-1.5504 1.5504c-0.028959 0.0292-0.043439 0.0661-0.043439 0.11137 0 0.0421 0.01448 0.0774 0.043439 0.10662l1.5459 1.5506c0.038437 0.0321 0.0774 0.0482 0.1161 0.0482 0.042123 0 0.07819-0.015 0.10926-0.0458 0.030539-0.0308 0.045545-0.0671 0.045545-0.10925v-0.93013h4.6888c0.041859 0 0.07819-0.0153 0.10899-0.0458 0.030802-0.0308 0.046072-0.0671 0.046072-0.10926v-0.93039c0-0.0419-0.015269-0.0779-0.046072-0.10899-0.030802-0.0303-0.06687-0.0458-0.10899-0.0458z" />
+                                                <path d="m2.1205 292.68h4.6888v0.93039c0 0.0419 0.015007 0.0782 0.045808 0.10899 0.030802 0.0305 0.067133 0.0461 0.10899 0.0461 0.045019 0 0.082403-0.0145 0.11136-0.0434l1.5506-1.5509c0.028959-0.0287 0.043439-0.0661 0.043439-0.11136 0-0.045-0.014481-0.0821-0.043702-0.1111l-1.5454-1.5459c-0.038963-0.0321-0.077664-0.0484-0.11663-0.0484-0.045282 0-0.082403 0.0145-0.1111 0.0437-0.028959 0.0287-0.043439 0.0661-0.043439 0.11136v0.93038h-4.6888c-0.042123 0-0.078454 0.015-0.10899 0.0458-0.030539 0.0311-0.046072 0.0671-0.046072 0.10926v0.93012c0 0.0421 0.015533 0.0784 0.046072 0.10926 0.030539 0.0303 0.06687 0.0458 0.10899 0.0458z"/>
+                                                <path d="m6.6807 294.54h-4.6888v-0.93038c0-0.0421-0.015269-0.0785-0.045545-0.10873-0.031065-0.0308-0.067133-0.0463-0.10926-0.0463-0.045282 0-0.082139 0.0145-0.11163 0.0437l-1.5504 1.5504c-0.028959 0.0292-0.043439 0.0661-0.043439 0.11137 0 0.0421 0.01448 0.0774 0.043439 0.10662l1.5459 1.5506c0.038437 0.0321 0.0774 0.0482 0.1161 0.0482 0.042123 0 0.07819-0.015 0.10926-0.0458 0.030539-0.0308 0.045545-0.0671 0.045545-0.10925v-0.93013h4.6888c0.041859 0 0.07819-0.0153 0.10899-0.0458 0.030802-0.0308 0.046072-0.0671 0.046072-0.10926v-0.93039c0-0.0419-0.015269-0.0779-0.046072-0.10899-0.030802-0.0303-0.06687-0.0458-0.10899-0.0458z"/>
                                             </g>
                                         </svg>
                                     </button>
                                 ) : (
                                     <button className={'exch-head__switch shortsell' + (isSwapped ? ' switched' : '')}>
                                         <svg className="exch-form__switch-arrows" viewBox="0 0 8.8106 6.7733" xmlns="http://www.w3.org/2000/svg">
-                                            <g transform="translate(0 -290.23)" strokeMiterlimit="10" strokeWidth=".26327">
-                                                <path className="arrow_top" d="m2.1205 292.68h4.6888v0.93039c0 0.0419 0.015007 0.0782 0.045808 0.10899 0.030802 0.0305 0.067133 0.0461 0.10899 0.0461 0.045019 0 0.082403-0.0145 0.11136-0.0434l1.5506-1.5509c0.028959-0.0287 0.043439-0.0661 0.043439-0.11136 0-0.045-0.014481-0.0821-0.043702-0.1111l-1.5454-1.5459c-0.038963-0.0321-0.077664-0.0484-0.11663-0.0484-0.045282 0-0.082403 0.0145-0.1111 0.0437-0.028959 0.0287-0.043439 0.0661-0.043439 0.11136v0.93038h-4.6888c-0.042123 0-0.078454 0.015-0.10899 0.0458-0.030539 0.0311-0.046072 0.0671-0.046072 0.10926v0.93012c0 0.0421 0.015533 0.0784 0.046072 0.10926 0.030539 0.0303 0.06687 0.0458 0.10899 0.0458z"/>
-                                                <path className="arrow_bottom" d="m6.6807 294.54h-4.6888v-0.93038c0-0.0421-0.015269-0.0785-0.045545-0.10873-0.031065-0.0308-0.067133-0.0463-0.10926-0.0463-0.045282 0-0.082139 0.0145-0.11163 0.0437l-1.5504 1.5504c-0.028959 0.0292-0.043439 0.0661-0.043439 0.11137 0 0.0421 0.01448 0.0774 0.043439 0.10662l1.5459 1.5506c0.038437 0.0321 0.0774 0.0482 0.1161 0.0482 0.042123 0 0.07819-0.015 0.10926-0.0458 0.030539-0.0308 0.045545-0.0671 0.045545-0.10925v-0.93013h4.6888c0.041859 0 0.07819-0.0153 0.10899-0.0458 0.030802-0.0308 0.046072-0.0671 0.046072-0.10926v-0.93039c0-0.0419-0.015269-0.0779-0.046072-0.10899-0.030802-0.0303-0.06687-0.0458-0.10899-0.0458z" />
+                                            <g transform="matrix(1.2645 0 0 1.2645 -2.3188 -365.95)" strokeMiterlimit="10" strokeWidth=".26327">
+                                                <path d="m2.1205 292.68h4.6888v0.93039c0 0.0419 0.015007 0.0782 0.045808 0.10899 0.030802 0.0305 0.067133 0.0461 0.10899 0.0461 0.045019 0 0.082403-0.0145 0.11136-0.0434l1.5506-1.5509c0.028959-0.0287 0.043439-0.0661 0.043439-0.11136 0-0.045-0.014481-0.0821-0.043702-0.1111l-1.5454-1.5459c-0.038963-0.0321-0.077664-0.0484-0.11663-0.0484-0.045282 0-0.082403 0.0145-0.1111 0.0437-0.028959 0.0287-0.043439 0.0661-0.043439 0.11136v0.93038h-4.6888c-0.042123 0-0.078454 0.015-0.10899 0.0458-0.030539 0.0311-0.046072 0.0671-0.046072 0.10926v0.93012c0 0.0421 0.015533 0.0784 0.046072 0.10926 0.030539 0.0303 0.06687 0.0458 0.10899 0.0458z"/>
                                             </g>
                                         </svg>
                                     </button>
                                 )
                             }
+                        </Tooltip>
 
-                            <div className="exch-head__get">
-                                <ExchDropdown
-                                    value={instrumentsStore.selectedQuote}
-                                    onChange={(val) => {
-                                        instrumentsStore.setQuote(val);
-                                        instrumentsStore.addRecentQuote(val);
-                                        setViewMode(viewModeKeys.basicModeKey);
-                                        showDepthChartMode(false);
-                                        setTradingViewMode(false);
-                                    }}
-                                    onClick={() => { }}
-                                    setSelectedCoin={yourAccountStore.setSelectedCoin}
-                                    openDepositView={viewModeStore.openDepositView}
-                                    mainItems={baseList}
-                                    topGroupEnabled={true}
-                                    topGroupLabel="Recent"
-                                    topGroupItems={coinsInMyWallet}
-                                    isArbitrageMode={isArbitrageMode}
-                                    isShortSell={isShortSell}
-                                    selectedBase={selectedBase}
-                                    selectedQuote={selectedQuote}
-                                    isLeft={false}
-                                    isCoinPairInversed={isCoinPairInversed}
-                                    setCoinListOpen={setCoinListOpen}
-                                    isOpen={isOpenRightList}
-                                    toggleDroplist={this.toggleRightList}
-                                    defaultFiat={defaultFiat}
-                                    isLoggedIn={isLoggedIn}
-                                    setLoginBtnLocation={setLoginBtnLocation}
-                                    createDepositAddress={createDepositAddress}
-                                    coinDepositAddress={coinDepositAddress}
-                                    isMobile={isMobileDevice || screenWidth < 1200}
-                                    notifyMsg={showConvertState}
-                                    addon={
-                                        <Addon>
-                                            <AddonLabel>Arbitrage</AddonLabel>
-                                            <SwitchCustom checked={isArbitrageMode} onChange={setArbitrageMode} />
-                                        </Addon>
-                                    }
-                                    accessLevel={accessLevel}
-                                />
-                            </div>
+                        <div className="exch-head__get">
+                            <ExchDropdown
+                                value={instrumentsStore.selectedQuote}
+                                onChange={(val) => {
+                                    instrumentsStore.setQuote(val);
+                                    instrumentsStore.addRecentQuote(val);
+                                    setViewMode(viewModeKeys.basicModeKey);
+                                    showDepthChartMode(false);
+                                    setTradingViewMode(false);
+                                }}
+                                onClick={() => {}}
+                                setSelectedCoin={yourAccountStore.setSelectedCoin}
+                                openDepositView={viewModeStore.openDepositView}
+                                mainItems={quoteList}
+                                topGroupEnabled={true}
+                                topGroupLabel="Recent"
+                                topGroupItems={coinsInRecent}
+                                isArbitrageMode={isArbitrageMode}
+                                isShortSell={isShortSell}
+                                selectedBase={selectedBase}
+                                selectedQuote={selectedQuote}
+                                isLeft={false}
+                                setCoinListOpen={setCoinListOpen}
+                                isOpen={isOpenRightList}
+                                toggleDroplist={this.toggleRightList}
+                                defaultFiat={defaultFiat}
+                                isLoggedIn={isLoggedIn}
+                                setLoginBtnLocation={setLoginBtnLocation}
+                                createDepositAddress={createDepositAddress}
+                                coinDepositAddress={coinDepositAddress}
+                                isMobile={isMobileDevice || screenWidth < 1200}
+                                notifyMsg={showConvertState}
+                                addon={
+                                    <Addon>
+                                        <AddonLabel>Arbitrage</AddonLabel>
+                                        <SwitchCustom checked={isArbitrageMode} onChange={setArbitrageMode}/>
+                                    </Addon>
+                                }
+                            />
                         </div>
 
-                        <Tooltip
-                            arrow={true}
-                            animation="shift"
-                            position="bottom"
-                            theme="bct"
-                            title={isLoggedIn ? '' : 'Please Login'}
-                            // style={{ display: 'flex' }}
+                        <OrderGradientButton
+                            className={'exch-head__btnv2 primary-solid search-btn' + (isDonutChartLoading === donutChartModeStateKeys.loadingModeKey ? ' progress' : '')}
+                            disabled={isStep1ExchangeBtnDisabled || isDonutChartLoading !== donutChartModeStateKeys.defaultModeKey || isNoExchanges || isFetchingBestRates}
+                            // disabled={isDonutChartLoading !== donutChartModeStateKeys.defaultModeKey}
+                            onClick={this.onStep1ExchangeBtnClicked}
+                            height={60}
                         >
-                            <OrderGradientButton
-                                className={'exch-head__btnv2 primary-solid search-btn' + (isDonutChartLoading === donutChartModeStateKeys.loadingModeKey ? ' progress' : '')}
-                                disabled={isStep1ExchangeBtnDisabled || isDonutChartLoading !== donutChartModeStateKeys.defaultModeKey || isNoExchanges || isFetchingBestRates}
-                                // disabled={isDonutChartLoading !== donutChartModeStateKeys.defaultModeKey}
-                                onClick={this.onStep1ExchangeBtnClicked}
-                                height={50}
-                            >
-                                {(isDonutChartLoading === donutChartModeStateKeys.defaultModeKey && !isFetchingBestRates)
-                                    ? (
-                                        isStep1ExchangeBtnDisabled && baseCoinPosition < 0.0001
-                                            ? (
-                                                <WalletButtonCentered>
-                                                    0 <span className="unit">{selectedBase}</span>
-                                                </WalletButtonCentered>
-                                            )
-                                            : (
-                                                <div className="exch-head__btnv2__content">
-                                                    <SearchIcon />
-                                                    {/*
-                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 23.03 38.81">
-                                                        <path d="M23,19.4,4.4,38A2.49,2.49,0,0,1,.78,38a2.49,2.49,0,0,1,0-3.62l15-15-15-15A2.49,2.49,0,0,1,.78.78,2.49,2.49,0,0,1,4.4.78Z"/>
-                                                    </svg>
-                                                    */}
-                                                </div>
-                                            )
-                                    ) : (
-                                        <React.Fragment>
-                                            <SearchIcon />
-                                            <DataLoader width={50} height={50} />
-                                        </React.Fragment>
-                                    )
-                                }
-                            </OrderGradientButton>
-                        </Tooltip>
+                            {(isDonutChartLoading === donutChartModeStateKeys.defaultModeKey && !isFetchingBestRates)
+                                ? (
+                                    isStep1ExchangeBtnDisabled && baseCoinPosition < 0.0001
+                                        ? (
+                                            <WalletButtonCentered>
+                                                0 <span className="unit">{selectedBase}</span>
+                                            </WalletButtonCentered>
+                                        )
+                                        : (
+                                            <div className="exch-head__btnv2__content">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 23.03 38.81">
+                                                    <path d="M23,19.4,4.4,38A2.49,2.49,0,0,1,.78,38a2.49,2.49,0,0,1,0-3.62l15-15-15-15A2.49,2.49,0,0,1,.78.78,2.49,2.49,0,0,1,4.4.78Z"/>
+                                                </svg>
+                                            </div>
+                                        )
+                                ) : (
+                                    <DataLoader/>
+                                )
+                            }
+                        </OrderGradientButton>
                     </div>
                     {/* ----------End Step 1----------*/}
 
@@ -1004,139 +984,114 @@ class CoinPairSearchV2 extends React.Component {
                                 (convertStore.convertState === STATE_KEYS.amtInput ? ' amountInput' : ''))
                         }
                     >
-                        <div className="exch-form__coin-pair">
-                            {/*
-                            <BackgroundProgressBar/>
-                            */}
-                            <div className="exch-form__send">
-                                <CoinWrapper>
-                                    <CoinIconStep2 value={instrumentsStore.selectedBase} defaultFiat={defaultFiat} onClick={this.toggleLeftListWith} />
-                                    <CoinNameStep2 value={(instrumentsStore.selectedBase || '').replace('F:', '')} defaultFiat={defaultFiat} onClick={this.toggleLeftListWith} />
-                                </CoinWrapper>
-                                <div>
-                                    <WalletGroupButton
-                                        inProgress={false}
-                                        isLeft
-                                        isBuy={!isCoinPairInversed}
-                                        progress={false}
-                                        isWhite={false}
-                                        position={false}
-                                    >
-                                        <WalletSideIcon isRight={isCoinPairInversed}/>
-                                        <span>
-                                            {isAmtInputFocused ? (isAmtChangedAfterFocus ? amountFromState : '') : customDigitFormat(orderForm.amount, 6)}
-                                        </span>
-                                        <span className="infoIcon">
-                                            {isCoinPairInversed ? <span>{defaultFiatSymbol}</span> : <BTCFontIcon />}
-                                        </span>
-                                    </WalletGroupButton>
-                                    <input
-                                        className="exch-form__input"
-                                        type="text"
-                                        // value={isAmtInputFocused && !(convertStore.convertState === STATE_KEYS.submitOrder || convertStore.convertState === STATE_KEYS.orderDone) ? orderForm.amount : format7DigitString(orderForm.amount)}
-                                        value={isAmtInputFocused ? (isAmtChangedAfterFocus ? amountFromState : '') : customDigitFormat(orderForm.amount, 9)}
-                                        ref={this.amtInputRef}
-                                        readOnly={convertStore.convertState === STATE_KEYS.submitOrder || convertStore.convertState === STATE_KEYS.orderDone}
-                                        onFocus={this.handleAmtInputFocus}
-                                        onBlur={this.handleAmtInputBlur}
-                                        onChange={this.handleAmountChange}
-                                    />
-                                </div>
-                                {!isAmtInputFocused && showSlider && (
-                                    <SliderInput
-                                        readOnly={convertStore.convertState !== STATE_KEYS.amtInput}
-                                        isDisabledColors={convertStore.convertState !== STATE_KEYS.amtInput}
-                                        max={sliderMax}
-                                        currentValue={baseCoinUSDPrice * orderForm.amount}
-                                        value={orderForm.amount}
-                                        onChange={(value) => partial(withValueFromEvent, orderForm.setAmount)({ target: { value } })}
-                                        lowestExchangeStore={lowestExchangeStore}
-                                        defaultFiatSymbol={defaultFiatSymbol}
-                                        getLocalPrice={getLocalPrice}
-                                    />
-                                )}
+                        <div className="exch-form__send">
+                            <CoinIconStep2 value={instrumentsStore.selectedBase} defaultFiat={defaultFiat} onClick={this.toggleLeftListWith}/>
+                            <CoinNameStep2 value={(instrumentsStore.selectedBase || '').replace('F:', '')} defaultFiat={defaultFiat} onClick={this.toggleLeftListWith}/>
+                            <div>
+                                <input
+                                    className="exch-form__input"
+                                    type="text"
+                                    // value={isAmtInputFocused && !(convertStore.convertState === STATE_KEYS.submitOrder || convertStore.convertState === STATE_KEYS.orderDone) ? orderForm.amount : format7DigitString(orderForm.amount)}
+                                    value={isAmtInputFocused ? (isAmtChangedAfterFocus ? amountFromState : '') : customDigitFormat(orderForm.amount)}
+                                    ref={this.amtInputRef}
+                                    readOnly={convertStore.convertState === STATE_KEYS.submitOrder || convertStore.convertState === STATE_KEYS.orderDone}
+                                    onFocus={this.handleAmtInputFocus}
+                                    onBlur={this.handleAmtInputBlur}
+                                    onChange={this.handleAmountChange}
+                                />
                             </div>
+                            {!isAmtInputFocused && !isArbitrageMode && (
+                                <SliderInput
+                                    readOnly={convertStore.convertState !== STATE_KEYS.amtInput}
+                                    isDisabledColors={convertStore.convertState !== STATE_KEYS.amtInput}
+                                    max={sliderMax}
+                                    currentValue={baseCoinUSDPrice * orderForm.amount}
+                                    value={orderForm.amount}
+                                    onChange={(value) => partial(withValueFromEvent, orderForm.setAmount)({ target: { value } })}
+                                    lowestExchangeStore={lowestExchangeStore}
+                                    defaultFiatSymbol={defaultFiatSymbol}
+                                    getLocalPrice={getLocalPrice}
+                                />
+                            )}
+                        </div>
 
-                            <CoinSwap isShortSell={isShortSell} isSwapMode={isSwapMode} isCoinPairInversed={isCoinPairInversed} />
+                        <div className={isShortSell ? 'exch-form__sep' : 'exch-form__sep shortsell'}>
+                            {
+                                (isShortSell || isSwapMode) ? (
+                                    <svg className="exch-form__switch-arrows" viewBox="0 0 8.8106 6.7733">
+                                        <g transform="translate(0 -290.23)" strokeMiterlimit="10" strokeWidth=".26327">
+                                            <path d="m2.1205 292.68h4.6888v0.93039c0 0.0419 0.015007 0.0782 0.045808 0.10899 0.030802 0.0305 0.067133 0.0461 0.10899 0.0461 0.045019 0 0.082403-0.0145 0.11136-0.0434l1.5506-1.5509c0.028959-0.0287 0.043439-0.0661 0.043439-0.11136 0-0.045-0.014481-0.0821-0.043702-0.1111l-1.5454-1.5459c-0.038963-0.0321-0.077664-0.0484-0.11663-0.0484-0.045282 0-0.082403 0.0145-0.1111 0.0437-0.028959 0.0287-0.043439 0.0661-0.043439 0.11136v0.93038h-4.6888c-0.042123 0-0.078454 0.015-0.10899 0.0458-0.030539 0.0311-0.046072 0.0671-0.046072 0.10926v0.93012c0 0.0421 0.015533 0.0784 0.046072 0.10926 0.030539 0.0303 0.06687 0.0458 0.10899 0.0458z"/>
+                                            <path d="m6.6807 294.54h-4.6888v-0.93038c0-0.0421-0.015269-0.0785-0.045545-0.10873-0.031065-0.0308-0.067133-0.0463-0.10926-0.0463-0.045282 0-0.082139 0.0145-0.11163 0.0437l-1.5504 1.5504c-0.028959 0.0292-0.043439 0.0661-0.043439 0.11137 0 0.0421 0.01448 0.0774 0.043439 0.10662l1.5459 1.5506c0.038437 0.0321 0.0774 0.0482 0.1161 0.0482 0.042123 0 0.07819-0.015 0.10926-0.0458 0.030539-0.0308 0.045545-0.0671 0.045545-0.10925v-0.93013h4.6888c0.041859 0 0.07819-0.0153 0.10899-0.0458 0.030802-0.0308 0.046072-0.0671 0.046072-0.10926v-0.93039c0-0.0419-0.015269-0.0779-0.046072-0.10899-0.030802-0.0303-0.06687-0.0458-0.10899-0.0458z"/>
+                                        </g>
+                                    </svg>
+                                ) : (
+                                    <svg className="exch-form__switch-arrows" viewBox="0 0 8.8106 6.7733" xmlns="http://www.w3.org/2000/svg">
+                                        <g transform="matrix(1.2645 0 0 1.2645 -2.3188 -365.95)" strokeMiterlimit="10" strokeWidth=".26327">
+                                            <path d="m2.1205 292.68h4.6888v0.93039c0 0.0419 0.015007 0.0782 0.045808 0.10899 0.030802 0.0305 0.067133 0.0461 0.10899 0.0461 0.045019 0 0.082403-0.0145 0.11136-0.0434l1.5506-1.5509c0.028959-0.0287 0.043439-0.0661 0.043439-0.11136 0-0.045-0.014481-0.0821-0.043702-0.1111l-1.5454-1.5459c-0.038963-0.0321-0.077664-0.0484-0.11663-0.0484-0.045282 0-0.082403 0.0145-0.1111 0.0437-0.028959 0.0287-0.043439 0.0661-0.043439 0.11136v0.93038h-4.6888c-0.042123 0-0.078454 0.015-0.10899 0.0458-0.030539 0.0311-0.046072 0.0671-0.046072 0.10926v0.93012c0 0.0421 0.015533 0.0784 0.046072 0.10926 0.030539 0.0303 0.06687 0.0458 0.10899 0.0458z"/>
+                                        </g>
+                                    </svg>
+                                )
+                            }
+                        </div>
 
-                            <div className="exch-form__get">
-                                <div>
-                                    <WalletGroupButton
-                                        isShouldOneAnim
-                                        inProgress={true}
-                                        isLeft={isCoinPairInversed}
-                                        isBuy={!isCoinPairInversed}
-                                        progress={(convertStore.convertState === STATE_KEYS.submitOrder) || (convertStore.convertState === STATE_KEYS.orderDone)}
-                                        isWhite={false}
-                                        position={false}
-                                    >
-                                        <WalletSideIcon isRight={!isCoinPairInversed}/>
-                                        <span>
-                                            {!isDelayed ? customDigitFormat(getLocalPrice(totalPrice, instrumentsStore.selectedQuote), 6) : ''}
-                                        </span>
-                                        <span className="infoIcon">
-                                            {!isCoinPairInversed ? <span>{defaultFiatSymbol}</span> : <BTCFontIcon />}
-                                        </span>
-                                    </WalletGroupButton>
-                                    <input
-                                        className="exch-form__input right"
-                                        type="text"
-                                        placeholder={!isDelayed ? orderForm.estimatedAmountReceived.toString() : ''}
-                                        readOnly
-                                        // value={format7DigitString(orderForm.estimatedAmountReceived)}
-                                        value={!isDelayed ? customDigitFormat(getLocalPrice(totalPrice, instrumentsStore.selectedQuote), 9) : ''}
-                                        onClick={this.toggleRightListWith}
-                                    />
-                                </div>
-                                <CoinWrapper>
-                                    <CoinNameStep2 value={(instrumentsStore.selectedQuote || '').replace('F:', '')} defaultFiat={defaultFiat} onClick={this.toggleRightListWith} />
-                                    <CoinIconStep2 value={instrumentsStore.selectedQuote} defaultFiat={defaultFiat} onClick={this.toggleRightListWith} />
-                                </CoinWrapper>
-
-                                {!isDelayed && !isAmtInputFocused && showSlider && (
-                                    <SliderInput
-                                        // readOnly
-                                        readOnly={convertStore.convertState !== STATE_KEYS.amtInput}
-                                        isDisabledColors="true"
-                                        max={sliderMax}
-                                        currentValue={slider === 'Best Execution' ? (quoteCoinUSDPrice * totalPrice) : (quoteCoinUSDPrice * totalPrice * 37.7834)} // * 0.9975 New way is to calculate the real value of C2. Then multiply by 0.9975
-                                        value={orderForm.amount}
-                                        // onChange={null}
-                                        lowestExchangeStore={lowestExchangeStore}
-                                        onChange={(value) => partial(withValueFromEvent, orderForm.setAmount)({ target: { value } })}
-                                        defaultFiatSymbol={defaultFiatSymbol}
-                                        getLocalPrice={getLocalPrice}
-                                    />
-                                )}
-                                {isDelayed && (
-                                    <LoaderWrapper isCoinPairInversed={isCoinPairInversed}>
-                                        <DataLoader width={40} height={40} />
-                                    </LoaderWrapper>
-                                )}
+                        <div className="exch-form__get">
+                            <CoinIconStep2 value={instrumentsStore.selectedQuote} defaultFiat={defaultFiat} onClick={this.toggleRightListWith}/>
+                            <CoinNameStep2 value={(instrumentsStore.selectedQuote || '').replace('F:', '')} defaultFiat={defaultFiat} onClick={this.toggleRightListWith}/>
+                            <div>
+                                <input
+                                    className="exch-form__input"
+                                    type="text"
+                                    placeholder={!isDelayed ? orderForm.estimatedAmountReceived.toString() : ''}
+                                    readOnly
+                                    // value={format7DigitString(orderForm.estimatedAmountReceived)}
+                                    value={!isDelayed ? customDigitFormat(getLocalPrice(totalPrice, instrumentsStore.selectedQuote)) : ''}
+                                    onClick={this.toggleRightListWith}
+                                />
                             </div>
+                            {!isDelayed && !isAmtInputFocused && !isArbitrageMode && (
+                                <SliderInput
+                                    // readOnly
+                                    readOnly={convertStore.convertState !== STATE_KEYS.amtInput}
+                                    isDisabledColors={convertStore.convertState !== STATE_KEYS.amtInput}
+                                    max={sliderMax}
+                                    currentValue={slider === 'Best Execution' ? (quoteCoinUSDPrice * totalPrice) : (quoteCoinUSDPrice * totalPrice * 37.7834)} // * 0.9975 New way is to calculate the real value of C2. Then multiply by 0.9975
+                                    value={orderForm.amount}
+                                    // onChange={null}
+                                    lowestExchangeStore={lowestExchangeStore}
+                                    onChange={(value) => partial(withValueFromEvent, orderForm.setAmount)({ target: { value } })}
+                                    defaultFiatSymbol={defaultFiatSymbol}
+                                    getLocalPrice={getLocalPrice}
+                                />
+                            )}
+                            {isDelayed &&
+                            <LoaderWrapper>
+                                <DataLoader width={40} height={40}/>
+                            </LoaderWrapper>
+                            }
                         </div>
 
                         <div className="exch-form__btns">
                             {(convertStore.convertState === STATE_KEYS.amtInput) && (
                                 <GradientButtonTimer
-                                    isPaused={this.isPaused}
-                                    onCancelOrder={this.onCancelTrading}
-                                    onPauseOrder={this.onPauseTrading}
-                                    onResumeOrder={this.onResumeTrading}
+                                    onCancelOrder={() => this.onCancelTrading()}
                                     onSubmitOrder={this.onSubmitOrderByTimer}
                                     isArbitrageMode={isArbitrageMode}
                                     disabled={!orderForm.validAmountEntered || baseCoinUSDPrice * orderForm.amount < MIN_USD_AMOUNT}
-                                    maxTimer={!isCoinPairInversed ? timer : 4}
-                                    setDownTimerCount={setDownTimerCount}
-                                    setMaxDownTimerCount={setMaxDownTimerCount}
+                                    maxTimer={timer}
                                 />
                             )}
-                            {(convertStore.convertState === STATE_KEYS.submitOrder || convertStore.convertState === STATE_KEYS.orderDone) && (
-                                <ButtonLoader
-                                    onCancelOrder={this.onCancelTrading}
-                                />
+                            {convertStore.convertState === STATE_KEYS.submitOrder && (
+                                <OrderGradientButton
+                                    className="exch-form__submitv2 exchange-progress"
+                                    onClick={() => this.onCancelTrading()}
+                                    disabled={false}
+                                    height={60}
+                                    width={259}
+                                >
+                                    <DataLoader/>
+                                </OrderGradientButton>
                             )}
-                            {/* convertStore.convertState === STATE_KEYS.orderDone && (
+                            {convertStore.convertState === STATE_KEYS.orderDone && (
                                 <OrderGradientButton
                                     className="exch-form__submitv2 positive-solid"
                                     onClick={() => {
@@ -1149,7 +1104,7 @@ class CoinPairSearchV2 extends React.Component {
                                         <path d="M34.87,5,30.32.47a1.6,1.6,0,0,0-2.27,0L17.67,10.85h0l-5.84,5.84L7.29,12.15a1.62,1.62,0,0,0-2.28,0L.47,16.69A1.6,1.6,0,0,0,.47,19L10.69,29.19a1.61,1.61,0,0,0,1.14.47A1.63,1.63,0,0,0,13,29.19l4.7-4.71L34.87,7.29a1.62,1.62,0,0,0,0-2.28Z"/>
                                     </svg>
                                 </OrderGradientButton>
-                            ) */}
+                            )}
                         </div>
                     </div>
                     {/* ----------End Step 2----------*/}

@@ -1,18 +1,13 @@
 import React, { Component } from 'react';
 import { AutoSizer, Column, Table } from 'react-virtualized';
 import PerfectScrollbar from 'react-perfect-scrollbar';
-import { inject, observer } from 'mobx-react';
-import { compose, withProps } from 'recompose';
-import { Tooltip } from 'react-tippy';
 
 import {
     List,
     StyleWrapper,
     HeaderWrapper,
-    ImgCancel,
-    Item
+    ImgCancel
 } from './Components';
-import { STORE_KEYS } from '../../stores';
 
 const headerRenderer = (coin) => () => {
     return (
@@ -29,127 +24,10 @@ const headerCancelRenderer = () => () => {
 };
 
 class ActiveTable extends Component {
-    timeCellRenderer = ({ rowData }) => {
-        return (
-            <Item>
-                { rowData.time }
-            </Item>
-        );
-    };
-
-    orderIdCellRenderer = ({ rowData }) => {
-        return (
-            <Item>
-                <Tooltip
-                    arrow={true}
-                    // animation="shift"
-                    position="bottom"
-                    // followCursor
-                    theme="bct"
-                    title={rowData.orderId}
-                    className="full-width"
-                >
-                    <div className="text-overflow-ellipsis">{rowData.orderId}</div>
-                </Tooltip>
-            </Item>
-        );
-    };
-
-    instrCellRenderer = ({ rowData }) => {
-        return (
-            <Item>
-                { rowData.symbol }
-            </Item>
-        );
-    };
-
-    accountCellRenderer = ({ rowData }) => {
-        return (
-            <Item>
-            </Item>
-        );
-    };
-
-    sideCellRenderer = ({ rowData }) => {
-        return (
-            <Item>
-                { rowData.side }
-            </Item>
-        );
-    };
-
-    amountCellRenderer = ({ rowData }) => {
-        return (
-            <Item>
-                { rowData.filled }
-            </Item>
-        );
-    };
-
-    filledCellRenderer = ({ rowData }) => {
-        return (
-            <Item>
-                { rowData.filled }
-            </Item>
-        );
-    };
-
-    priceCellRenderer = ({ rowData }) => {
-        return (
-            <Item>
-                { rowData.price }
-            </Item>
-        );
-    };
-
-    avgPriceCellRenderer = ({ rowData }) => {
-        return (
-            <Item>
-                { rowData.average }
-            </Item>
-        );
-    };
-
-    orderTypeCellRenderer = ({ rowData }) => {
-        return (
-            <Item>
-                { rowData.type }
-            </Item>
-        );
-    };
-
-    tifCellRenderer = ({ rowData }) => {
-        return (
-            <Item>
-            </Item>
-        );
-    };
-
-    sourceCellRenderer = ({ rowData }) => {
-        return (
-            <Item>
-            </Item>
-        );
-    };
-
-    stopPriceCellRenderer = ({ rowData }) => {
-        return (
-            <Item>
-            </Item>
-        );
-    };
-
-    cancelCellRenderer = ({ rowData }) => {
-        return (
-            <Item>
-            </Item>
-        );
-    };
-
+    state = {};
 
     render() {
-        const { OrderHistoryData } = this.props;
-        const data = OrderHistoryData.length ? [OrderHistoryData[0]] : [];
+        const data = [];
         return (
             <List>
                 <AutoSizer>
@@ -161,63 +39,64 @@ class ActiveTable extends Component {
                                         suppressScrollX: true,
                                         minScrollbarLength: 50,
                                     }}
+                                    onScrollY={this.handleScroll}
                                 >
                                     <Table
+                                        autoHeight={true}
                                         width={width}
                                         height={height}
                                         headerHeight={27}
                                         disableHeader={false}
                                         rowCount={data.length}
                                         rowGetter={({ index }) => data[index]}
-                                        rowHeight={27}
+                                        rowHeight={60}
                                         overscanRowCount={0}
                                     >
                                         <Column
-                                            width={width * 0.14}
-                                            dataKey="Time"
+                                            width={width * 0.07}
+                                            dataKey="Name"
                                             headerRenderer={headerRenderer('Time')}
-                                            cellRenderer={this.timeCellRenderer}
+                                            cellRenderer={this.nameCellRenderer}
                                         />
 
                                         <Column
-                                            className="order-id-column"
                                             width={width * 0.07}
-                                            dataKey="Order ID"
+                                            dataKey="Price"
                                             headerRenderer={headerRenderer('Order ID')}
-                                            cellRenderer={this.orderIdCellRenderer}
+                                            cellRenderer={this.priceCellRenderer}
                                         />
 
                                         <Column
                                             width={width * 0.07}
-                                            dataKey="Instr."
+                                            dataKey="Api"
                                             headerRenderer={headerRenderer('Instr.')}
-                                            cellRenderer={this.instrCellRenderer}
+                                            cellRenderer={this.apiCellRenderer}
                                         />
                                         <Column
                                             width={width * 0.08}
-                                            dataKey="Account"
+                                            dataKey="Name"
                                             headerRenderer={headerRenderer('Account')}
-                                            cellRenderer={this.accountCellRenderer}
+                                            cellRenderer={this.nameCellRenderer}
                                         />
 
                                         <Column
                                             width={width * 0.07}
-                                            dataKey="Side"
+                                            dataKey="Price"
                                             headerRenderer={headerRenderer('Side')}
-                                            cellRenderer={this.sideCellRenderer}
+                                            cellRenderer={this.priceCellRenderer}
                                         />
 
                                         <Column
                                             width={width * 0.08}
-                                            dataKey="Amount"
+                                            dataKey="Api"
                                             headerRenderer={headerRenderer('Amount')}
-                                            cellRenderer={this.amountCellRenderer}
+                                            cellRenderer={this.apiCellRenderer}
                                         />
                                         <Column
                                             width={width * 0.07}
-                                            dataKey="Filled"
+                                            dataKey="Name"
                                             headerRenderer={headerRenderer('Filled')}
-                                            cellRenderer={this.filledCellRenderer}
+                                            cellRenderer={this.nameCellRenderer}
                                         />
 
                                         <Column
@@ -229,42 +108,42 @@ class ActiveTable extends Component {
 
                                         <Column
                                             width={width * 0.09}
-                                            dataKey="Avg Price"
+                                            dataKey="Api"
                                             headerRenderer={headerRenderer('Avg. Price')}
-                                            cellRenderer={this.avgPriceCellRenderer}
+                                            cellRenderer={this.apiCellRenderer}
                                         />
                                         <Column
                                             width={width * 0.08}
-                                            dataKey="Order Type"
+                                            dataKey="Name"
                                             headerRenderer={headerRenderer('Order Type')}
-                                            cellRenderer={this.orderTypeCellRenderer}
+                                            cellRenderer={this.nameCellRenderer}
                                         />
 
                                         <Column
                                             width={width * 0.07}
-                                            dataKey="TIF"
+                                            dataKey="Price"
                                             headerRenderer={headerRenderer('TIF')}
-                                            cellRenderer={this.tifCellRenderer}
+                                            cellRenderer={this.priceCellRenderer}
                                         />
 
                                         <Column
                                             width={width * 0.07}
-                                            dataKey="Source"
+                                            dataKey="Api"
                                             headerRenderer={headerRenderer('Source')}
-                                            cellRenderer={this.sourceCellRenderer}
+                                            cellRenderer={this.apiCellRenderer}
                                         />
                                         <Column
                                             width={width * 0.07}
-                                            dataKey="Stop Price"
+                                            dataKey="Name"
                                             headerRenderer={headerRenderer('Stop Price')}
-                                            cellRenderer={this.stopPriceCellRenderer}
+                                            cellRenderer={this.nameCellRenderer}
                                         />
 
                                         <Column
                                             width={width * 0.03}
-                                            dataKey="Cancel"
+                                            dataKey="Price"
                                             headerRenderer={headerCancelRenderer()}
-                                            cellRenderer={this.cancelCellRenderer}
+                                            cellRenderer={this.priceCellRenderer}
                                         />
                                     </Table>
                                 </PerfectScrollbar>
@@ -277,14 +156,4 @@ class ActiveTable extends Component {
     }
 }
 
-export default compose(
-    inject(
-        STORE_KEYS.ORDERHISTORY
-    ),
-    observer,
-    withProps(
-        ({
-            [STORE_KEYS.ORDERHISTORY]: { OrderHistoryData },
-        }) => ({ OrderHistoryData })
-    )
-)(ActiveTable);
+export default ActiveTable;

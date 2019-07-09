@@ -1,22 +1,16 @@
 import React from 'react';
 import styled from 'styled-components';
-import { inject, observer } from 'mobx-react';
-import { compose, withProps } from 'recompose';
-
-import { paymentHistoryDropdowns } from '../../constants';
-import { STORE_KEYS } from '../../../../stores';
 
 import TabHeader from '../../TabHeader';
 import TabSubHeader from '../../TabSubHeader';
 import TableHeader from '../../TableHeader';
 import ReportTable from '../../Table';
-import { checkDateIsBetweenTwo } from '../..';
+import { paymentHistoryColumns, paymentHistoryDropdowns } from '../../constants';
 
 const Wrapper = styled.div`
     width: 100%;
-    height: 100%;
     text-align: center;
-    overflow: hidden;
+    background-color: #fff;
 `;
 
 class PaymentHistory extends React.Component {
@@ -25,60 +19,23 @@ class PaymentHistory extends React.Component {
 
         this.state = {
             isExchBarOpen: false,
-            startDate: undefined,
-            endDate: undefined,
         };
     }
 
-    changeStartDate = (date) => {
-        this.setState({
-            startDate: date,
-        });
-    }
-
-    changeEndDate = (date) => {
-        this.setState({
-            endDate: date,
-        });
-    }
-
     render() {
-        const paymentHistoryColumns = this.props.OrderHistoryData;
-        let filteredColumns = [];
-        const { startDate, endDate } = this.state;
-        for (let i = 0; i < paymentHistoryColumns.length; i++) {
-            let ithDate = new Date(paymentHistoryColumns[i].timeUnFormatted);
-            if (checkDateIsBetweenTwo(ithDate, startDate, endDate) === true) {
-                filteredColumns.push(paymentHistoryColumns[i]);
-            }
-        }
         return (
             <Wrapper>
-                <TabHeader
-                    tab="paymentHistory"
-                    changeStartDate={this.changeStartDate}
-                    changeEndDate={this.changeEndDate}
-                >
-                </TabHeader>
+                <TabHeader tab="paymentHistory"/>
                 <TabSubHeader
                     dropdowns={paymentHistoryDropdowns}
                     tab="paymentHistory"
                 />
                 <TableHeader/>
-                <ReportTable columns={filteredColumns}/>
+                <ReportTable columns={paymentHistoryColumns}/>
+                <TableHeader/>
             </Wrapper>
         );
     }
 }
 
-export default compose(
-    inject(
-        STORE_KEYS.ORDERHISTORY
-    ),
-    observer,
-    withProps(
-        ({
-            [STORE_KEYS.ORDERHISTORY]: { OrderHistoryData },
-        }) => ({ OrderHistoryData })
-    )
-)(PaymentHistory);
+export default PaymentHistory;

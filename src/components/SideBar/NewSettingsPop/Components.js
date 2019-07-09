@@ -130,18 +130,17 @@ export const Item = styled.div.attrs({ className: 'settings-pop-item' })`
     flex-shrink: 0;
     position: relative;
     width: 100%;
-    height: 70px;
-    ${props => props.settingsOpen && 'height: 400px;'};
-    border-bottom: 1px solid ${props => props.theme.palette.clrInnerBorder};
+    height: 60px;
+    // border-bottom: 1px solid ${props => props.theme.palette.clrInnerBorder};
     margin-top: -1px;
     display: flex;
     align-items: center;
-    padding-right: ${props => props.header ? 4 : 12}px;
-    padding-left: ${props => props.UserItem ? 0 : 70}px;
+    padding-right: 25px;
+    padding-left: ${props => props.UserItem ? 0 : 25}px;
     color: ${props => props.theme.palette.settingsText};
-    /* background: ${props => props.theme.palette.settingsBackground}; */
-    // z-index: ${props => props.UserItem ? 100 : 101};
-    border-top: 1px solid ${props => props.theme.palette.clrInnerBorder};
+    background: ${props => props.theme.palette.settingsBackground};
+    // z-index: 100;
+    // border-top: 1px solid ${props => props.theme.palette.clrInnerBorder};
     
     &:last-child {
         border-bottom: 0.25px solid ${props => props.theme.palette.clrInnerBorder};
@@ -177,6 +176,25 @@ export const Item = styled.div.attrs({ className: 'settings-pop-item' })`
         }
     }
     
+    > .btn_reset {
+        border-radius: ${props => props.theme.palette.borderRadius};
+        border: 0;
+        background: ${props => props.theme.palette.clrLightRed};
+        color: ${props => props.theme.palette.clrHighContrast};
+        outline: none;
+        height: 31px;
+        width: 78px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        overflow: hidden;
+        white-space: nowrap;
+        
+        &:hover {
+            opacity: 0.8;
+        }
+    }
+    
     > .btn_normal {
         border-radius: ${props => props.theme.palette.borderRadius};
         border: 1px solid ${props => props.theme.palette.clrInnerBorder};
@@ -197,15 +215,9 @@ export const Item = styled.div.attrs({ className: 'settings-pop-item' })`
     }
     
     .fullName {
-        // padding-left: 5px;
+        padding-left: 15px;
         font-size: 20px;
         font-weight: 600;
-    }
-    
-    .settings-label {
-        font-size: 38px;
-        font-weight: 600;
-        padding-left: 12px;
     }
 
     .affliate-label-wrapper {
@@ -221,14 +233,6 @@ export const Item = styled.div.attrs({ className: 'settings-pop-item' })`
 
     .affliate-label-wrapper > div {
         flex: 1;
-    }
-
-    .icon-wrapper {
-        display: flex;
-        align-items: center;
-        svg, svg * {
-            fill: ${props => props.theme.palette.userMenuPopupMenuItemHover} !important;
-        }
     }
 `;
 

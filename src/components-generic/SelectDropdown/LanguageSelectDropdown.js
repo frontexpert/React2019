@@ -1,7 +1,8 @@
 import React from 'react';
 
-import { DropdownWrapper, DropMenuIcon, SelectedItemLabel } from './Components';
+import { DropdownWrapper, SelectedItemLabel } from './Components';
 import LanguageDropdown from '../LanguageDropdown';
+import icon from './icon_drop.png';
 
 class LanguageSelectDropdown extends React.Component {
     state = {
@@ -55,7 +56,7 @@ class LanguageSelectDropdown extends React.Component {
                     }}
                 >
                     <span>{value}</span>
-                    <DropMenuIcon/>
+                    <img src={icon} alt=""/>
                 </SelectedItemLabel>
 
                 {isOpen && (

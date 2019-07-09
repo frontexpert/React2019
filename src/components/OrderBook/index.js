@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React from 'react';
 import { AutoSizer } from 'react-virtualized';
 import { compose, withProps } from 'recompose';
 import { inject, observer } from 'mobx-react';
@@ -28,6 +28,10 @@ class OrderBook extends React.Component {
             selectAsk,
             selectBid,
             selectedExchange,
+            marketExchanges,
+            wrapperWidth,
+            wrapperHeight,
+            isRegularMarket,
         } = this.props;
 
         return (
@@ -35,16 +39,26 @@ class OrderBook extends React.Component {
                 {({ height, width }) => {
                     const buyBookRowCount = getMaxRows(height, ROW_HEIGHT);
                     return (
-                        <Fragment>
+                        <React.Fragment>
                             <SellBook
                                 width={width}
-                                height={buyBookRowCount * ROW_HEIGHT}
+                                height={buyBookRowCount * ROW_HEIGHT - 32}
                                 asks={asksForOrderBook}
                                 rowHeight={ROW_HEIGHT}
-                                rowCount={buyBookRowCount}
+                                rowCount={buyBookRowCount + 1}
                                 onSelect={selectAsk}
+                                base={base}
+                                quote={quote}
                                 selectedExchange={selectedExchange}
                             />
+                            {/*
+                        <Spread
+                            height={42}
+                            width={width - 2}
+                            base={base}
+                            quote={quote}
+                        />
+                        */}
                             <BuyBook
                                 width={width}
                                 height={height - buyBookRowCount * ROW_HEIGHT + 32}
@@ -53,8 +67,12 @@ class OrderBook extends React.Component {
                                 rowCount={buyBookRowCount + 1}
                                 onSelect={selectBid}
                                 selectedExchange={selectedExchange}
+                                exchangesCnt={marketExchanges.length}
+                                wrapperWidth={wrapperWidth}
+                                wrapperHeight={wrapperHeight}
+                                isRegularMarket={isRegularMarket}
                             />
-                        </Fragment>
+                        </React.Fragment>
                     );
                 }}
             </AutoSizer>
@@ -73,9 +91,16 @@ const withOrderInstruments = compose(
                 base,
                 quote,
                 updateOrderBookBreakdownByExchange,
+                isRegularMarket,
             },
-            [STORE_KEYS.ORDERENTRY]: { selectAsk, selectBid },
-            [STORE_KEYS.EXCHANGESSTORE]: { selectedExchange },
+            [STORE_KEYS.ORDERENTRY]: {
+                selectAsk,
+                selectBid,
+            },
+            [STORE_KEYS.EXCHANGESSTORE]: {
+                selectedExchange,
+                marketExchanges,
+            },
         }) => ({
             base,
             quote,
@@ -84,7 +109,9 @@ const withOrderInstruments = compose(
             selectAsk,
             selectBid,
             selectedExchange,
+            marketExchanges,
             updateOrderBookBreakdownByExchange,
+            isRegularMarket,
         })
     )
 );

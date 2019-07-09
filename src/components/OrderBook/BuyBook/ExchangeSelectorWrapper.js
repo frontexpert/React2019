@@ -13,15 +13,12 @@ const Wrapper = styled.div`
     width: 100%;
     height: 100%;
     margin: 0;
-    margin-left: 15px;
     border: none;
     padding: 0;
-    ${props => props.settingsOpen && 'position: relative;'}
 `;
 
 class ExchangeSelectorWrapper extends React.Component {
     state = {};
-    ref = React.createRef();
 
     onSelectExchange = (exchange) => {
         const {
@@ -48,9 +45,6 @@ class ExchangeSelectorWrapper extends React.Component {
             isEnabled,
             wrapperWidth,
             wrapperHeight,
-            isLoggedIn,
-            settingsOpen,
-            setChildOpen,
         } = this.props;
 
         let mExchanges = [{
@@ -59,7 +53,7 @@ class ExchangeSelectorWrapper extends React.Component {
         mExchanges = mExchanges.concat(marketExchanges);
 
         return (
-            <Wrapper className="exchange-sibling" settingsOpen={settingsOpen}>
+            <Wrapper>
                 <ExchangeSelector
                     isEnabled={isEnabled}
                     value={selectedExchange.name}
@@ -73,10 +67,6 @@ class ExchangeSelectorWrapper extends React.Component {
                     onChange={this.onSelectExchange}
                     width={wrapperWidth}
                     height={wrapperHeight}
-                    isLoggedIn={isLoggedIn}
-                    ref={this.ref}
-                    setChildOpen={setChildOpen}
-                    settingsOpen={settingsOpen}
                 />
             </Wrapper>
         );

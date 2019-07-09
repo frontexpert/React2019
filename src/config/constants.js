@@ -232,10 +232,10 @@ export const TV_CONFIG = {
         // 'Overlay.lineStyle.linewidth': 2
     },
     overrides: {
-        'paneProperties.background': '#020517',
-        'paneProperties.vertGridProperties.color': '#020517',
-        'paneProperties.horzGridProperties.color': '#020517',
-        'paneProperties.crossHairProperties.color': '#020517',
+        'paneProperties.background': '#0D112B',
+        'paneProperties.vertGridProperties.color': '#0D112B',
+        'paneProperties.horzGridProperties.color': '#0D112B',
+        'paneProperties.crossHairProperties.color': '#0D112B',
         'paneProperties.gridProperties.color': '#ffffff',
 
         'paneProperties.topMargin': 6,
@@ -287,11 +287,11 @@ export const TV_CONFIG = {
         'mainSeriesProperties.lineStyle.color': '#FFFFFF',
 
         //	Area styles
-        'mainSeriesProperties.areaStyle.color1': '#060824',
-        'mainSeriesProperties.areaStyle.color2': '#060824',
+        'mainSeriesProperties.areaStyle.color1': 'rgba(113, 42, 255, 0.2)',
+        'mainSeriesProperties.areaStyle.color2': 'rgba(98, 12, 255, 0.2)',
         // 'mainSeriesProperties.areaStyle.color1': 'rgba(36, 34, 156, 0.3)',
         // 'mainSeriesProperties.areaStyle.color2': 'rgba(70, 14, 203, 0.3)',
-        'mainSeriesProperties.areaStyle.linecolor': '#d4d4d4',
+        'mainSeriesProperties.areaStyle.linecolor': '#3D1E85',
         'mainSeriesProperties.areaStyle.linewidth': 3,
         'mainSeriesProperties.areaStyle.priceSource': 'close',
         'mainSeriesProperties.hollowCandleStyle.drawWick': false,
@@ -384,5 +384,4 @@ export const SETTING_TIPPY_INFO  = {
     REFERRED_BY: 'Enter the name of who referred you.',
     AFFILIATE_LINK: 'Enter a link of who referred you.',
     TIMER: 'Set count timer.',
-    TIMER_AFTER: 'Initiate timer.',
 };

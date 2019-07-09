@@ -47,41 +47,6 @@ class SMSVerification extends Component {
 
         this.setState({
             code: e.target.value,
-        }, () => {
-            const { code } = this.state;
-            if (code.length < 4) return;
-            this.setState({
-                isSendingCode: true,
-            });
-    
-            axios.post('https://passport.bct.trade/api/auth/sms/verify_code', {
-                code: this.state.code,
-                userId: this.state.userId,
-            })
-                .then(res => {
-                    if (res.data && res.data.success) {
-                        setTimeout(() => {
-                            this.setState({
-                                isCodeSent: true,
-                                isSendingCode: false,
-                                currentView: SMS_AUTH_VIEW_STEPS.VERIFY_SUCCESS,
-                            });
-    
-                            setTimeout(() => {
-                                this.props.onClose();
-                                // window.location.reload();
-                            }, 500);
-                        }, 500);
-                    } else {
-                        return Promise.reject(Error('No success code returned'));
-                    }
-                })
-                .catch(err => {
-                    console.log(err);
-                    this.setState({
-                        isSendingCode: false,
-                    });
-                });
         });
     };
 
@@ -115,6 +80,43 @@ class SMSVerification extends Component {
                 console.log(err);
                 this.setState({
                     isSendingPhoneNumber: false,
+                });
+            });
+    };
+
+    handleSendCode = e => {
+        e.stopPropagation();
+
+        this.setState({
+            isSendingCode: true,
+        });
+
+        axios.post('https://passport.bct.trade/api/auth/sms/verify_code', {
+            code: this.state.code,
+            userId: this.state.userId,
+        })
+            .then(res => {
+                if (res.data && res.data.success) {
+                    setTimeout(() => {
+                        this.setState({
+                            isCodeSent: true,
+                            isSendingCode: false,
+                            currentView: SMS_AUTH_VIEW_STEPS.VERIFY_SUCCESS,
+                        });
+
+                        setTimeout(() => {
+                            this.props.onClose();
+                            // window.location.reload();
+                        }, 500);
+                    }, 500);
+                } else {
+                    return Promise.reject(Error('No success code returned'));
+                }
+            })
+            .catch(err => {
+                console.log(err);
+                this.setState({
+                    isSendingCode: false,
                 });
             });
     };
@@ -199,9 +201,11 @@ class SMSVerification extends Component {
                         </FormattedMessage>
 
                         {(code && !isCodeSent) ? (
-                            isSendingCode &&
-                            <InputAddon>
-                                <SpinnerIcon />
+                            <InputAddon onClick={isSendingCode ? null : this.handleSendCode}>
+                                {isSendingCode
+                                    ? <SpinnerIcon />
+                                    : <SendIcon />
+                                }
                             </InputAddon>
                         ) : (
                             <InputAddon onClick={this.handleGoBack}>

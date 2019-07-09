@@ -46,7 +46,6 @@ class OrderBookStore {
     @observable MarketDepth = new Map();
     @observable base = ''; // incoming data feed's base coin
     @observable quote = ''; // incoming data feed's quote coin
-    @observable isCoinPairInversed = false;
     @observable isOrderBookStop = false; // FALSE: no data stream, TRUE: data stream exists
     @observable isFetchingBestRates = false;
     @observable isDGLoaded = false;
@@ -81,7 +80,6 @@ class OrderBookStore {
                 this.Bids = [];
                 this.spread$ = null;
                 this.Spread.clear();
-                this.isCoinPairInversed = false;
 
                 try {
                     const newPair = marketsStore.markets[`${base}-${quote}`];
@@ -89,7 +87,6 @@ class OrderBookStore {
                     if (pair.length === 2) {
                         this.base = pair[0];
                         this.quote = pair[1];
-                        this.isCoinPairInversed = (base === this.quote) && (quote === this.base);
                     } else {
                         this.base = base;
                         this.quote = quote;
@@ -103,7 +100,7 @@ class OrderBookStore {
                     this.initOrderBooksSubscription(base, quote);
                 }
 
-                this.PricesByExchangeCCASorted.clear();
+                this.PricesByExchangeCCASorted = new Map();
                 this.isPricesByExchangeCCASorted = 0;
 
                 base = (base || '').replace('F:', '');
@@ -343,7 +340,7 @@ class OrderBookStore {
                         }
                     }
                 } else {
-                    this.PricesByExchangeCCASorted.clear();
+                    this.PricesByExchangeCCASorted = new Map();
                     this.isPricesByExchangeCCASorted = 1;
                 }
             })

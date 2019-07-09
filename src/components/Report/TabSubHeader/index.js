@@ -10,29 +10,26 @@ import {
 const Wrapper = styled.div`
     display: flex;
     align-items: center;
+    border-bottom: 1px solid #dedede;
     position: relative;
-    padding-top: 5px;
-    padding-bottom: 13px;
-    background-color: ${props => props.theme.palette.clrMainWindow};
+    padding: 5px 0;
     justify-content: space-between;
 `;
 
 const Button = styled.button`
-    background-color: #2680ff;
     min-width: 67px;
     height: 25px;
     margin-right: 10px;
     font-size: 12px;
-    border: none;
 `;
 
 const DefaultButton = styled(Button)`
-    color: #fff;
-    border: none;
+    color: #0057a3;
+    border: 2px solid #0057a3;
     border-radius: 2px;
-    outline-color: white;
+    
     &:hover {
-        cursor: pointer;
+        background-color: #0057a3;
         color: #fff; 
     } 
 `;
@@ -42,31 +39,18 @@ const DropdownGroup = styled.div`
 `;
 
 const Input = styled.input`
-    border: 1px solid #454c73;
-    border-radius: 2px;
+    border: 1px solid #92b1cc;
     height: 25px;
     font-size: 12px;
-    background-color: ${props => props.theme.palette.clrDarkPurple};
-    color: #fff;
+    color: #333;
     margin-right: 10px;
     max-width: 100px;
     padding: 0 5px;
-    outline-color: white;
-    &::placeholder {
-        color: ${props => props.theme.palette.clrPurple};
-    }
-    
 `;
 
 const ResetButton = styled(Button)`
-    background-color: #2680ff;
-    outline-color: white;
-    color: #fff;
-    border: none;
-    &:hover {
-        cursor: pointer;
-        color: #fff; 
-    }
+    background-color: #dedede;
+    color: #333;
 `;
 
 const SearchInput = styled(Input)`
@@ -173,52 +157,48 @@ class TabSubHeader extends React.Component {
 
         return (
             <Wrapper>
-                <div>
-                    <DropdownGroup>
-                        {
-                            dropdowns.map((dropdown) => dropdownMenus[dropdown])
-                        }
-                    </DropdownGroup>
-                </div>
-                <div>
-                    <SearchWrapper>
-                        {
-                            (tab === 'orderHistory' || tab === 'tradeHistory') && (
-                                <React.Fragment>
-                                    {
-                                        tab === 'tradeHistory' && (
-                                            <Input placeholder="Client ID"/>
-                                        )
-                                    }
-                                    <Input placeholder="Order ID"/>
-                                    <Input placeholder="Client Order ID"/>
-                                </React.Fragment>
-                            )
-                        }
-                        {
-                            (tab === 'gbxUtilizationHistory' || tab === 'paymentHistory') && (
-                                <React.Fragment>
-                                    <DropMenu
-                                        label="Currency"
-                                        data={currencyList}
-                                    />
-                                    <Input placeholder="Amount from"/>
-                                    <Separator/>
-                                    <Input placeholder="Amount to"/>
-                                    <SearchInput placeholder="Search"/>
-                                </React.Fragment>
-                            )
-                        }
-                        {
-                            tab === 'navReport' ? (
-                                <DefaultButton>Generate</DefaultButton>
-                            ) : (
-                                <DefaultButton>Search</DefaultButton>
-                            )
-                        }
-                        <ResetButton>Reset</ResetButton>
-                    </SearchWrapper>
-                </div>
+                <DropdownGroup>
+                    {
+                        dropdowns.map((dropdown) => dropdownMenus[dropdown])
+                    }
+                </DropdownGroup>
+                <SearchWrapper>
+                    {
+                        (tab === 'orderHistory' || tab === 'tradeHistory') && (
+                            <React.Fragment>
+                                {
+                                    tab === 'tradeHistory' && (
+                                        <Input placeholder="Client ID"/>
+                                    )
+                                }
+                                <Input placeholder="Order ID"/>
+                                <Input placeholder="Client Order ID"/>
+                            </React.Fragment>
+                        )
+                    }
+                    {
+                        (tab === 'gbxUtilizationHistory' || tab === 'paymentHistory') && (
+                            <React.Fragment>
+                                <DropMenu
+                                    label="Currency"
+                                    data={currencyList}
+                                />
+                                <Input placeholder="Amount from"/>
+                                <Separator/>
+                                <Input placeholder="Amount to"/>
+                                <SearchInput placeholder="Search"/>
+                            </React.Fragment>
+                        )
+                    }
+                    {
+                        tab === 'navReport' ? (
+                            <DefaultButton>Generate</DefaultButton>
+                        ) : (
+                            <DefaultButton>Search</DefaultButton>
+                        )
+                    }
+                    <ResetButton>Reset</ResetButton>
+                </SearchWrapper>
             </Wrapper>
         );
     }

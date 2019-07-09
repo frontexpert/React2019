@@ -1,7 +1,5 @@
 import { observable, action, reaction } from 'mobx';
 
-import { ListUserBillsRequest } from '../lib/bct-ws';
-
 class BillChipStore {
     @observable symbol = '';
     @observable balance = 0;
@@ -10,13 +8,11 @@ class BillChipStore {
     @observable isOpen = false;
     @observable isFirst = true;
     @observable denominations = [];
-    @observable listUserBillsResponse = [];
     PortfolioData = null;
     isSetDenomination = false;
 
     constructor(yourAccountStore) {
         this.isSetDenomination = false;
-
         reaction(
             () => yourAccountStore.PortfolioData,
             (PortfolioData) => {
@@ -29,9 +25,7 @@ class BillChipStore {
                             const price = this.PortfolioData[i].Price;
                             denomArray.push({
                                 symbol,
-                                deno: price === 0
-                                    ? 8 // Update denomination to allow 16 total columns in cold storage
-                                    : Math.floor(Math.log10(999999 / price)),
+                                deno: price === 0 ? 6 : Math.floor(Math.log10(999999 / price)),
                             });
                         }
                     }
@@ -40,10 +34,6 @@ class BillChipStore {
                 }
             }
         );
-
-        // setTimeout(() => {
-        //     this.listUserBillsRequest('ETH');
-        // }, 10000);
     }
 
     @action.bound showBillChips(symbol, balance, position) {
@@ -52,8 +42,6 @@ class BillChipStore {
         this.position = position;
         // this.isOpen = true;
         this.isFirst = false;
-
-        this.listUserBillsRequest(symbol);
     }
 
     @action.bound onClosePopup() {
@@ -65,19 +53,6 @@ class BillChipStore {
 
     @action.bound setWithdrawAmount(amount) {
         this.withdrawAmount = amount;
-    }
-
-    @action.bound listUserBillsRequest(coin) {
-        return new Promise((resolve, reject) => {
-            ListUserBillsRequest(coin).then(res => {
-                this.listUserBillsResponse = res.Bills;
-                resolve(res);
-            })
-                .catch(err => {
-                    this.listUserBillsResponse = [];
-                    resolve([]);
-                });
-        });
     }
 }
 

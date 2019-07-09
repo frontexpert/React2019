@@ -123,7 +123,7 @@ export const createMetaDataForTradeHistoryTargetTicketId = (tradeHistory) => {
 };
 
 // Data used for both Open Orders and Order History OrderTabs
-export const formatOrderHistoryDataForDisplay = (Bases, Tickets, conversionRate) => {
+export const formatOrderHistoryDataForDisplay = (Bases, Tickets) => {
     return Tickets.map(({
         Amount, AmountFilled, ConversionAmount, Exchange, Message, Price, SentTime, Side, Size, Status, Symbol, TicketId, Type,
     }) => {
@@ -132,14 +132,12 @@ export const formatOrderHistoryDataForDisplay = (Bases, Tickets, conversionRate)
             const c1Index = Bases.findIndex(c => c === Base);
             const c2Index = Bases.findIndex(c => c === Quote);
             let isAdvanced = c1Index < c2Index;
-            if (Number(Price) === 0 || Number(ConversionAmount) === 0) return {};
             return {
                 // Displayed
                 advancedMode: isAdvanced,
-                filled: customDigitFormat(!isAdvanced ? AmountFilled : ConversionAmount, 9),
-                price: customDigitFormat((!isAdvanced || Price === 0) ? Price : 1 / Price, 9),
-                total: customDigitFormat(!isAdvanced ? Number(ConversionAmount * conversionRate) : Number(AmountFilled * conversionRate), 9),
-                sourceTotal: !isAdvanced ? Number(ConversionAmount) : Number(AmountFilled),
+                filled: customDigitFormat(!isAdvanced ? Number(AmountFilled) : Number(ConversionAmount)), //
+                price: customDigitFormat((!isAdvanced || Price === 0) ? Price : 1 / Price), //
+                total: customDigitFormat(!isAdvanced ? Number(ConversionAmount) : Number(AmountFilled)), //
                 size: Size, //
                 time: `${getTimeFormatted(SentTime)} ago`,
                 date: `${getNewDateFormatted(SentTime)}`,
@@ -153,11 +151,11 @@ export const formatOrderHistoryDataForDisplay = (Bases, Tickets, conversionRate)
                 // Meta Data
                 exchange: Exchange,
                 timeUnFormatted: SentTime,
-                orderId: TicketId,
+                ticketId: getRandomInt(1, 10000),
+                orderId: getRandomInt(1, 10000),
                 amount: Amount,
                 message: Message,
                 isFailed: Number(Price) === 0 || Number(ConversionAmount) === 0,
-                symbol: Symbol,
             };
         } catch (e) {
             return {};

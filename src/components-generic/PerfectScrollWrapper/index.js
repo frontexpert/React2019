@@ -44,9 +44,9 @@ class PerfectScrollWrapper extends React.PureComponent {
         });
     };
 
-    handleScrollY = ({ scrollTop }) => {
+    handleScrollY = () => {
         this.setState({
-            isScrollTopVisible: !!scrollTop,
+            isScrollTopVisible: !!this.perfectScrollRef.scrollTop,
         });
     };
 

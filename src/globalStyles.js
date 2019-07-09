@@ -45,43 +45,49 @@ export default () => injectGlobal`
     
     @font-face {
         font-family: 'open_sans';
-        src: url('/fonts/Opensans/opensans-light-webfont.woff') format('woff');
+        src: url('/fonts/opensans-light-webfont.woff') format('woff');
         font-weight: 300;
         font-style: normal;
     }
+    
     @font-face {
         font-family: 'open_sans';
-        src: url('/fonts/Opensans/opensans-regular-webfont.woff') format('woff');
+        src: url('/fonts/opensans-regular-webfont.woff') format('woff');
         font-weight: 400;
         font-style: normal;
     }
+    
     @font-face {
         font-family: 'open_sans';
-        src: url('/fonts/Opensans/opensans-semibold-webfont.woff') format('woff');
+        src: url('/fonts/opensans-semibold-webfont.woff') format('woff');
         font-weight: 600;
         font-style: normal;
     }
+    
     @font-face {
         font-family: 'open_sans';
-        src: url('/fonts/Opensans/opensans-bold-webfont.woff') format('woff');
+        src: url('/fonts/opensans-bold-webfont.woff') format('woff');
         font-weight: 700;
         font-style: normal;
     }
+    
     @font-face {
         font-family: 'open_sans';
-        src: url('/fonts/Opensans/opensans-extrabold-webfont.woff') format('woff');
+        src: url('/fonts/opensans-extrabold-webfont.woff') format('woff');
         font-weight: 800;
         font-style: normal;
     }
+    
     @font-face {
         font-family: 'open_sans_condensed';
-        src: url('/fonts/Opensans/opensanscondensed-light-webfont.woff') format('woff');
+        src: url('/fonts/opensanscondensed-light-webfont.woff') format('woff');
         font-weight: 300;
         font-style: normal;
     }
+
     @font-face {
         font-family: 'open_sans_condensed';
-        src: url('/fonts/Opensans/opensanscondensed-bold-webfont.woff') format('woff');
+        src: url('/fonts/opensanscondensed-bold-webfont.woff') format('woff');
         font-weight: 800;
         font-style: normal;
     }
@@ -92,12 +98,14 @@ export default () => injectGlobal`
         font-weight: 500;
         font-style: normal;
     }
+
     @font-face {
         font-family: CoreSansC_Light;
         src: url('/fonts/CoreSansC/CoreSansC-35Light.otf') format('woff');
         font-weight: 500;
         font-style: normal;
     }
+
     @font-face {
         font-family: CoreSansC_ExtraLight;
         src: url('/fonts/CoreSansC/CoreSansC-25ExtraLight.otf') format('woff');
@@ -226,59 +234,6 @@ export default () => injectGlobal`
         font-style: normal;
         font-weight: 400;
         src: local('Bernard MT Condensed'), local('Bernard-MT-Condensed'), url('/fonts/Bernard/BERNHC.TTF') format('truetype');
-    }
-
-    @font-face {
-        font-family: 'Ubuntu';
-        font-style: italic;
-        font-weight: 300;
-        src: local('Ubuntu Light Italic'), local('Ubuntu-LightItalic'), url('/fonts/Ubuntu/Ubuntu-LightItalic.ttf') format('truetype');
-    }
-    @font-face {
-        font-family: 'Ubuntu';
-        font-style: italic;
-        font-weight: 400;
-        src: local('Ubuntu Italic'), local('Ubuntu-Italic'), url('/fonts/Ubuntu/Ubuntu-Italic.ttf') format('truetype');
-    }
-    @font-face {
-        font-family: 'Ubuntu';
-        font-style: italic;
-        font-weight: 500;
-        src: local('Ubuntu Medium Italic'), local('Ubuntu-MediumItalic'), url('/fonts/Ubuntu/Ubuntu-MediumItalic.ttf') format('truetype');
-    }
-    @font-face {
-        font-family: 'Ubuntu';
-        font-style: italic;
-        font-weight: 700;
-        src: local('Ubuntu Bold Italic'), local('Ubuntu-BoldItalic'), url('/fonts/Ubuntu/Ubuntu-BoldItalic.ttf') format('truetype');
-    }
-    @font-face {
-        font-family: 'Ubuntu';
-        font-style: normal;
-        font-weight: 300;
-        src: local('Ubuntu Light'), local('Ubuntu-Light'), url('/fonts/Ubuntu/Ubuntu-Light.ttf') format('truetype');
-    }
-    @font-face {
-        font-family: 'Ubuntu';
-        font-style: normal;
-        font-weight: 400;
-        src: local('Ubuntu'), local('Ubuntu-Regular'), url('/fonts/Ubuntu/Ubuntu-Regular.ttf') format('truetype');
-    }
-    @font-face {
-        font-family: 'Ubuntu';
-        font-style: normal;
-        font-weight: 500;
-        src: local('Ubuntu Medium'), local('Ubuntu-Medium'), url('/fonts/Ubuntu/Ubuntu-Medium.ttf') format('truetype');
-    }
-    @font-face {
-        font-family: 'Ubuntu';
-        font-style: normal;
-        font-weight: 700;
-        src: local('Ubuntu Bold'), local('Ubuntu-Bold'), url('/fonts/Ubuntu/Ubuntu-Bold.ttf') format('truetype');
-    }
-    @font-face {
-        font-family: 'BTC';
-        src: url('/fonts/BTC.ttf') format('truetype');
     }
 
     html, body {
@@ -544,7 +499,6 @@ export default () => injectGlobal`
                 width: 20px;
                 height: 28px;
                 fill: #7f8bc2;
-                margin: 0;
             }
     
             &:hover {
@@ -587,6 +541,10 @@ export default () => injectGlobal`
 
     .tippy-tooltip {
         font-size: 16px !important;
+        
+        span {
+            font-size: 13px !important;
+        }
     
         &.bct-theme {
             padding: 4px;
@@ -629,19 +587,13 @@ export default () => injectGlobal`
         }*/
         
         .advanced-tooltip {
-            list-style-type: none;
-            padding: 0;
-            margin: 0;
             &.text-left {
                 text-align: left !important;
             }
         }
         
         @media(max-width: 1500px) {
-            .advanced-tooltip.text-left span {
-                font-size: 13px !important;
-                transform: unset !important;
-            }
+            transform:scale(0.75) !important;
         }
         
         @media(max-width: 1080px) { 

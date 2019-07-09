@@ -201,7 +201,6 @@ export const Item = styled.div`
     color: ${props => props.active ? props.theme.palette.orderFormHeaderTabActiveText : props.theme.palette.orderFormHeaderTabText};
     text-align: center;
     cursor: pointer;
-    white-space: nowrap;
     
     &:hover {
         color: ${props => props.theme.palette.orderFormHeaderTabActiveText};

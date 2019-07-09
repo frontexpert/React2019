@@ -96,7 +96,7 @@ class PriceChartStore {
         }
 
         return y;
-    };
+    }
 
     pushToPriceData(price) {
         const size = this.rateData.length;

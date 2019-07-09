@@ -252,7 +252,7 @@ const SliderTrackCurrentValue = styled.div`
     left: ${props => Number.parseFloat(props.progress) <= 100 ? `calc(${props.progress}% - ${70 * props.progress / 100}px)` : 'calc(100% - 70px)'};
     bottom: 0;
     z-index: 4;
-    min-width: ${valueThumbWidth}px;
+    width: ${valueThumbWidth}px;
     height: ${valueThumbHeight}px;
     margin: 0;
     padding: 0;

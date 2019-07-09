@@ -23,17 +23,14 @@ class BillChip extends Component {
 
         return (
             <BillImgWrapper
-                className="bill-chip-wrapper"
                 isV2={isV2}
                 width={Math.floor(height * 3192 / 1801)}
                 height={height}
                 disabled={disabled}
                 hoverable={hoverable}
                 onClick={this.props.onClick}
-                innerRef={this.props.getInnerRef}
             >
                 <BillImg
-                    className="bill-chip-image"
                     index={index}
                     lv={level}
                     height={height}

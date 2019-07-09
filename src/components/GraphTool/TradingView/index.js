@@ -30,6 +30,8 @@ const Wrapper = styled.div.attrs({ className: 'wrapper-tradingview' })`
     height: 100%;
     display: flex;
     flex-direction: column;
+    transform: translate(${props => !props.isVisible ? '103%' : '0'}, 0);
+    // animation: ${props => (props.disableAnimation || props.isVisible) ? 'none' : fadeOut + ' 2s linear'};
     pointer-events: ${props => props.isCoinListOpen ? 'none' : 'all'};
     z-index: 2;
 `;
@@ -215,7 +217,7 @@ class BCTChart extends React.Component {
 
     render() {
         const {
-            width, height,
+            isVisible, width, height,
             [STORE_KEYS.TRADINGVIEWSTORE]: tradingViewStore,
             [STORE_KEYS.LOWESTEXCHANGESTORE]: { lowestExchange },
             [STORE_KEYS.EXCHANGESSTORE]: { selectedExchange },
@@ -229,10 +231,11 @@ class BCTChart extends React.Component {
             isCoinListOpen,
         } = tradingViewStore;
 
-        this.disableAnimation = false;
+        if (isVisible) this.disableAnimation = false;
 
         return (
             <Wrapper
+                isVisible={isVisible}
                 disableAnimation={this.disableAnimation}
                 isCoinListOpen={isCoinListOpen}
                 width={width}

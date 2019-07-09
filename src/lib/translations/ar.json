@@ -187,6 +187,7 @@
   "data_loader_done.label_done": "فعله",
   "sms_verification.label_enter_mobile_number": "أدخل رقم الهاتف المحمول",
   "sms_verification.label_what_code": "ما هي الشيفرة؟",
+  "switch_custom.label_off": "إيقاف",
 
   "button.save": "حفظ",
   "button.confirm": "تؤكد",
@@ -215,6 +216,5 @@
   "order_book.buy_book.label_max_order_size": "الحد الأقصى لحجم الطلب: ",
   "settings.label_auto_flip": "قلب تلقائي",
   "settings.label_swaps": "مبادلة",
-  "settings.label_is_auto_convert": "تحويل السيارات",
-  "settings.label_support_center": "مركز دعم المنصات"
+  "settings.label_is_auto_convert": "تحويل السيارات"
 }

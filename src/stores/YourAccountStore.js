@@ -193,7 +193,7 @@ class YourAccountStore {
 
         if (YourAccountPositions.length > 0) {
             this.PortfolioData = YourAccountPositions;
-            this.OrderEventsData.clear();
+            this.OrderEventsData = new Map();
             convertArrToMapWithFilter(this.OrderEventsData, YourAccountPositions);
 
             /**

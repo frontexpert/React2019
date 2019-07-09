@@ -4,7 +4,7 @@ import styled from 'styled-components';
 // import { AvatarIcon } from './icons';
 
 const ImageWrapper = styled.div.attrs({ className: 'user-avatar-component' })`
-    width: 68px;
+    width: 60px;
     height: 100%;
     display: flex;
     align-items: center;

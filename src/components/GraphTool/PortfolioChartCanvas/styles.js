@@ -2,14 +2,13 @@ import styled from 'styled-components';
 
 export const ChartWrapper = styled.div`
     position: absolute;
-    ${props => props.isBorderHidden && 'border: none !important;'}
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: ${props => props.theme.palette.clrChartBackground};
+    background-color: ${props => props.theme.palette.clrBackground};
     padding-bottom: ${props => (props.isLowerSectionOpened ? '15px' : '0')};
-    border-radius: ${props => props.theme.palette.borderRadius};
+    border-top-left-radius: ${props => props.theme.palette.borderRadius};
     border-style: solid;
     border-color: ${props => props.theme.palette.clrBorder};
     border-width: 1px 0 ${props => (props.isLowerSectionOpened ? '0' : '1px')} 1px;
@@ -17,10 +16,8 @@ export const ChartWrapper = styled.div`
 `;
 
 export const PortfolioLabels = styled.div`
-    width: 100%;
     position: absolute;
     display: flex;
-    flex-wrap: wrap;
     justify-content: center;
     align-items: center;
     font-size: 33px;
@@ -30,7 +27,6 @@ export const PortfolioLabels = styled.div`
 `;
 
 export const TotalPrice = styled.div`
-    width: 100%;
     display: flex;
     font-weight: 600;
     text-align: left;

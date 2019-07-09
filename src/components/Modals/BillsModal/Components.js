@@ -3,8 +3,6 @@ import styled, { keyframes } from 'styled-components';
 import ReactPanZoom from '@ajainarayanan/react-pan-zoom';
 import Slider from 'react-input-slider';
 
-import rotationIcon from '../icons/rotation.png';
-
 const openAnim = keyframes`
     0% { transform: scale(0); }
     100% { transform: scale(1); }
@@ -23,9 +21,9 @@ export const Wrapper = styled.section`
     color: ${props => props.theme.palette.clrMainWindow};
     visibility: ${props => props.isVisible ? 'visible' : 'hidden'};
 
-    // ${props => props.isVisible ? `
-    //     animation: ${openAnim} 300ms linear;
-    // ` : ''};
+    ${props => props.isVisible ? `
+        animation: ${openAnim} 300ms linear;
+    ` : ''};
 
     .pan-container {
         @media (min-width: 1300px) {
@@ -40,7 +38,7 @@ export const RefWrapper = styled.div`
     width: 100%;
     height: 100%;
     padding: 15px;
-
+    
     > div {
         width: 100% !important;
         height: 100% !important;
@@ -50,66 +48,34 @@ export const RefWrapper = styled.div`
     }
 `;
 
-export const ChangeDeposit = styled.div`
-    position: absolute;
-    left: ${props => props.isDeposit ? 2 : 5}px;
-    bottom: ${props => props.isDeposit ? 2 : 26}px;
-    z-index: 100010;
-    width: 50px;
-    height: 40px;
-    background: ${props => props.theme.palette.clrHighContrast} url('${rotationIcon}') center no-repeat;
-    background-size: 100% auto;
-    border-width: 4px;
-    border-style: solid;
-    border-color: ${props => props.theme.palette.clrHighContrast};
-    font-size: 12px;
-    font-weight: 900;
-    color: ${props => props.theme.palette.clrHighContrast};
-    cursor: pointer;
-`;
-
 export const InnerWrapper = styled.div.attrs({ className: 'bills-modal-inner' })`
     position: relative;
-    width: ${props => props.isV2 ? props.width : 1504}px;
-    height: ${props => props.height || 852}px;
-    // padding: 10px;
+    width: ${props => props.isV2 ? 1350 : 1504}px;
+    height: 852px;
+    padding: 10px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    // background-color: ${props => props.theme.palette.clrHighContrast};
-    // border-radius: ${props => props.theme.palette.borderRadius};
-    // box-shadow: 0 3px 15px rgba(0, 0, 0, .7);
+    background-color: ${props => props.theme.palette.clrLightGray};
+    border-radius: ${props => props.theme.palette.borderRadius};
+    box-shadow: 0 3px 15px rgba(0, 0, 0, .7);
     text-align: center;
-    transform: scale(${props => (props.realHeight || 55) / (props.height || 852)});
+    transform: scale(${props => (props.realHeight || 55) / 852});
     transform-origin: center;
-
+    
     .bill-description {
-        width: 100%;
-        height: 70px;
-        background-color: ${props => props.theme.palette.clrHighContrast};
-        font-size: 60px;
+        height: 64px;
+        font-size: 48px;
         font-weight: 600;
-        line-height: 70px;
-        color: ${props => props.theme.palette.clrBackground};
-        letter-spacing: 15px;
+        color: ${props => props.theme.palette.clrRed};
+        letter-spacing: 30px;
         text-align: center;
     }
 `;
 
 export const BillsWrapper = styled.div`
     display: flex;
-    
-    &:after {
-        content: '';
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: -1;
-        height: ${props => props.chipHeight || 70}px;
-        background-color: ${props => props.theme.palette.clrHighContrast};
-    }
 `;
 
 export const BillLine = styled.div`
@@ -121,13 +87,11 @@ export const BillLine = styled.div`
     // padding: ${props => props.isV2 ? '8px 0' : '0 8px'};
     display: flex;
     flex-direction: ${props => props.isV2 ? 'column' : 'row'};
-
+    
     &:first-child {
         margin-left: 0;
         margin-top: 0;
     }
-
-    overflow: hidden;
 `;
 
 export const BalanceOutline = styled.div`
@@ -143,29 +107,23 @@ export const BalanceOutline = styled.div`
 
 export const BalanceCol = styled.div`
     position: relative;
-    height: ${props => props.height}px;
-    background-color: ${props => props.theme.palette.clrHighContrast};
-    font-size: 60px;
+    height: 48px;
+    font-size: 48px;
     font-weight: 600;
-    line-height: ${props => props.height}px;
-    color: ${props => props.theme.palette.clrBackground};
-    opacity: ${props => props.isTransparent ? 0.39 : 1};
-
+    line-height: 1;
+    color: ${props => props.theme.palette.clrRed};
+    
     ${props => props.active ? `
         &::after {
-            content: '.';
+            content: '';
             position: absolute;
-            right: -2px;
+            right: -8px;
             bottom: 0;
-        }
-    ` : ''};
-    
-    ${props => props.isShowComma ? `
-        &::after {
-            content: ',';
-            position: absolute;
-            right: -2px;
-            bottom: 0;
+            width: 6px;
+            height: 6px;
+            display: block;
+            background-color: ${props.theme.palette.clrRed};
+            border-radius: 3px;
         }
     ` : ''};
 `;
@@ -178,30 +136,30 @@ export const BillImgWrapper = styled.div`
     margin-top: ${props => props.isV2 ? 10 : 0}px;
     overflow: hidden;
     cursor: ${props => (props.disabled || !props.hoverable) ? 'initial' : 'pointer'};
-
+    
     &:first-child {
         margin-left: 0;
         margin-top: 0;
     }
-
+    
     ${props => (!props.disabled && props.hoverable) ? `
         &:hover {
             &:after {
                 content: '';
+                background: rgba(255, 0, 0, 0.35) !important;
                 position: absolute;
                 left: 0;
                 top: 0;
                 bottom: 0;
                 right: 0;
                 z-index: 0;
-                background: rgba(255, 0, 0, 0.35) !important;
             }
         }
     ` : ''};
 
     ${props => props.disabled ? `
         // filter: blur(4px);
-
+        
         &::after {
             content: '';
             position: absolute;
@@ -224,7 +182,7 @@ export const BillImg = styled.div`
     background-position: center;
     transform: scale(${props => props.height / 600});
     transform-origin: left top;
-
+    
     .info {
         position: absolute;
         left: 3px;
@@ -320,15 +278,14 @@ const growAnim = keyframes`
 `;
 
 export const BillDetail = styled.div`
-    position: absolute;
-    top: 0;
+    position: fixed;
     left: 0;
-    width: 100%;
-    height: 100%;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.3);
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: ${props => !props.isDeposit ? 'rgba(0, 0, 0, 0.3)' : '#fff'};
     animation: ${growAnim} 0.5s linear;
-    z-index: 100005;
 `;

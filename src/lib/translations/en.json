@@ -25,7 +25,6 @@
   "settings.preferences": "Preferences",
   "settings.privacy": "Privacy",
   "settings.history": "History",
-  "settings.exchanges": "Exchanges",
   "settings.affiliate": "Affiliate",
   "settings.advanced": "Advanced",
   "settings.search_placeholder": "Search...",
@@ -188,6 +187,7 @@
   "data_loader_done.label_done": "DONE",
   "sms_verification.label_enter_mobile_number": "Enter Mobile Phone Number",
   "sms_verification.label_what_code": "What is the code?",
+  "switch_custom.label_off": "OFF",
 
   "button.save": "Save",
   "button.confirm": "Confirm",
@@ -216,6 +216,5 @@
   "order_book.buy_book.label_max_order_size": "MAX ORDER SIZE: ",
   "settings.label_auto_flip": "Auto Flip",
   "settings.label_swaps": "Swap",
-  "settings.label_is_auto_convert": "Auto Convert",
-  "settings.label_support_center": "Platform Support Center"
+  "settings.label_is_auto_convert": "Auto Convert"
 }

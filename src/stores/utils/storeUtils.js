@@ -50,11 +50,9 @@ export const updateMapStoreFromArrayForOrderBookAggregated = (mapStore, updateAr
 
 export const updateMapStoreFromArrayForOrderBook = (mapStore, updateArr, maxRows = 0, isShift = false) => {
     const aggrSize = updateArr.length;
-    for (let i = 0; i < aggrSize; i++) {
+    for (let i = 0; i < aggrSize - 1; i++) {
         updateArr[i][2] = updateArr[i][2] ? updateArr[i][2].toUpperCase() : '';
-        if (i < aggrSize - 1) {
-            updateArr[i][3] = updateArr[i + 1][0] || 0;
-        }
+        updateArr[i][3] = updateArr[i + 1][0] || 0;
     }
     if (updateArr[aggrSize - 1]) updateArr[aggrSize - 1][3] = updateArr[aggrSize - 1][0];
 

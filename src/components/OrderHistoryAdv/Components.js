@@ -76,16 +76,6 @@ export const StyleWrapper = styled.div`
     width: ${props => props.width}px;
     height: ${props => props.height}px;
 
-    .scrollbar-container {
-        height: min-content;
-        max-height: 100%;
-        overflow: hidden;
-        
-        &.d-flex {
-            flex-wrap: wrap;
-        }
-    }
-
     .ps__rail-y {
         background-color: ${props => props.theme.palette.depositBackground} !important;
         border-left: 1px solid ${props => props.theme.palette.clrPurple};
@@ -105,9 +95,6 @@ export const StyleWrapper = styled.div`
         height: 100%;
         margin: 0;
         padding: 0 15px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
 
         &:not(:first-child) {
             border-left: 1px solid ${props => props.theme.palette.clrBorderLight};
@@ -117,6 +104,10 @@ export const StyleWrapper = styled.div`
     .ReactVirtualized__Table__row {
         padding-right: 15px !important;
         border-bottom: 1px solid ${props => props.theme.palette.clrBorderLight};
+
+        &:last-child {
+            border-bottom: none;
+        }
 
         &:hover {
             background-color: ${props => props.theme.palette.clrBorder};
@@ -176,16 +167,3 @@ export const ImgCancel = props => (
         <path d="M13.09,2.72H9.35V1.81A1.31,1.31,0,0,0,8.04.5H5.96A1.31,1.31,0,0,0,4.67,1.82v0.9H0.91a0.415,0.415,0,0,0,0,.83h0.7V17.19A1.31,1.31,0,0,0,2.92,18.5H11.1a1.31,1.31,0,0,0,1.3-1.32V3.55h0.69A0.415,0.415,0,0,0,13.09,2.72ZM5.5,1.82a0.48,0.48,0,0,1,.46-0.48h2.1A0.48,0.48,0,0,1,8.5,1.86V2.72h-3V1.82Zm6.07,15.36a0.48,0.48,0,0,1-.48.48H2.92a0.48,0.48,0,0,1-.48-0.48V3.55h9.13V17.18Z" transform="translate(-0.495 -0.5)"/>
     </ImgCancelSvg>
 );
-
-export const Item = styled.div`
-    color: #7f8bc2;
-    font-size: 11px;
-    overflow: hidden;
-    display: block;
-
-    .text-overflow-ellipsis {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: block;
-    }
-`;

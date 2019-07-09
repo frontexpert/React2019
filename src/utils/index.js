@@ -298,7 +298,7 @@ export const customDigitFormat = (input, count = 6) => {
     }), input);
 };
 
-export const customDigitFormatWithNoTrim = (input, count = 6) => {
+export const customDigitFormatWithNoTrim = (input, count = 6, unit = -1) => {
     let num = input;
     if (typeof input === 'string') {
         num = input.replace(',', '');
@@ -311,15 +311,26 @@ export const customDigitFormatWithNoTrim = (input, count = 6) => {
     num = parseFloat(num.toFixed(6));
 
     const digitLength = parseInt(num).toString().length;
-
-    if (digitLength > 9) {
-        return formatTotalDigitString(num / 1000000000, count - 1) + 'B';
-    }
-    if (digitLength > 6) {
-        return formatTotalDigitString(num / 1000000, count - 1) + 'M';
-    }
-    if (digitLength > 5) {
-        return formatTotalDigitString(num / 1000, count - 1) + 'K';
+    if (unit !== -1) {
+        if (unit === 3) {
+            return formatTotalDigitString(num / 1000000000, count) + 'B';
+        }
+        if (unit === 2) {
+            return formatTotalDigitString(num / 1000000, count) + 'M';
+        }
+        if (unit === 1) {
+            return formatTotalDigitString(num / 1000, count) + 'K';
+        }
+    } else {
+        if (digitLength > 9) {
+            return formatTotalDigitString(num / 1000000000, count) + 'B';
+        }
+        if (digitLength > 6) {
+            return formatTotalDigitString(num / 1000000, count) + 'M';
+        }
+        if (digitLength > 5) {
+            return formatTotalDigitString(num / 1000, count) + 'K';
+        }
     }
 
     let decimals = count - digitLength;
@@ -387,7 +398,7 @@ export const capitalizeFirstLetter = (input) => {
 };
 
 export const getMaxRows = (height, rowHeight) => {
-    return parseInt(((height - 32) / 2) / rowHeight);
+    return parseInt(((height - rowHeight - 30) / 2) / rowHeight) + 1;
 };
 
 export const getDecimalPlaces = input => {
@@ -423,82 +434,6 @@ export const getDecimalPlaces = input => {
     if (num < 10000) {
         return 1;
     }
-};
-
-export const numberWithCommas = input => {
-    let num = input;
-    if (typeof input === 'string') {
-        num = input.replace(',', '');
-        if (!Number.parseFloat(num)) {
-            num = 0;
-        }
-    }
-
-    if (num < 0.001) {
-        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
-            minimumFractionDigits: 8,
-            maximumFractionDigits: 8,
-        }), input);
-    }
-    if (num < 0.01) {
-        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
-            minimumFractionDigits: 7,
-            maximumFractionDigits: 7,
-        }), input);
-    }
-    if (num < 0.1) {
-        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
-            minimumFractionDigits: 6,
-            maximumFractionDigits: 6,
-        }), input);
-    }
-    if (num < 1) {
-        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
-            minimumFractionDigits: 5,
-            maximumFractionDigits: 5,
-        }), input);
-    }
-    if (num < 10) {
-        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
-            minimumFractionDigits: 4,
-            maximumFractionDigits: 4,
-        }), input);
-    }
-    if (num < 100) {
-        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
-            minimumFractionDigits: 3,
-            maximumFractionDigits: 3,
-        }), input);
-    }
-    if (num < 1000) {
-        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        }), input);
-    }
-    if (num < 10000) {
-        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        }), input);
-    }
-    if (num < 100000) {
-        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-        }), input);
-    }
-
-    const digitLength = parseInt(num).toString().length;
-    let decimals = 7 - digitLength;
-    if (decimals < 0) {
-        decimals = 0;
-    }
-
-    return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
-        minimumFractionDigits: decimals,
-        maximumFractionDigits: decimals,
-    }), input);
 };
 
 export const unifyDigitString = input => {
@@ -568,84 +503,10 @@ export const unifyDigitString = input => {
     return customDigitFormat(num, 7);
 };
 
-export const unifyDigitStringLimit = input => {
-    let num = input;
-    let limit;
-    const isMobile = getScreenInfo();
-    const { screenWidth, isMobileDevice } = isMobile;
-    if (typeof input === 'string') {
-        num = input.replace(',', '');
-        if (!Number.parseFloat(num)) {
-            num = 0;
-        }
-    }
-
-    if (num < 0.001) {
-        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
-            minimumFractionDigits: 8,
-            maximumFractionDigits: 8,
-        }), input);
-    }
-    if (num < 0.01) {
-        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
-            minimumFractionDigits: 7,
-            maximumFractionDigits: 7,
-        }), input);
-    }
-    if (num < 0.1) {
-        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
-            minimumFractionDigits: 6,
-            maximumFractionDigits: 6,
-        }), input);
-    }
-    if (num < 1) {
-        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
-            minimumFractionDigits: 5,
-            maximumFractionDigits: 5,
-        }), input);
-    }
-    if (num < 10) {
-        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
-            minimumFractionDigits: 4,
-            maximumFractionDigits: 4,
-        }), input);
-    }
-    if (num < 100) {
-        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
-            minimumFractionDigits: 3,
-            maximumFractionDigits: 3,
-        }), input);
-    }
-    if (num < 1000) {
-        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        }), input);
-    }
-    if (num < 10000) {
-        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        }), input);
-    }
-    if (num < 100000) {
-        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-        }), input);
-    }
-    if (isMobileDevice || screenWidth < 1248) {
-        limit = 6;
-    }    else {
-        limit = 7;
-    }
-
-    return customDigitFormat(num, limit);
-};
 // If input has trailing zeros, cut them as long as original does not have more decimals
 // ex: input: 1.0000, original: 1.0000001, then do not cut
 // input: 1.0000, original: 1, then cut .0000
-export const trimTrailingZero = (input, original) => {
+const trimTrailingZero = (input, original) => {
     // Get original decimal length
     let numOriginal = original;
     if (typeof numOriginal === 'string') {
@@ -891,98 +752,4 @@ export const refreshToken = () => {
 export const toFixedWithoutRounding = (num, fixed) => {
     const re = new RegExp('^-?\\d+(?:\.\\d{0,' + (fixed || -1) + '})?'); // eslint-disable-line
     return (num || 0).toString().match(re)[0];
-};
-
-export const getDenoSymbol = (deno) => {
-    if (deno > 8) {
-        return {
-            unit: Math.pow(10, deno - 9),
-            unitSymbol: 'B',
-        };
-    }
-
-    if (deno > 5) {
-        return {
-            unit: Math.pow(10, deno - 6),
-            unitSymbol: 'M',
-        };
-    }
-
-    if (deno > 2) {
-        return {
-            unit: Math.pow(10, deno - 3),
-            unitSymbol: 'K',
-        };
-    }
-
-    if (deno > -1) {
-        return {
-            unit: Math.pow(10, deno),
-            unitSymbol: '',
-        };
-    }
-
-    if (deno > -4) {
-        return {
-            unit: Math.pow(10, deno + 3),
-            unitSymbol: 'm',
-        };
-    }
-
-    if (deno > -8) {
-        return {
-            unit: 1 / Math.pow(10, -(deno + 3)),
-            unitSymbol: 'm',
-        };
-    }
-
-    return {
-        unit: Math.pow(10, deno + 6),
-        unitSymbol: 'μ',
-    };
-};
-
-export const getUpperLowerValue = (balance = 0) => {
-    let balanceStr = balance.toString().split('.');
-
-    if (balance < 1) {
-        return {
-            upper: balanceStr[0] + '',
-            lower: balanceStr[1] ? '.' + balanceStr[1].substr(0, 4) : '',
-        };
-    }
-
-    if (balance < 1000) {
-        return {
-            upper: balanceStr[0] + '',
-            lower: balanceStr[1] ? '.' + balanceStr[1].substr(0, 2) : '',
-        };
-    }
-
-    if (balance < 1000000) {
-        return {
-            upper: Math.floor(balance / 1000).toString() + '',
-            lower: ',' + Math.floor(balance) % 1000,
-        };
-    }
-
-    if (balance < 1000000000) {
-        return {
-            upper: Math.floor(balance / 1000000).toString() + 'M',
-            lower: '.' + Math.floor(balance % 1000000).toString().substr(0, 4),
-        };
-    }
-
-    return {
-        upper: Math.floor(balance / 1000000000).toString() + 'B',
-        lower: '.' + Math.floor(balance % 1000000000).toString().substr(0, 4),
-    };
-};
-
-export const commafy = (num) => {
-    var str = num.toString().split('.');
-    if (str[0].length >= 4) {
-        str[0] = str[0].replace(/(\d)(?=(\d{3})+$)/g, '$1,');
-    }
-    return str.join('.');
 };

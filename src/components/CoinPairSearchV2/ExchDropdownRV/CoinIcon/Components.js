@@ -2,46 +2,73 @@ import React from 'react';
 import styled from 'styled-components';
 
 export const Wrapper = styled.div`
-    position: relative;
+    position: ${props => props.isOpened ? 'absolute' : 'relative'};
+    width: ${props => props.isOpened ? '100%' : `${props.width || 38}px`};
+    height: ${props => props.height || 60}px;
     display: flex;
     align-items: center;
-    align-self: stretch;
-`;
-
-export const CoinIconWrapper = styled.div.attrs({ className: 'coin-icon-wrapper' })`
-    display: flex;
-    align-items: center;
-    flex-direction: ${props => props.isLeft ? 'row' : 'row-reverse'};
-`;
-
-export const DropdownWrapper = styled.div.attrs({ className: 'social-link-wrapper' })`
-    position: absolute;
-    ${props => props.isLeft ? `
-        left: 100%;
-        align-items: flex-start;
-    ` : `
-        right: 100%;
-        align-items: flex-end;
-    `}
-
-    bottom: 0;
-    height: 100%;
-    padding: 3px 12px;
-    display: flex;
-    flex-direction: column;
-    z-index: 100;
-    cursor: initial;
-
+    
+    ${props => props.isOpened ? `
+        left: 0;
+        top: 0;
+        z-index: 10;
+        padding: 0 10px;
+        background-color: ${props.theme.palette.coinPairSelectBg};
+        border: 1px solid ${props.theme.palette.coinPairSelectBorder};
+        border-radius: ${props.theme.palette.borderRadius};
+    ` : ''};
+    &:hover {
+        .coin-icon-wrapper {
+            display: none;
+        }
+    }
+    .social-link-wrapper {
+        display: flex;
+        width: max-content;
+    }
     .social-link-list {
         display: flex;
+        flex-direction: column;
         a {
-            ${props => props.isLeft ? 'margin-right: 10px' : 'margin-left: 10px'}
+            margin-bottom: 10px;
         }
+    }
+`;
+
+export const DropdownWrapper = styled.div`
+    position: absolute;
+    top: 100%;
+    z-index: 100;
+    width: 38px;
+    padding-top: 12px;
+    cursor: initial;
+    
+    > * {
+        margin-top: 10px;
     }
     
     .img-icon {
-        width: 24px;
-        height: 24px;
+        width: 38px;
+        height: 38px;
+    }
+    
+    a {
+        width: 38px;
+        height: 38px;
+        display: block;
+    }
+`;
+
+export const Row = styled.div`
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    
+    span {
+        margin-left: 10px;
+        font-size: 20px;
+        font-weight: 500;
+        color: ${props => props.theme.palette.clrHighContrast};
     }
 `;
 
@@ -81,25 +108,16 @@ export const InfoIcon = (props) => (
 export const InfoWrapper = styled.div`
     height: 100%;
     margin-left: auto;
+    padding: 0 0 0 10px;
     display: flex;
+    flex-direction: column;
     justify-content: center;
+    // border-left: 1px solid ${props => props.theme.palette.coinPairSelectBorder};
     font-size: 16px;
     color: ${props => props.theme.palette.clrPurple};
     white-space: nowrap;
-
-    .market-cap-info {
-        margin-right: 12px;
-    }
 
     span {
         color: ${props => props.theme.palette.clrHighContrast};
     }
 `;
-
-const BTCFontIconWrapper = styled.span`
-    font-family: BTC, sans-serif;
-`;
-
-export const BTCFontIcon = () => (
-    <BTCFontIconWrapper className="CurrencySymbol">BTC</BTCFontIconWrapper>
-);

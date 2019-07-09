@@ -187,6 +187,7 @@
   "data_loader_done.label_done": "GJORT",
   "sms_verification.label_enter_mobile_number": "Ange mobilnummer",
   "sms_verification.label_what_code": "Vad är koden?",
+  "switch_custom.label_off": "AV",
 
   "button.save": "Spara",
   "button.confirm": "Bekräfta",
@@ -215,6 +216,5 @@
   "order_book.buy_book.label_max_order_size": "MAX ORDERSTORLEK: ",
   "settings.label_auto_flip": "Auto Flip",
   "settings.label_swaps": "Byta",
-  "settings.label_is_auto_convert": "Auto Konvertera",
-  "settings.label_support_center": "Platform Support Center"
+  "settings.label_is_auto_convert": "Auto Konvertera"
 }

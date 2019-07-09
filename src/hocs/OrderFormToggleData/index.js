@@ -14,7 +14,6 @@ const {
     SESSIONSTORE,
     LOWESTEXCHANGESTORE,
     SETTINGSSTORE,
-    EXCHANGESSTORE,
 } = STORE_KEYS;
 
 export const withOrderFormToggleData = compose(
@@ -26,7 +25,13 @@ export const withOrderFormToggleData = compose(
         depthChartMode: stores[VIEWMODESTORE].depthChartMode,
         showDepthChartMode: stores[VIEWMODESTORE].showDepthChartMode,
         toggleOrderHistoryMode: stores[VIEWMODESTORE].toggleOrderHistoryMode,
+        setUserDropDownOpen: stores[VIEWMODESTORE].setUserDropDownOpen,
+        isUserDropDownOpen: stores[VIEWMODESTORE].isUserDropDownOpen,
+        isArbitrageMode: stores[SETTINGSSTORE].isArbitrageMode,
         isTelegramLoaded: stores[TELEGRAMSTORE].isLoaded,
+        isProfileLogoExists: stores[TELEGRAMSTORE].isProfileLogoExists,
+        logoURL: stores[TELEGRAMSTORE].logoURL,
+        setLoginBtnLocation: stores[TELEGRAMSTORE].setLoginBtnLocation,
         isBaseQuotesLoaded: stores[INSTRUMENTS].isLoaded,
         baseFromInstrument: stores[INSTRUMENTS].selectedBase,
         quoteFromInstrument: stores[INSTRUMENTS].selectedQuote,
@@ -37,9 +42,5 @@ export const withOrderFormToggleData = compose(
         isLoggedIn: stores[TELEGRAMSTORE].isLoggedIn,
         isRegularMarket: stores[SESSIONSTORE].isRegularMarket,
         exchangeIndex: stores[LOWESTEXCHANGESTORE].exchangeIndex,
-        isArbitrageMode: stores[SETTINGSSTORE].isArbitrageMode,
-        tradeColStatus: stores[SETTINGSSTORE].tradeColStatus,
-        marketExchanges: stores[EXCHANGESSTORE].marketExchanges,
-        exchanges: stores[EXCHANGESSTORE].exchanges,
     })),
 );

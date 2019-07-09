@@ -8,10 +8,9 @@ import { STORE_KEYS } from '../../../stores';
 const Wrapper = styled.div`
     width: 100%;
     text-align: center;
-    background-color: ${props => props.theme.palette.clrBackground};
+    padding-bottom: 27px;
+    background: #e4e2e5;
     position: relative;
-    color: ${props => props.theme.palette.clrPurple};
-    border: 1px solid #454c73;
 `;
 
 const CloseIconWrapper = styled.div`
@@ -25,11 +24,9 @@ const TabItem = styled.div`
     font-size: 13px;
     padding: 15px 20px;
     cursor: pointer;
-    color: ${props => props.theme.palette.clrPurple};
     
     &:hover::after {
         width: 80%;
-        color: ${props => props.theme.palette.clrHighContrast};
     }
     
     &::after {
@@ -37,7 +34,7 @@ const TabItem = styled.div`
         content: "";
         width: 0%;
         height: 1px;
-        background: #fff;
+        background: #09f;
         margin: 0 auto;
         -webkit-transition: .2s ease-in-out;
         transition:  .2s ease-in-out;
@@ -45,7 +42,8 @@ const TabItem = styled.div`
 `;
 
 const TabItemSelected = styled(TabItem)`
-    color: ${props => props.theme.palette.clrHighContrast};
+    color: #09f;
+    
     &::after {
         width: 80%;
     }
@@ -54,20 +52,14 @@ const TabItemSelected = styled(TabItem)`
 const TabList = styled.div`
     display: flex;
     justify-content: center;
-    font-weight: 700;
-    font-family: 'open_sans',sans-serif;
-    color: ${props => props.theme.palette.clrPurple};
-    background-color: ${props => props.theme.palette.clrMainWindow};
-    border-bottom: 1px solid #454c73;
+    background-color: #fff;
 `;
 
 const Title = styled.div`
     font-size: 22px;
-    font-weight: 700;
-    font-family: 'open_sans',sans-serif;
+    font-weight: 100;
     padding-top: 10px;
-    color: ${props => props.theme.palette.clrHighContrast};
-    background-color: ${props => props.theme.palette.clrMainWindow};
+    background-color: #fff;
 `;
 
 const tabs = [
@@ -88,9 +80,9 @@ class Header extends React.Component {
     }
 
     handleClickClose = () => {
-        const { setRightTopSectionGridMode } = this.props[STORE_KEYS.VIEWMODESTORE];
+        const { setReportMode } = this.props[STORE_KEYS.VIEWMODESTORE];
 
-        setRightTopSectionGridMode('graph');
+        setReportMode(false);
     };
 
     handleClickTabItem = (tabIndex) => {
@@ -107,10 +99,10 @@ class Header extends React.Component {
                     {
                         tabs.map((tab, i) => {
                             if (activeTabIndex === i) {
-                                return <TabItemSelected onClick={() => this.handleClickTabItem(i)} key={i}>{tab}</TabItemSelected>;
+                                return <TabItemSelected onClick={() => this.handleClickTabItem(i)}>{tab}</TabItemSelected>;
                             }
 
-                            return <TabItem onClick={() => this.handleClickTabItem(i)} key={i}>{tab}</TabItem>;
+                            return <TabItem onClick={() => this.handleClickTabItem(i)}>{tab}</TabItem>;
                         })
                     }
                 </TabList>

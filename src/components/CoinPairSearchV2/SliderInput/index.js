@@ -128,7 +128,7 @@ const SliderTrackWrapper = styled.div`
 
 const SliderTrack = styled.div`
     position: absolute;
-    top: calc(50% - 2px);
+    top: calc(50% - 1px);
     left: 0;
     right: 0;
     margin: 0;
@@ -136,13 +136,13 @@ const SliderTrack = styled.div`
     padding: 0;
     width: 100%;
     height: 2px;
-    background: ${props => props.isDisabledColors ? props.theme.palette.ctrlsliderTrackDisabledBg : props.theme.palette.ctrlSliderTrackBg};
+    background: ${props => props.theme.palette.ctrlSliderTrackBg};
     z-index: 1;
 `;
 
 const SliderTrackProgress = styled.div`
     position: absolute;
-    top: calc(50% - 2px);
+    top: calc(50% - 1px);
     left: 0;
     margin: 0;
     border: none;
@@ -176,7 +176,7 @@ const SliderTrackCurrentValue = styled.div`
     &:after {
         content: '';
         position: absolute;
-        bottom: 4px;
+        bottom: 3px;
         width: 0;
         border-style: solid;
         border-width: 4px;
@@ -234,9 +234,6 @@ class SliderInput extends Component {
         } = this.props;
 
         const progress = value > 0 ? (value / max * 100) : 0;
-        const delimeters = [
-            0, 50, 100
-        ];
         return (
             <SliderWrapper className="range-slider" readOnly={readOnly}>
                 <input
@@ -256,19 +253,13 @@ class SliderInput extends Component {
                 />
 
                 <SliderTrackWrapper isDisabledColors={isDisabledColors}>
-                    <SliderTrack isDisabledColors={isDisabledColors}/>
+                    <SliderTrack/>
                     <SliderTrackProgress isDisabledColors={isDisabledColors} progress={progress}/>
-                    {delimeters.map((val, key) => (
-                        <Delimeter
-                            position={val}
-                            key={key}
-                            className={progress > val ? 'active' : ''}
-                            // colors={colors}
-                        />
-                    ))}
                     <SliderTrackCurrentValue isDisabledColors={isDisabledColors} progress={progress}>
                         {defaultFiatSymbol}{unifyDigitString(getLocalPrice(convertToFloat(currentValue), 'USDT'))}
                     </SliderTrackCurrentValue>
+                    <Delimeter position={0} isDisabledColors={isDisabledColors} progress={progress}/>
+                    <Delimeter position={100} isDisabledColors={isDisabledColors} progress={progress}/>
                 </SliderTrackWrapper>
             </SliderWrapper>
         );

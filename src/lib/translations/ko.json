@@ -187,6 +187,7 @@
   "data_loader_done.label_done": "끝난",
   "sms_verification.label_enter_mobile_number": "휴대 전화 번호 입력",
   "sms_verification.label_what_code": "코드 란 무엇입니까?",
+  "switch_custom.label_off": "떨어져서",
 
   "button.save": "구하다",
   "button.confirm": "확인",
@@ -215,6 +216,5 @@
   "order_book.buy_book.label_max_order_size": "최대 주문 크기 : ",
   "settings.label_auto_flip": "자동 뒤집기",
   "settings.label_swaps": "교환",
-  "settings.label_is_auto_convert": "자동 변환",
-  "settings.label_support_center": "플랫폼 지원 센터"
+  "settings.label_is_auto_convert": "자동 변환"
 }

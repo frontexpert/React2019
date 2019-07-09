@@ -4,14 +4,7 @@ import COIN_DATA_MAP from '../../../../mock/coin-data-map';
 
 import { highlightSearchDom } from '../../../../utils';
 
-const CoinNameSmall = (
-    {
-        value,
-        search,
-        defaultFiat,
-        isMobile,
-    }
-) => {
+const CoinNameSmall = ({ value, search, isMobile }) => {
     if (typeof value === 'string') {
         const symbol = (value || '').replace('F:', '');
 
@@ -31,7 +24,7 @@ const CoinNameSmall = (
 
                     <p className="exch-dropdown__title">
                         <span>
-                            {symbol ===  'USDT' ? (defaultFiat === 'USD' ? 'USDT' : defaultFiat) : highlightSearchDom(symbol, search)}
+                            {highlightSearchDom(symbol, search)}
                         </span>
                     </p>
                 </React.Fragment>
@@ -59,7 +52,7 @@ const CoinNameSmall = (
                     position="bottom"
                     followCursor
                     theme="bct"
-                    title={(symbol ===  'USDT' ? highlightSearchDom(value.name, search) + ' tethered to ' + defaultFiat : highlightSearchDom(value.name, search))}
+                    title={highlightSearchDom(value.name, search)}
                 >
                     <p className="exch-dropdown__title">
                         <span>

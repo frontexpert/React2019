@@ -1,9 +1,8 @@
-import React from 'react';
 import {
     observable, action, reaction, toJS
 } from 'mobx';
 import uuidv4 from 'uuid/v4';
-
+import React from 'react';
 import {
     OrderExecutionPlanRequest, OrderStopExecutionPlan, GetExecPlans, orderEventsObservable, orderConfirmationObservable, OrderEvents
 } from '../lib/bct-ws';
@@ -43,10 +42,9 @@ class LowestExchangeStore {
     incomingCount = 0;
     execPlanIntId = null;
 
-    constructor(orderForm, orderBookStore, snackbar, telegramStore, convertStore) {
+    constructor(orderForm, orderBookStore, snackbar, telegramStore) {
         const isLoggedIn = localStorage.getItem('authToken');
         this.snackbar = snackbar;
-        this.convertStore = convertStore;
         this.exchangeIndex = -1;
 
         reaction(
@@ -141,7 +139,6 @@ class LowestExchangeStore {
                                 obj.Symbol = plans[i].Symbol;
                                 obj.spentAmount = plans[i].SpendAmount;
                                 obj.progress = 0;
-                                obj.Percentage = plans[i].Percentage;
                                 planTemp.push(obj);
                             }
                             // console.log("[planTemp]", planTemp);
@@ -178,7 +175,6 @@ class LowestExchangeStore {
                                 this.PlanForExchangesBar[i].spentAmount = event.SpentAmount || 0;
                                 this.PlanForExchangesBar[i].Amount = this.PlanForExchangesBar[i].spentAmount * this.PlanForExchangesBar[i].Price;
                                 this.PlanForExchangesBar[i].progress = FillPercentage;
-                                if (event.Percentage !== undefined && event.Percentage !== 0) this.PlanForExchangesBar[i].Percentage = event.Percentage || 0;
                                 break;
                             }
                         }
@@ -226,11 +222,6 @@ class LowestExchangeStore {
         if (this.isAutoTradingLoading) {
             return;
         }
-
-        if (this.convertStore.forceStopArbitrageExchange) {
-            return;
-        }
-
         if (!this.confirmed && Number(this.amount) !== 0 && !this.hoverExchangeFromDonut) {
             if (this.isDonutChartLoading === donutChartModeStateKeys.loadingModeKey) {
                 this.isDonutChartLoading = donutChartModeStateKeys.doneModeKey;
@@ -405,7 +396,7 @@ class LowestExchangeStore {
     }
 }
 
-export default (orderForm, orderBookStore, snackbar, telegramStore, convertStore) => {
-    const store = new LowestExchangeStore(orderForm, orderBookStore, snackbar, telegramStore, convertStore);
+export default (orderForm, orderBookStore, snackbar, telegramStore) => {
+    const store = new LowestExchangeStore(orderForm, orderBookStore, snackbar, telegramStore);
     return store;
 };
