@@ -1,68 +1,76 @@
 import React from 'react';
 import styled from 'styled-components';
-import YourAccount from 'Components/YourAccount';
-import PieChart from 'Components/YourAccount/PieChart';
-import Select from 'ComponentsGeneric/Select';
-import OrderHistory from 'Components/OrderHistory';
-import SplineAreaChartHighCharts from 'Components/YourPortfolio/SplineAreaChartHighCharts';
-import OpenOrders from 'Components/OpenOrders';
-import {withClientOrderData} from "../hocs/ClientOrderData";
-import {withYourAccountData} from "../hocs/YourAccountData";
-import {DepthChart} from 'Components/DepthChart';
-import {compose} from "recompose";
-import TradesHistory from '../components/TradesHistory';
+import { inject, observer } from 'mobx-react';
+
+import DepthChart from '../components/DepthChart';
+import DataLoader from '../components-generic/DataLoader';
+import { STORE_KEYS } from '../stores';
+import OrderHistoryAdv from '../components/OrderHistoryAdv';
 
 const StyledRightLowerSectionGrid = styled.div`
-    grid-area: rightlowersection;
-    background: ${props => props.theme.palette.backgroundHighContrast};
-    outline: 1px solid ${props => props.theme.palette.clrseparatorD};
+    height: ${props => props.maximize ? 263 : 0}px;
+    margin-top: ${props => props.maximize ? '12px' : '0'};
+    // grid-area: rightlowersection;
+    border-radius: ${props => props.theme.palette.borderRadius};
+    border: 1px solid ${props => props.theme.palette.clrBorder};
+    // overflow: hidden;
+
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+    
+    .highcharts-container {
+        z-index: auto !important;
+        overflow: visible !important;
+    }
 `;
 
-const ChartGridArea = styled.div`
-    grid-area: chart;
-`;
+class RightLowerSectionGrid extends React.Component {
+    state = {};
 
-const DataGridArea = styled.div`
-    grid-area: data;
-`;
+    render() {
+        const {
+            [STORE_KEYS.VIEWMODESTORE]: viewModeStore,
+            [STORE_KEYS.ORDERBOOK]: orderBookStore,
+        } = this.props;
 
-/* hacky; subtract out material select height */
-const StyledPortfolioGrid = styled.div`
-    display: grid;
-    grid-template-columns: 300px auto;
-    grid-template-areas:
-        "chart data data";
-    min-height: calc(100% - 36px);
-`;
+        const {
+            showDepthChartMode,
+            depthChartMode,
+            orderHistoryMode,
+            isAdvancedAPIMode,
+        } = viewModeStore;
 
-const StyledSelect = styled(Select)`
-    text-align: right; 
-    color: ${props => props.theme.palette.clrtextD};
-`;
+        const {
+            isDGLoaded,
+            isSymbolUpdated,
+        } = orderBookStore;
 
-const RightLowerSectionGridContainer = ({openOrders, onCancelFactory, portfolioData, portfolioPieChartTitle, portfolioPieChartData}) => {
-    return (
-        <StyledRightLowerSectionGrid id="rightLowerSectionGrid">
-            <StyledSelect options={['Your Portfolio', 'Your Wallet', "Open Orders", 'Order History', 'Trades History', 'Global Liquidity']} data-testid='rightlowersectiongrid'>
-                <SplineAreaChartHighCharts/>
-                <StyledPortfolioGrid>
-                    <ChartGridArea>
-                        <PieChart title={portfolioPieChartTitle} data={portfolioPieChartData}/>
-                    </ChartGridArea>
-                    <DataGridArea>
-                        <YourAccount portfolioData={portfolioData}/>
-                    </DataGridArea>
-                </StyledPortfolioGrid>
-                <OpenOrders openOrders={openOrders} onCancelFactory={onCancelFactory}/>
-                <OrderHistory />
-                <TradesHistory />
-                <DepthChart/>
-            </StyledSelect>
-        </StyledRightLowerSectionGrid>
-    )
-};
+        let showDepthChart = depthChartMode && isSymbolUpdated && isDGLoaded;
 
-export const RightLowerSectionGrid = compose(
-    withClientOrderData,
-    withYourAccountData
-)(RightLowerSectionGridContainer);
+        return (
+            <StyledRightLowerSectionGrid
+                id="rightLowerSectionGrid"
+                maximize={depthChartMode || isAdvancedAPIMode}
+            >
+                {depthChartMode && !showDepthChart &&
+                    <DataLoader/>
+                }
+
+                {isAdvancedAPIMode ? (
+                    <OrderHistoryAdv/>
+                ) : (
+                    <DepthChart
+                        toggleViewMode={showDepthChartMode}
+                        showDepthChart={showDepthChart}
+                    />
+                )}
+            </StyledRightLowerSectionGrid>
+        );
+    }
+}
+
+export default inject(
+    STORE_KEYS.VIEWMODESTORE,
+    STORE_KEYS.ORDERBOOK,
+)(observer(RightLowerSectionGrid));

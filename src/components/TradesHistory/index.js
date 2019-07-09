@@ -2,10 +2,9 @@ import React from 'react';
 import ReactTable from "react-table";
 import styled from 'styled-components';
 import 'react-table/react-table.css';
-import {genTradeHistory} from '../../mock/dataGeneratingUtils';
 import {AutoSizer} from 'react-virtualized';
 
-const tradeHistoryData = genTradeHistory(12);
+// TODO: Unused remove this file will.
 
 const StyledTable = styled(ReactTable)`
     background: ${props => props.theme.palette.backgroundHighContrast} !important;
@@ -16,7 +15,7 @@ const StyledTable = styled(ReactTable)`
 `;
 
 const tableProps = () => ({style: {"padding": "0px !important", "textAlign": "left"}});
-const tHeadTHProps = () => ({style: {"textAlign": "left"}});
+const tHeadTHProps = () => ({style: {"textAlign": "left", fontWeight: "bold"}});
 
 const createColumns = [
     {
@@ -24,12 +23,17 @@ const createColumns = [
         accessor: 'time',
     },
     {
+        Header: 'Exchange',
+        accessor: 'exchange',
+    },
+    {
         Header: 'Pair',
-        accessor: 'pair',
+        accessor: 'product',
     },
     {
         Header: 'Type',
         accessor: 'type',
+        maxWidth: 90,
     },
     {
         Header: 'Price',
@@ -49,25 +53,25 @@ const createColumns = [
     }
 ];
 
-const getTrProps=() => ({className: "tableRows"});
+const getTrProps = () => ({className: "tableRows"});
 
-const TradesHistory = () => {
+const TradesHistory = ({tradeHistory = []}) => {
     return (
         <AutoSizer>
             {
                 ({width, height}) => {
                     /* subtract out material select height */
                     height = height - 0 - 36;
-                    return(
+                    return (
                         <div style={{width, height}}>
                             <StyledTable
-                                columns={createColumns} data={tradeHistoryData}
+                                columns={createColumns} data={tradeHistory}
                                 showPaginationBottom={false}
                                 getTableProps={tableProps}
                                 getTrProps={getTrProps}
                                 className="-highlight"
                                 getTheadThProps={tHeadTHProps}
-                                defaultPageSize={tradeHistoryData.length}
+                                defaultPageSize={tradeHistory.length}
                                 style={{height}}
                             />
                         </div>

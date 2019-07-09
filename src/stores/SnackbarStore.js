@@ -1,15 +1,15 @@
-import {observable, action} from "mobx";
+import { observable, action } from 'mobx';
 
 class SnackbarStore {
-    @observable SnackBarProps = {}
-    @observable open = false
+    @observable SnackBarProps = {};
+    @observable open = false;
 
-    @action.bound Snackbar (props) {
+    @action.bound Snackbar(props) {
         this.SnackBarProps = props;
-        this.open = true
+        this.open = true;
     }
 
-    @action.bound onClose () {
+    @action.bound onClose() {
         this.open = false;
     }
 }

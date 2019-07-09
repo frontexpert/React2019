@@ -1,63 +1,92 @@
 import React from 'react';
-import PriceCell from 'ComponentsGeneric/PriceCell';
-import {Column} from 'react-virtualized';
-import MarketDataTable, {ObservedCellRenderer} from '../../../components-generic/MarketDataTable';
+import { Column } from 'react-virtualized';
+import { compose } from 'recompose';
 
-const priceCellRenderer = ObservedCellRenderer(
-    ({data:[price]}) =>  (
-        <React.Fragment>
-            <PriceCell price={price} isBuy={false} />
-        </React.Fragment>
-    )
-);
+import MarketDataTable from '../../../components-generic/MarketDataTable';
+import { withOrderFormToggleData } from '../../../hocs/OrderFormToggleData';
+import {
+    orderProgressRenderer,
+    priceCellRenderer,
+    baseAmountCellRenderer,
+    quoteAmountCellRenderer,
+    exchangeCellRenderer
+} from '../orderBookHelpers';
 
-const amountCellRenderer = ObservedCellRenderer(
-    ({data:[,amount]}) =>  (
-        <React.Fragment>
-            {amount}
-        </React.Fragment>
-    )
-);
+let selectedOrderIndex = -1;
 
-const exchangeCellRenderer = ObservedCellRenderer(
-    ({data:[,,exchange]}) =>  (
-        <React.Fragment>
-            {exchange}
-        </React.Fragment>
-    )
-);
-
-export default ({width, height, asks, rowHeight=25, rowCount}) => {
-    const cellWidth = parseInt(width/3);
+const SellBook = ({
+    width,
+    height,
+    asks,
+    onSelect,
+    rowHeight = 30,
+    rowCount,
+    showOrderForm,
+    showDepthChartMode,
+    toggleViewMode,
+}) => {
     return (
         <MarketDataTable
-            height={height}
             width={width}
+            height={height}
+            disableHeader={true}
             rowHeight={rowHeight}
             marketDataMap={asks}
-            disableHeader={false}
             rowCount={rowCount}
+            id="global-order-sell-book"
+            onRowClick={e => {
+                if (selectedOrderIndex === e.index) {
+                    toggleViewMode();
+                    showDepthChartMode(false);
+                } else {
+                    showOrderForm();
+                    showDepthChartMode(true);
+                }
+
+                try {
+                    if (selectedOrderIndex === e.index) {
+                        selectedOrderIndex = -1;
+                    } else {
+                        selectedOrderIndex = e.index;
+                    }
+                    onSelect({ index: e.index });
+                } catch (err) {
+                    console.log(err.message);
+                }
+            }}
         >
-            <Column 
-                width={cellWidth}
-                dataKey='Price'
-                label='Price'
-                cellRenderer={priceCellRenderer}
-            />
-            
-            <Column 
-                width={cellWidth}
-                dataKey='Amount'
-                label='Amount'
-                cellRenderer={amountCellRenderer}
+            <Column width={width * 0.25} dataKey="Exchange" cellRenderer={exchangeCellRenderer(rowCount)} />
+
+            <Column
+                width={width * 0.25}
+                dataKey="Amount"
+                style={{ justifyContent: 'flex-end' }}
+                cellRenderer={baseAmountCellRenderer}
             />
 
-            <Column 
-                width={cellWidth}
-                dataKey='Exchange'
-                label='Exchange'
-                cellRenderer={exchangeCellRenderer}
-            />            
+            <Column
+                width={width * 0.25}
+                dataKey="AmountQuote"
+                style={{ justifyContent: 'flex-end' }}
+                cellRenderer={quoteAmountCellRenderer}
+            />
+
+            <Column
+                width={0}
+                dataKey="progress"
+                cellRenderer={orderProgressRenderer(width)}
+                style={{ padding: 0, border: 0 }}
+                headerStyle={{ display: 'none' }}
+            />
+
+            <Column
+                width={width * 0.25}
+                dataKey="Price"
+                style={{ justifyContent: 'flex-end' }}
+                cellRenderer={priceCellRenderer('sell')}
+            />
         </MarketDataTable>
-    )
-}
+    );
+};
+
+export default compose(withOrderFormToggleData)(SellBook);

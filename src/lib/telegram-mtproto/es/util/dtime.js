@@ -1,0 +1,7 @@
+/* eslint-disable */
+var logTimer = new Date().getTime();
+
+export var dTime = () => `[${((new Date().getTime() - logTimer) / 1000).toFixed(3)}]`;
+
+export default dTime;
+//# sourceMappingURL=dtime.js.map

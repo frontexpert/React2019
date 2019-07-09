@@ -1,9 +1,12 @@
-export const InstanceId = process.env.REACT_APP_InstanceId || Math.random().toString(36).replace('0.', '').substring(0, 5);
-export const CurrentUser = process.env.REACT_APP_CurrentUser || "devinstance";
-export const ProgramId = process.env.REACT_APP_ProgramId || `bctui.${CurrentUser}.${InstanceId}`;
-export const Symbols = process.env.REACT_APP_Symbols || ['ETH-BTC']; // We are splitting on the "-" here, if that changes the UI will break
-export const ClientId = process.env.REACT_APP_ClientId || "dyatel1";
-export const Route = process.env.REACT_APP_Route || "Aggregated";
+export const randomCoolPerson = "rui";
+export const InstanceId = window.REACT_APP_InstanceId || process.env.REACT_APP_InstanceId || Math.random().toString(36).replace('0.', '').substring(0, 5);
+export const CurrentUser = randomCoolPerson;
+export const ProgramId = window.REACT_APP_ProgramId || process.env.REACT_APP_ProgramId || `bctui.${CurrentUser}.${InstanceId}`;
+export const Symbols = window.REACT_APP_Symbols || process.env.REACT_APP_Symbols || ['BTC-USDT']; // We are splitting on the "-" here, if that changes the UI will break
+export const ClientId = randomCoolPerson;
+export const Route = window.REACT_APP_Route || process.env.REACT_APP_Route || "Aggregated";
+export const ORDER_ENTRY_ROUTE = window.REACT_APP_Route || process.env.REACT_APP_Route || "Aggregated";
+export const WhitelableTitle = window.REACT_APP_Whitelabel_Title || process.env.REACT_APP_Whitelabel_Title || "";
 
 // Order Side
 export const BUY_SIDE = "Buy";
@@ -13,6 +16,17 @@ export const SELL_SIDE = "Sell";
 export const STOP_ORDER_TYPE = "STOP";
 export const LIMIT_ORDER_TYPE = "LIMIT";
 export const MARKET_ORDER_TYPE = "MARKET";
+
+
+// OrderTicket Message Attributes
+export const ORDER_TICKET_TICKET_ID = 'TicketId';
+export const ORDER_TICKET_CLIENT_ID = 'ClientId';
+export const ORDER_TICKET_PROGRAM_ID = 'ProgramId';
+export const ORDER_TICKET_SYMBOL = 'Symbol';
+export const ORDER_TICKET_PRICE = 'Price';
+export const ORDER_TICKET_SIZE = 'Size';
+export const ORDER_TICKET_SIDE = 'Side';
+export const ORDER_TICKET_ROUTE = 'Route';
 
 // OrderCreated Message Attributes
 export const ORDER_CREATED_ORDER_ID = "OrderId";
@@ -80,9 +94,295 @@ export const ORDER_STATUS = {
 
 export const PORTFOLIO_LABEL_POSITIONS = "Positions";
 export const PORTFOLIO_LABEL_AMOUNT = "Amount";
+export const PORTFOLIO_LABEL_PRICE = "Price";
+export const PORTFOLIO_LABEL_CHANGE = "Change";
 export const PORTFOLIO_LABEL_POSITION = "Position";
 export const PORTFOLIO_LABEL_EXCHANGE = "Exchange";
 export const PORTFOLIO_LABEL_COIN = "Coin";
+export const PORTFOLIO_LABEL_NAME = "Name";
+export const PORTFOLIO_LABEL_MKTCAP = "Marketcap";
+export const PORTFOLIO_LABEL_TOTALVOLUME24H = "Volume24h";
 export const PORTFOLIO_LABEL_CLIENTID = "ClientId";
 export const PORTFOLIO_LABEL_PROGRAMID = "ProgramId";
 export const PORTFOLIO_LABEL_SENTTIME = "SentTime";
+export const PORTFOLIO_LABEL_ISWALLETENABLED = "IsWalletEnabled";
+
+export const OrderHistoryStoreLabels = {
+    Ticket: {
+        Status: {
+            Label: "Status",
+            Values: {
+                Filled: "FILLED",
+                Cancelled: "CANCELLED",
+                Rejected: "REJECTED",
+                Open: "OPEN",
+            }
+        },
+        Orders: {
+            Label: "Orders",
+            Values: {}
+        }
+    }
+};
+
+export const RIGHT_LOWER_SECTION_GRID_SELECT_OPTION_YOUR_GLOBAL_LIQUIDITY = "Advanced";
+export const RIGHT_LOWER_SECTION_GRID_SELECT_OPTION_YOUR_YOUR_WALLET = "Wallet";
+export const RIGHT_LOWER_SECTION_GRID_SELECT_OPTION_YOUR_ORDER_HISTORY = "History";
+export const RIGHT_LOWER_SECTION_GRID_SELECT_OPTION_YOUR_OPEN_ORDERS = "Open Orders";
+export const RIGHT_LOWER_SECTION_GRID_SELECT_OPTION_YOUR_PORTFOLIO = "Portfolio";
+
+export const RIGHT_LOWER_SECTION_GRID_SELECT_OPTIONS = [
+    RIGHT_LOWER_SECTION_GRID_SELECT_OPTION_YOUR_YOUR_WALLET,
+    RIGHT_LOWER_SECTION_GRID_SELECT_OPTION_YOUR_GLOBAL_LIQUIDITY,
+    RIGHT_LOWER_SECTION_GRID_SELECT_OPTION_YOUR_PORTFOLIO,
+    RIGHT_LOWER_SECTION_GRID_SELECT_OPTION_YOUR_ORDER_HISTORY,
+];
+
+// Video ID for Welcome page
+export const VIDEOID = "303370757";
+
+// Candles Data
+export const CANDLE_TIMESTAMP = "Timestamp";
+export const PERIOD = "Period";
+// all is not supported
+export const ALL = 'All';
+export const YEAR = 'Year';
+export const MONTH = 'Month';
+export const WEEK = 'Week';
+export const DAY = 'Day';
+export const HOUR = 'Hour';
+export const SENT_TIME = "SentTime";
+export const SYMBOL = "Symbol";
+export const VERSION = '';
+
+export const WS = {
+    PUBLIC: {
+        HOST: window.REACT_APP_WS_PUBLIC_HOST || process.env.REACT_APP_WS_PUBLIC_HOST,
+        PORT: window.REACT_APP_WS_PUBLIC_PORT || process.env.REACT_APP_WS_PUBLIC_PORT
+    },
+    MARKET: {
+        HOST: window.REACT_APP_WS_MARKET_HOST || process.env.REACT_APP_WS_MARKET_HOST,
+        PORT: window.REACT_APP_WS_MARKET_PORT || process.env.REACT_APP_WS_MARKET_PORT,
+    },
+    PRIVATE: {
+        HOST: window.REACT_APP_WS_PRIVATE_HOST || process.env.REACT_APP_WS_PRIVATE_HOST,
+        PORT: window.REACT_APP_WS_PRIVATE_PORT || process.env.REACT_APP_WS_PRIVATE_PORT,
+    },
+};
+
+// export const WS_MARKET_URL = window.REACT_APP_WS_MARKET_URL || process.env.REACT_APP_WS_MARKET_URL;
+export const WS_MARKET_URL = 'wss://market-data.bct.trade:443/ws';
+
+export const HISTORICAL_DATA_URL = window.REACT_APP_HISTORICAL_DATA_URL || process.env.REACT_APP_HISTORICAL_DATA_URL;
+
+export const AUTH_SERVER_URL = window.REACT_APP_AUTH_SERVER_URL || process.env.REACT_APP_AUTH_SERVER_URL;
+
+export const TELEGRAM_AUTH_URL = window.REACT_APP_TELEGRAM_AUTH_URL || process.env.REACT_APP_TELEGRAM_AUTH_URL;
+
+export const TELEGRAM_AUTH_BOT = window.REACT_APP_TELEGRAM_AUTH_BOT || process.env.REACT_APP_TELEGRAM_AUTH_BOT;
+
+export const TV_CONFIG = {
+    disableLogo: true,
+
+    height: '100%',
+    width: '100%',
+    theme: 'black',
+    debug: false,
+    toolbar_bg: '#17212C',
+    custom_css_url: 'css/trading_view_override.css',
+    disabled_features: [
+        'header_widget',
+        'header_symbol_search',
+        'delete_button_in_legend',
+        'header_compare',
+        'adaptive_logo',
+        'show_logo_on_all_charts',
+        'compare_symbol',
+        'go_to_date',
+        'edit_buttons_in_legend',
+        'left_toolbar',
+        'timeframes_toolbar',
+        'border_around_the_chart',
+        'right_bar_stays_on_scroll',
+    ],
+    enabled_features: [
+        'side_toolbar_in_fullscreen_mode',
+        'header_saveload_to_the_right',
+        'narrow_chart_enabled',
+        'create_volume_indicator_by_default',
+    ],
+    drawings_access: {
+        type: 'black',
+        tools: [
+            { name: 'Regression Trend' },
+        ],
+    },
+    time_frames: [
+        { text: '1min', resolution: '1' },
+        { text: '5min', resolution: '5' },
+        { text: '15min', resolution: '15' },
+        // { text: '30min', resolution: '30' },
+        { text: '1h', resolution: '60' },
+        { text: '6h', resolution: '360' },
+        { text: '1day', resolution: 'D' },
+    ],
+    studies_overrides: {
+        // 'volume.volume.transparency': 30,
+        // 'Overlay.style': 2,
+        // 'Overlay.lineStyle.linewidth': 2
+    },
+    overrides: {
+        'paneProperties.background': '#020517',
+        'paneProperties.vertGridProperties.color': '#020517',
+        'paneProperties.horzGridProperties.color': '#020517',
+        'paneProperties.crossHairProperties.color': '#020517',
+        'paneProperties.gridProperties.color': '#ffffff',
+
+        'paneProperties.topMargin': 6,
+        'paneProperties.bottomMargin': 5,
+
+        'paneProperties.legendProperties.showStudyArguments': false,
+        'paneProperties.legendProperties.showStudyTitles': false,
+        'paneProperties.legendProperties.showStudyValues': false,
+        'paneProperties.legendProperties.showSeriesTitle': false,
+        'paneProperties.legendProperties.showSeriesOHLC': false,
+
+        // 'scalesProperties.lineColor' : "#0D112B",
+        // 'scalesProperties.textColor' : "#0D112B",
+        'scalesProperties.lineColor' : "rgba(127, 139, 194, 0.5)",
+        'scalesProperties.textColor' : "rgba(127, 139, 194, 0.5)",
+        'scalesProperties.showLeftScale': false,
+        'scalesProperties.showRightScale': true,
+        'scalesProperties.backgroundColor': '#020518',
+        'scalesProperties.showSeriesLastValue': false,
+
+        'mainSeriesProperties.style': 3,
+        'mainSeriesProperties.minTick': '1',
+        // Candles styles
+        'mainSeriesProperties.candleStyle.upColor': '#08620a',
+        'mainSeriesProperties.candleStyle.downColor': '#bb080a',
+        'mainSeriesProperties.candleStyle.drawWick': true,
+        'mainSeriesProperties.candleStyle.drawBorder': true,
+        'mainSeriesProperties.candleStyle.borderColor': '#767E83',
+        'mainSeriesProperties.candleStyle.borderUpColor': '#066b06',
+        'mainSeriesProperties.candleStyle.borderDownColor': '#e01b1c',
+        'mainSeriesProperties.candleStyle.wickUpColor': '#767E83',
+        'mainSeriesProperties.candleStyle.wickDownColor': '#767E83',
+        'mainSeriesProperties.candleStyle.barColorsOnPrevClose': false,
+        'mainSeriesProperties.showPriceLine': false,
+
+        // Hollow Candles styles
+        'mainSeriesProperties.hollowCandleStyle.upColor': '#08620a',
+        'mainSeriesProperties.hollowCandleStyle.downColor': '#bb080a',
+
+        // Heiken Ashi styles
+        'mainSeriesProperties.haStyle.upColor': '#08620a',
+        'mainSeriesProperties.haStyle.downColor': '#bb080a',
+
+        // Bars styles
+        'mainSeriesProperties.barStyle.upColor': '#08620a',
+        'mainSeriesProperties.barStyle.downColor': '#bb080a',
+
+        // Line styles
+        'mainSeriesProperties.lineStyle.color': '#FFFFFF',
+
+        //	Area styles
+        'mainSeriesProperties.areaStyle.color1': '#060824',
+        'mainSeriesProperties.areaStyle.color2': '#060824',
+        // 'mainSeriesProperties.areaStyle.color1': 'rgba(36, 34, 156, 0.3)',
+        // 'mainSeriesProperties.areaStyle.color2': 'rgba(70, 14, 203, 0.3)',
+        'mainSeriesProperties.areaStyle.linecolor': '#d4d4d4',
+        'mainSeriesProperties.areaStyle.linewidth': 3,
+        'mainSeriesProperties.areaStyle.priceSource': 'close',
+        'mainSeriesProperties.hollowCandleStyle.drawWick': false,
+        'mainSeriesProperties.haStyle.drawWick': false,
+
+        'symbolWatermarkProperties.transparency': 90,
+        'timeScale.rightOffset': 0,
+        'volumePaneSize': 'large'
+    },
+};
+
+export const RANGE_OPTIONS = [
+    {
+        label: '1H',
+        value: 'Hour',
+        endpoint: 'histominute',
+        aggregate: 1,
+        limit: 120,
+        interval: 60000,
+    },
+    {
+        label: '1D',
+        value: 'Day',
+        endpoint: 'histominute',
+        aggregate: 12,
+        limit: 120,
+        interval: 720000
+    },
+    {
+        label: '1W',
+        value: 'Week',
+        endpoint: 'histohour',
+        aggregate: 2,
+        limit: 110,
+        interval: 7200000
+    },
+    {
+        label: '1M',
+        value: 'Month',
+        endpoint: 'histohour',
+        aggregate: 6,
+        limit: 124,
+        interval: 21600000
+    },
+    {
+        label: '1Y',
+        value: 'Year',
+        endpoint: 'histoday',
+        aggregate: 3,
+        limit: 122,
+        interval: 259200000,
+    }
+];
+
+export const ROW_HEIGHT = 32;
+
+export const PortfolioChartMarker = {
+    enabled: true,
+    lineWidth: 2,
+    lineColor: '#263583',
+    radius: 3,
+    states: {
+        hover: {
+            animation: {
+                duration: 0,
+            },
+            enabled: true,
+            lineWidthPlus: 0,
+            lineColor: 'rgba(255, 255, 255, 0.2)',
+            fillColor: 'rgba(255, 255, 255, 0.5)',
+            radiusPlus: 2,
+        },
+    },
+};
+
+export const SETTING_TIPPY_INFO  = {
+    ARBITRAGE_MODE: 'Turn On to automate selection of the lowest buy price and highest sell price from your approved exchanges.',
+    GOOGLE_2FA: 'Turn On to enable Google 2-factor-authentication on login.',
+    PRIVATE_VPN: 'Turn On to login using a VPN (Virtual Privacy Network).',
+    BALANCE_CREDIT: 'Turn On to see Store Credit included in your balance.',
+    STORE_CREDIT: 'Credits that can be used to pay for in-app purchases or sent to other users.',
+    DEMO_MODE: 'Select to Reset your Demo balance to 1 BTC.',
+    WORD12_PHRASE: 'Enter the 12-word phrase from your hardware device to recover your account.',
+    REAL_TREADING: 'Turn On to switch from Demo Mode to Real Trading Mode.',
+    ACCESS_LEVEL: 'Select your preferred Access Level.',
+    LANGUAGE: 'Select your preferred language.',
+    DEFAULT_FIAT: 'Select the default fiat currency used to display your Portfolio Balance.',
+    DEFAULT_CRYPTO: 'Select a default Crypto for trading pairs.',
+    DEFAULT_URL: 'Enter your whitelabel URL.',
+    REFERRED_BY: 'Enter the name of who referred you.',
+    AFFILIATE_LINK: 'Enter a link of who referred you.',
+    TIMER: 'Set count timer.',
+    TIMER_AFTER: 'Initiate timer.',
+};

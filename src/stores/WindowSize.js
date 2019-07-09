@@ -1,13 +1,13 @@
-import {observable, action} from "mobx";
-import {debounce} from 'lodash';
+import { observable, action } from 'mobx';
+import { debounce } from 'lodash';
 
 const handleWindowResize = (onWindowResize) => {
     window.addEventListener(
-        'resize', 
+        'resize',
         debounce(
             onWindowResize, 350
         )
-    )
+    );
 };
 
 class WindowSize {
@@ -19,11 +19,12 @@ class WindowSize {
     }
 
     @action.bound
-    setDimensions(){
+    setDimensions() {
         this.width = window.innerWidth;
         this.height = window.innerHeight;
     }
 }
+
 export default () => {
     const store = new WindowSize();
     return store;

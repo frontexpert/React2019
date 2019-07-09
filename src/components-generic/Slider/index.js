@@ -9,7 +9,7 @@ const SliderStyles = css`
         -webkit-appearance: none;
         appearance: none;
         width: 100%;
-        height: 2px;
+        height: 1px;
         background: ${props => props.theme.tradePalette.contrastText};;
         outline: none; 
         opacity: 0.7;

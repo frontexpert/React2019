@@ -1,0 +1,7 @@
+/* eslint-disable */
+import SimpleFileStorage from './simple-file-storage';
+export { SimpleFileStorage };
+export { SimpleFileStorage as FileStorage };
+
+export default SimpleFileStorage;
+//# sourceMappingURL=index.js.map

@@ -3,6 +3,7 @@
 # Tech:
 
 ## Project:
+
 - yarn
 - webpack
 - jest
@@ -10,6 +11,7 @@
 - aws s3
 
 ## App:
+
 - react
 - mobx
 - styled-components
@@ -18,32 +20,49 @@
 - bct-ui-satori
 
 # Basic Dev Setup:
-```yarn``` (install deps)
 
-```yarn start``` (starts webpack hot-reloading dev server)
+## Prerequisites:
 
-```yarn build``` (prod build)
+- docker (tested with 18.09.1)
+- docker-compose ~> 1.23
 
-### Required Environment Variables:
-Make sure the following environment variables are properly sourced in dev mode:
+Put dev.bct.trade entry into `/etc/hosts`, the result should be similar to:
+
+```sh
+$ cat /etc/hosts
+##
+# Host Database
+#
+# localhost is used to configure the loopback interface
+# when the system is booting.  Do not change this entry.
+##
+127.0.0.1	localhost
+255.255.255.255	broadcasthost
+::1             localhost
+127.0.0.1	dev.bct.trade
+```
+
+Then just run `./dev.sh` script. It will ensure that self-signed certificate for `dev.bct.trade` domain generated, than will run `nodejs sdk` for the project and `nginx` for terminate tls-traffic using certificate.
+
+Starting could take time, because it checks if all `npm` present in the `.cache` and installed correctly, then builds the whole site.
+
+When it finished - you can see the message in the terminal:
 
 ```
-REACT_APP_CurrentUser=russell
-REACT_APP_ClientId=russell
+bct-development                      | Starting the development server...
+bct-development                      |
+bct-development                      | Compiled successfully!
+bct-development                      |
+bct-development                      | You can now view blockchain-terminal-ui in the browser.
+bct-development                      |
+bct-development                      |   Local:            http://localhost:80/
+bct-development                      |   On Your Network:  http://172.18.0.2:80/
+bct-development                      |
+bct-development                      | Note that the development build is not optimized.
+bct-development                      | To create a production build, use yarn build.
 ```
 
-### Optional Environment Variables:
-```
-REACT_APP_ProgramId=<ProgramId>
-REACT_APP_Symbols=<Symbols>
-REACT_APP_ClientId=<ClientId>
-REACT_APP_Route=<Route>
-```
-
-Example:
-```
-REACT_APP_CurrentUser=russell REACT_APP_ClientId=russell  REACT_APP_ProgramId='bctui.someuser.12345' REACT_APP_Symbols='BTC-USD' yarn start
-```
+When you open https://dev.bct.trade/ in your browser - it will notify you, that the certificate is self-signed and authority could be checked - just add exception.
 
 # Contributing
 
@@ -57,6 +76,7 @@ How it works:
 - `feature` branches must be frequently rebased on to remote `develop` branch (hard requirement). You will need to do a `git push --force` after a rebase since your history will have diverged.
 
 Tips:
+
 - Make sure your local `develop` branch is in sync with remote `develop` before creating your feature branch.
 - Features are developed in parallel. Anytime a feature is merged to `develop` all other `feature` branch owners should rebase ASAP (to minimize conflicts).
 - On your `feature` branch use `git pull --rebase origin develop` to rebase onto latest remote `develop`.

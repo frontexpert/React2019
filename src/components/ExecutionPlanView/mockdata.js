@@ -1,0 +1,35 @@
+export default [
+    {
+        exchange: 'Bitstamp',
+        exchangeColor: '#855c8b',
+        splitAbs: '259.03',
+        splitRel: '65.27',
+        avgPrice: '0.0276354',
+        relMore: '0.072',
+        absMore: '0.0079121',
+        base: 'BTC',
+        quote: 'ETH',
+    },
+    {
+        exchange: 'Binance',
+        exchangeColor: '#665d8b',
+        splitAbs: '121.75',
+        splitRel: '30.68',
+        avgPrice: '0.0276754',
+        relMore: '0.24',
+        absMore: '0.026255',
+        base: 'BTC',
+        quote: 'ETH',
+    },
+    {
+        exchange: 'Bitfinex',
+        exchangeColor: '#b0606a',
+        splitAbs: '16.075',
+        splitRel: '4.05',
+        avgPrice: '0.0277054',
+        relMore: '0.344',
+        absMore: '0.037672',
+        base: 'BTC',
+        quote: 'ETH',
+    }
+];

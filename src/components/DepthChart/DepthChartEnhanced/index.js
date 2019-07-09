@@ -1,28 +1,56 @@
-import React from 'react'
-import Chart from './AreaChart'
-import { inject, observer } from 'mobx-react'
-import { STORE_KEYS } from '../../../stores'
-const { THEME: STORE_KEY_THEME, ORDERBOOK: STORE_KEY_ORDERBOOK } = STORE_KEYS
+import React from 'react';
 
-const DepthChartContainer = inject(STORE_KEY_ORDERBOOK, STORE_KEY_THEME)((observer((
-  {
-    [STORE_KEY_ORDERBOOK]: { depthChartData = new Map() },
-    [STORE_KEY_THEME]: theme,
-    height,
-    width,
-  } = {}) => {
-  return (
-    <Chart
-      buy={depthChartData.get('buys')}
-      sell={depthChartData.get('sells')}
-      // baseCur={depthChartData.get('baseCur')}
-      // quoteCur={depthChartData.get('quoteCur')}
-      midMarket={depthChartData.get('midMarket')}
-      theme={theme.theme}
-      height={height}
-      width={width}
-    />
-  )
-})))
+import Chart from './AreaChart';
 
-export default DepthChartContainer
+class DepthChartContainer extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            isHover: false,
+        };
+        this.shouldUpdate = true;
+    }
+    componentDidMount() {
+        setTimeout(() => {
+            this.shouldUpdate = false;
+        }, 3000);
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+        return (this.shouldUpdate || (nextProps.showDepthChart && !nextState.isHover));
+    }
+
+    onMouseEnter = () => {
+        this.setState({
+            isHover: true,
+        });
+    };
+
+    onMouseLeave = () => {
+        this.setState({
+            isHover: false,
+        });
+    };
+
+    render() {
+        const { depthChartData, ...restProps } = this.props;
+
+        return (
+            <Chart
+                buy={depthChartData.get('buys')}
+                sell={depthChartData.get('sells')}
+                midMarket={depthChartData.get('midMarket')}
+                spreadMin={depthChartData.get('spreadMin')}
+                spreadMax={depthChartData.get('spreadMax')}
+                symbol={depthChartData.get('symbol')}
+                onMouseEnter={this.onMouseEnter}
+                onMouseLeave={this.onMouseLeave}
+                isHover={this.state.isHover}
+                {...restProps}
+            />
+        );
+    }
+}
+
+export default DepthChartContainer;

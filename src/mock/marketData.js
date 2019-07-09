@@ -13,12 +13,12 @@ const randExchange = () => {
         'KRAKEN',
         'COINSQUARE',
         'GEMINI'
-    ]
+    ];
     return exchanges[Math.floor(Math.random() * exchanges.length)]
 };
 
 const randOrderStatus = () => {
-    const orderStatuses = ['FILLED', 'CANCELED']
+    const orderStatuses = ['FILLED', 'CANCELED'];
     return orderStatuses[Math.floor(Math.random() * orderStatuses.length)]
 };
 
@@ -57,7 +57,7 @@ export const coins = [
     'Dash',
     'EOS',
     'Monero'
-]
+];
 
 export const yourFilledOpenOrderData = [
     [

@@ -51,12 +51,16 @@ export const genOpenOrders = (numRows) => {
     let i = 0;
     for (i; i < numRows; ++i) {
         openOrders.push({
-            exchange: randSelectionFrList(exchanges),
+            time: '07.22.2019',
+            product: (randSelectionFrList(coins) + "/" + randSelectionFrList(coins)),
+            type: 'limit',
+            side: 'buy',
+            price: genRandFloat(0, 1, 4),
             size: genRandFloat(0, 1, 4),
-            price: genRandFloat(0, 1000, 2),
-            fee: genRandFloat(0, 0, 4),
-            time: (genRandFloat(0, 59, 0) + "M AGO"),
-            product: (randSelectionFrList(coins) + "/" + randSelectionFrList(coins))
+            filled: genRandFloat(0, 1, 4),
+            total: genRandFloat(0, 1, 4),
+            triggers: genRandFloat(0, 1, 4),
+            cancel: 'somebutton'
         })
     }
     return openOrders
