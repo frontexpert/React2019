@@ -1,270 +1,470 @@
+/* eslint-disable react/no-danger */
 import React from 'react';
 import { AutoSizer } from 'react-virtualized';
 import { inject, observer } from 'mobx-react';
-import { FormattedMessage, injectIntl, defineMessages } from 'react-intl';
+import { injectIntl, defineMessages } from 'react-intl';
 import { compose, withProps } from 'recompose';
-import PerfectScrollbar from 'react-perfect-scrollbar';
 import { Tooltip } from 'react-tippy';
 import moment from 'moment';
-// import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
-import 'react-circular-progressbar/dist/styles.css';
+import { Swipeable } from 'react-swipeable';
 
-import { STORE_KEYS } from '../../../stores';
-import { STATE_KEYS } from '../../../stores/ConvertStore';
+import { STORE_KEYS } from '@/stores';
+import { STATE_KEYS } from '@/stores/ConvertStore';
 import {
-    OrdersWrapper, Arrow, ProgressWrapper, InfoHistory, WarningIcon,
-    TableHeader, TableBody, Tab, Row, Column
+    OrdersWrapper,
+    InfoHistory,
+    InfoTooltip,
+    WarningIcon,
+    TableBody,
+    Row,
+    Column,
+    WalletSideIcon,
+    BTCIcon,
+    ArrowIconAnim,
+    MaskAnimation
 } from './Components';
-import CoinIcon from '../../../components-generic/CoinIcon';
-import { capitalizeFirstLetter, customDigitFormat, unifyDigitString } from '../../../utils';
-import { ArrowIcon1 } from '../../GraphTool/ExchangeCellsV2/CellComponents';
-
+import WalletGroupButton from '@/components-generic/WalletGroupButton';
+import {
+    capitalizeFirstLetter, convertToFloat, customDigitFormat, commafy, getScreenInfo, customDigitFormatWithNoTrim, format2DigitStringForDonut
+} from '@/utils';
+import { BuyArrowIcon, SellArrowIcon } from '@/components-generic/ArrowIcon'
+import DataLoader from '@/components-generic/DataLoader';
+import CoinIcon from '../../CoinPairSearchV2/ExchDropdownRV/CoinIcon';
+import { ScanContainer, ScanIcon } from '../../CryptoApp/Components';
+import CoinPairSearchV2 from "components/CoinPairSearchV2";
 const Messages = defineMessages({
     item_info: {
         id: 'order_history.item_info',
-        defaultMessage: '{status} {type} {side} order<br/>{amount} {l2} @ {price} {l1}<br/>Timestamp: {time}',
+        defaultMessage: '{status} {type} {side} order<br/>{amount} {l2} @ {price} {l1}<br/>Timestamp: {time}<br/>{more}',
     },
 });
 
 class OrderHistoryTable extends React.Component {
-    perfectScrollRef = null;
     state = {
         isScrollTopVisible: false,
         isHoverTable: false,
-        tradingProgress: {
-            progress: 0,
-            isTrading: false,
-        },
+        // cache the most recent item in order to compare it inside getDerivedStateFromProps
+        lastItem: {},
+        defaultCrypto: '',
+        defaultFiat: '',
+        isCurrencyUpdate: false,
     };
+    timeoutId = 0;
 
-    randomNum = [];
+    shouldComponentUpdate(nextProps, nextState) {
+        if (this.preventUpdateFlag) return false;
+        const lastItem = nextProps.OrderHistoryData.length ? nextProps.OrderHistoryData[0] : {};
+        const isLastMode = lastItem.advancedMode ? 'Buy' : 'Sell';
+        const isCoinPairInversed = nextProps.isCoinPairInversed;
+        const isDefaultCrypto = nextProps.isDefaultCrypto;
+        const currentTransactionDirection = !isDefaultCrypto ? !isCoinPairInversed : isCoinPairInversed;
+
+        if (isDefaultCrypto !== this.props.isDefaultCrypto) {
+            return true;
+        }
+        if (nextState.isCurrencyUpdate &&
+            nextProps.convertState === STATE_KEYS.amtInput) {
+            return true;
+        }
+        if (nextProps.convertState === STATE_KEYS.amtInput) {
+            return isLastMode === (!isDefaultCrypto ? 'Sell' : 'Buy');
+        }
+        return nextProps.convertState !== STATE_KEYS.orderDone && currentTransactionDirection;
+    }
 
     static getDerivedStateFromProps(nextProps, prevState) {
-        if (nextProps.convertState === STATE_KEYS.submitOrder && !prevState.tradingProgress.isTrading) {
-            return {
-                tradingProgress: {
-                    isTrading: true,
-                    progress: 0,
-                },
-            };
+        const lastItem = nextProps.OrderHistoryData.length ? nextProps.OrderHistoryData[0] : {};
+        const defaultFiat = nextProps.defaultFiat;
+        const defaultCrypto = nextProps.defaultCrypto;
+        const nextState = {
+            lastItem,
+            defaultFiat,
+            defaultCrypto,
+            isCurrencyUpdate: false,
+        };
+        if (defaultFiat !== prevState.defaultFiat || defaultCrypto !== prevState.defaultCrypto) {
+            nextState.isCurrencyUpdate = true;
         }
-
-        if (nextProps.convertState === STATE_KEYS.orderDone && prevState.tradingProgress.isTrading) {
-            return {
-                tradingProgress: {
-                    isTrading: false,
-                    progress: 100,
-                },
-            };
-        }
-
-        return {};
+        return nextState;
     }
 
     componentWillUnmount() {
-        if (this.updateProgress) {
-            clearInterval(this.updateProgress);
-        }
     }
 
-    getRandomInt = (min, max) => {
-        min = Math.ceil(min);
-        max = Math.floor(max);
-        return Math.floor(Math.random() * (max - min)) + min;
-    };
-
-    handleHoverOn = () => {
-        this.setState({
-            isHoverTable: true,
-        });
-    };
-
-    handleHoverOff = () => {
-        this.setState({
-            isHoverTable: false,
-        });
+    swipeHandler = event => {
+        if (event.dir === 'Left') {
+            const {
+                [STORE_KEYS.CONVERTSTORE] : { setCancelOrder, setConvertState },
+            } = this.props;
+            setCancelOrder(true);
+            setConvertState(STATE_KEYS.coinSearch);
+        }
     };
 
     render() {
-        const { isHoverTable, tradingProgress } = this.state;
         const {
             OrderHistoryData,
             tab,
-            isFromSettings,
-            gridHeight,
+            convertState,
             orderForm,
             totalPrice,
-            getLocalPrice,
+            timerAfter,
+            isCoinPairInversed,
+            currentProgress,
+            isDefaultCrypto,
+            defaultCrypto,
+            defaultFiat,
+            defaultFiatSymbol,
+            currentFiatPrice,
+            Plan,
+            portfolioData,
         } = this.props;
 
-        const data = [];
-        let statusArray = [];
-        const lengthOfHistory = OrderHistoryData.length;
-
-        let isHomeStraight = false;
-        if (tradingProgress.isTrading && (lengthOfHistory !== tradingProgress.itemCount)) {
-            isHomeStraight = true;
+        if (this.isOrderStarted) {
+            this.preventUpdateFlag = true;
+            setTimeout(() => {
+                this.preventUpdateFlag = false;
+            }, 10000);
         }
-
-        if (tradingProgress.progress > 100) {
-            this.setState(prevState => ({
-                tradingProgress: {
-                    ...prevState.tradingProgress,
-                    progress: 100,
-                },
-            }));
-
-            clearTimeout(this.updateProgress);
-        } else if (tradingProgress.isTrading) {
-            this.updateProgress = setTimeout(() => {
-                this.setState(prevState => ({
-                    tradingProgress: {
-                        ...prevState.tradingProgress,
-                        progress: prevState.tradingProgress.progress + 2.5,
-                    },
-                }));
-            }, 8);
-
-            const isRightDirection = orderForm.quoteSymbol === 'USDT';
-            const filled = customDigitFormat(orderForm.amount);
-            const total = customDigitFormat(getLocalPrice(totalPrice, orderForm.quoteSymbol));
-
-            data.push({
-                L1: isRightDirection ? orderForm.quoteSymbol : orderForm.baseSymbol,
-                L2: isRightDirection ? orderForm.baseSymbol : orderForm.quoteSymbol,
-                isFailed: false,
-                filled: isRightDirection ? filled : total,
-                price: customDigitFormat(orderForm.Price),
-                total: isRightDirection ? total : filled,
-                timeUnFormatted: new Date().toISOString(),
-                type: 'Market',
-            });
-            statusArray.push(isRightDirection ? 'Sell' : 'Buy');
-        }
-
-        let tradingMode = 'Buy';
-        OrderHistoryData.map((val) => {
-            data.push(val);
-
-            if (!val.isFailed) {
-                tradingMode = (tradingMode === 'Sell') ? 'Buy' : 'Sell';
-                statusArray.push(tradingMode);
-            } else {
-                statusArray.push(tradingMode);
-            }
-        });
+        const {
+            isMobileLandscape,
+            isMobileDevice,
+        } = getScreenInfo();
 
         const { formatMessage } = this.props.intl;
+        let data = OrderHistoryData.slice();
+        let isEstimateDataSet = false;
+        const is2Transaction = timerAfter === 'After 2 transactions';
+        const isLiveTrading = convertState !== STATE_KEYS.coinSearch;
+        const statusArray = data.map(val => {
+            return val.advancedMode ? 'Buy' : 'Sell';
+        });
+
+        let initVal = 0;
+        if (!isDefaultCrypto) {
+            initVal = (isCoinPairInversed && is2Transaction) ? 1 : 0;
+        } else {
+            initVal = (!isCoinPairInversed && is2Transaction) ? 1 : 0;
+        }
+        const currentTransactionDirection = !isDefaultCrypto ? !isCoinPairInversed : isCoinPairInversed;
+
+        if (data.length > 0 && isLiveTrading) {
+            const filled = orderForm.amount * (isCoinPairInversed ? currentFiatPrice : 1);
+            const total = totalPrice * (!isCoinPairInversed ? currentFiatPrice : 1);
+            const lastEstimatedMode = !isCoinPairInversed ? 'Sell' : 'Buy';
+            const estL1 = !isDefaultCrypto ? defaultFiat : (!isCoinPairInversed ? orderForm.quoteSymbol : orderForm.baseSymbol);
+            const estL2 = !isCoinPairInversed ? orderForm.baseSymbol : orderForm.quoteSymbol;
+            const estFilled = !isCoinPairInversed ? filled : total;
+            const estTotal = !isCoinPairInversed ? total : filled;
+            data.unshift({
+                L1: estL1,
+                L2: estL2,
+                isFailed: false,
+                filled: estFilled,
+                price: customDigitFormat(orderForm.Price),
+                total: estTotal,
+                timeUnFormatted: new Date().toISOString(),
+                type: 'Market',
+                userCurrencySymbol: defaultFiatSymbol,
+                userDefaultFiat: defaultFiat,
+            });
+            statusArray.unshift(lastEstimatedMode);
+
+            if (lastEstimatedMode === (!isDefaultCrypto ? 'Buy' : 'Sell') && is2Transaction) {
+                const nextEstFilled = !isDefaultCrypto ? estFilled : convertToFloat(estFilled) * 1.00001;
+                const nextEstTotal = !isDefaultCrypto ? convertToFloat(estTotal) * 1.00001 : estTotal;
+                data.unshift({
+                    L1: estL1,
+                    L2: estL2,
+                    isFailed: false,
+                    filled: nextEstFilled,
+                    price: ' ',
+                    total: nextEstTotal,
+                    timeUnFormatted: new Date((new Date()).getTime() + (1000 * 60)).toISOString(),
+                    type: 'Market',
+                    userCurrencySymbol: defaultFiatSymbol,
+                    userDefaultFiat: defaultFiat,
+                });
+                statusArray.unshift(lastEstimatedMode === 'Sell' ? 'Buy' : 'Sell');
+            }
+            isEstimateDataSet = true;
+        }
+
+        let animatable = false;
+        if (currentTransactionDirection && (currentProgress > 0) && convertState === STATE_KEYS.submitOrder) {
+            animatable = true;
+        }
+
+        const isOrderStarted = !currentTransactionDirection && this.convertState !== STATE_KEYS.amtInput && convertState === STATE_KEYS.amtInput;
+        setTimeout(() => {
+            this.convertState = convertState;
+            this.isOrderStarted = isOrderStarted;
+        }, 0);
+
+        const settingsStore = this.props[STORE_KEYS.SETTINGSSTORE];
+        const preferenceSettings = ['isRealTrading', 'accessLevel', 'language', 'defaultFiat', 'defaultCrypto'];
+        const privacySettings = ['isGoogle2FA'];
+        const affiliateSettings = ['defaultURL', 'referredBy', 'affiliateLink'];
+        const advancedSettings = ['autoFlip', 'c1', 'c2', 'swap', 'isAutoConvert', 'isShortSell', 'portfolioIncludesBct', 'privateVpn', 'timer', 'timerAfter'];
+        let more = '<div class="title">--------Preference--------</div>';
+        preferenceSettings.forEach(key => {
+            more += `${key} : ${settingsStore[key]}<br/>`;
+        });
+        more += '<div class="title">--------Privacy--------</div>';
+        privacySettings.forEach(key => {
+            more += `${key} : ${settingsStore[key]}<br/>`;
+        });
+        more += '<div class="title">--------Affiliate--------</div>';
+        affiliateSettings.forEach(key => {
+            more += `${key} : ${settingsStore[key]}<br/>`;
+        });
+        more += '<div class="title">--------Advanced--------</div>';
+        advancedSettings.forEach(key => {
+            more += `${key} : ${settingsStore[key]}<br/>`;
+        });
+        const networkStore = this.props[STORE_KEYS.NETWORKSTORE];
+        const availableNetwork = ['allowedDelay', 'isMarketConnected', 'isPBSubscribed', 'isPVSubscribed',
+            'isPrivateConnected', 'isPublicConnected', 'pBHandler', 'pVHandler'];
+
+        more += '<div class="title">--------Pie chart slices--------</div>';
+        for (let i = 0; i < Plan.length; i++) {
+            const p = Plan.get(i);
+            more += `${p.Exchange} : ${customDigitFormatWithNoTrim(p.Amount)} ( ${format2DigitStringForDonut(p.Percentage)}% )<br/>`;
+        }
+        let coinsInMyWallet = [];
+        for (let i = 0; i < portfolioData.length; i++) {
+            if ((portfolioData[i] && (Number.parseFloat(portfolioData[i].Position) > 0.0001)) || (portfolioData[i].Coin === 'USDT')) { // low limit is 0.0001
+                coinsInMyWallet.push(portfolioData[i]);
+            }
+        }
+
+        more += '<div class="title">--------My Wallet--------</div>';
+        for (let i = 0; i < coinsInMyWallet.length; i++) {
+            const coin = coinsInMyWallet[i];
+            const balance = coin.Position !== 1 ? ((coin.Position && coin.Position >= 0.00001) ? customDigitFormat(coin.Position) : '0.00') : '1.00';
+            more += `${coin.Coin} : ${balance}<br/>`;
+        }
+
+        more += '<div class="title">--------Network Status--------</div>';
+        Object.keys(networkStore).forEach(key => {
+            if (availableNetwork.includes(key)) {
+                more += `${key} : ${networkStore[key]}<br/>`;
+            }
+        });
 
         return (
             <AutoSizer>
                 {({ width, height }) => (
-                    <OrdersWrapper width={width} height={height}>
-                        <TableBody
-                            height={height}
-                            onMouseEnter={this.handleHoverOn}
-                            onMouseLeave={this.handleHoverOff}
-                        >
-                            <PerfectScrollbar
-                                containerRef={element => {
-                                    this.perfectScrollRef = element;
-                                }}
-                                option={{
-                                    minScrollbarLength: 50,
-                                    suppressScrollX: true,
-                                }}
-                            >
-                                {data.map((val, key) => {
-                                    if (tab === 'open' || !val.filled) {
+                    <OrdersWrapper width={width} height={height} isMobileLandscape={isMobileLandscape}>
+                        <Swipeable onSwiped={eventData => this.swipeHandler(eventData)}>
+                            <CoinPairSearchV2 isSimple={true} isRemote/>
+                            <TableBody>
+                                {data.map(({
+                                    filled, price, L1, L2, timeUnFormatted, isFailed, type, total, userCurrencySymbol, userDefaultFiat,
+                                }, key) => {
+                                    if (tab === 'open' || !filled) {
                                         return;
                                     }
-                                    const amounts = val.filled.split(' ');
-                                    const prices = val.price.split(' ');
-                                    const L1 = val.L1;
-                                    const L2 = val.L2;
 
-                                    const progress = 100;
-                                    const time = moment(val.timeUnFormatted).format('MM/DD/YYYY HH:mm') + ' - ' + progress + '%';
+                                    const fFilled = Number.parseFloat(filled);
+                                    const strFilled = fFilled > 1 ? fFilled.toPrecision(7) : fFilled.toFixed(6);
+
                                     let mode = statusArray[key];
-                                    const isBuy = (mode === 'Buy');
+                                    let isBuy = mode === 'Buy';
+                                    const prices = price.split(' ');
+                                    let time = `${moment(timeUnFormatted).format('MM/DD/YYYY HH:mm')} - 100%`;
 
-                                    const wrapperHeight = isFromSettings && gridHeight ? gridHeight : height;
+                                    let isProgress = false;
+                                    if (this.isCoinPairInversed === isCoinPairInversed) {
+                                        isProgress = (key === initVal) && (convertState === STATE_KEYS.submitOrder || convertState === STATE_KEYS.orderDone);
+                                    }
+                                    const actualProgress = isProgress ? Math.min(key === initVal && currentProgress, 100) : 0;
+
+                                    if (this.isCoinPairInversed !== isCoinPairInversed) {
+                                        setTimeout(() => {
+                                            this.isCoinPairInversed = isCoinPairInversed;
+                                        }, 0);
+                                    }
+
+                                    let symbol = userCurrencySymbol;
+                                    let isArrowBuy = '';
+                                    if (isDefaultCrypto) {
+                                        total = convertToFloat(total);
+                                        isArrowBuy = isBuy;
+                                        isBuy = !isBuy;
+                                    } else {
+                                        total = convertToFloat(total);
+                                        symbol = userCurrencySymbol;
+                                        L1 = defaultFiat;
+                                        isArrowBuy = isBuy;
+                                    }
+
+                                    const infoSend = isLiveTrading && ((isDefaultCrypto && key === 0) || (!isDefaultCrypto && key === 1));
+                                    const infoGet = isLiveTrading && ((!isDefaultCrypto && key === 0) || (isDefaultCrypto && key === 1));
+
+
+                                    const isBought = !isBuy && !(key === data.length - 1);
+                                    const isSold = isBuy && !isFailed;
+
+                                    const currentDate = moment(timeUnFormatted);
+
+                                    if (isBought && !!data[key + 1]) {
+                                        const soldDate = moment(data[key + 1].timeUnFormatted);
+                                        const tradingTime = moment.duration(currentDate.diff(soldDate)).asSeconds();
+                                        time += `<br/>Duration: ${tradingTime.toFixed(2)}s`
+                                    } else if (isSold && !!data[key - 1]) {
+                                        const boughtDate = moment(data[key - 1].timeUnFormatted);
+                                        const tradingTime = moment.duration(boughtDate.diff(currentDate)).asSeconds();
+                                        time += `<br/>Duration: ${tradingTime.toFixed(2)}s`
+                                    }
+
+                                    time += `<br/>Total Tradings: ${OrderHistoryData.slice().length}<br/>`
 
                                     return (
                                         <Row
                                             isBuy={isBuy}
-                                            isTrading={tradingProgress.isTrading}
-                                            progress={(isHomeStraight ? (key === 1) : (key === 0)) && tradingProgress.progress}
-                                            splitter={isBuy}
-                                            first={(isHomeStraight ? (key === 1) : (key === 0)) && !isHoverTable}
-                                            height={(wrapperHeight - 2) * 0.125}
-                                            length={lengthOfHistory}
-                                            key={key + 'history'}
+                                            isArrowBuy={isArrowBuy}
+                                            isTrading={isProgress}
+                                            progress={actualProgress}
+                                            length={data.length}
+                                            key={timeUnFormatted}
+                                            index={key}
+                                            last={key === data.length - 1}
+                                            isDefaultCrypto={isDefaultCrypto}
+                                            isFailed={isFailed}
+                                            animatable={animatable}
+                                            isOrderStarted={isOrderStarted}
+                                            isNumberFilled={!isOrderStarted && this.isOrderStarted}
                                         >
-                                            <Tooltip
-                                                className="history-row-tooltip"
-                                                arrow={true}
-                                                animation="shift"
-                                                position="bottom"
-                                                distance={10}
-                                                theme="bct"
-                                                // title={time}
-                                                title={formatMessage(
-                                                    Messages.item_info,
-                                                    {
-                                                        status: (val.isFailed ? 'Failed' : 'Completed'),
-                                                        type: capitalizeFirstLetter(val.type),
-                                                        side: mode,
-                                                        amount: unifyDigitString(amounts[0]),
-                                                        l2: L2,
-                                                        price: customDigitFormat(prices[0]),
-                                                        l1: L1,
-                                                        time,
-                                                    }
-                                                )}
-                                            >
-                                                <Column isHighlight={true} isColumn>
-                                                    <InfoHistory progress={key === 0 && tradingProgress.progress} isBuy={isBuy}>
-                                                        <div className="info-send-section">
-                                                            <CoinIcon value={L2} size={38}/>
-                                                            <span>{(val.filled || '')}</span>
-                                                        </div>
-                                                        <div className="info-arrow-directional">
-                                                            {/*
-                                                            <Tooltip
-                                                                arrow={true}
-                                                                animation="shift"
-                                                                position="bottom"
-                                                                distance={0}
-                                                                theme="bct"
-                                                                title={isBuy ? 'Buy Low' : 'Sell High'}
+                                            <Column isHighlight={true} isColumn index={key} isMobileLandscape={isMobileLandscape}>
+                                                <InfoHistory
+                                                    progress={isProgress}
+                                                    isBuy={isDefaultCrypto ? isBuy : !isBuy}
+                                                    isArrowBuy={isArrowBuy}
+                                                    isEstimateDataSet={isEstimateDataSet}
+                                                    isCoinPairInversed={isCoinPairInversed}
+                                                    isActiveLine={key === initVal}
+                                                    index={key}
+                                                    isMobileLandscape={isMobileLandscape}
+                                                >
+                                                    <div className="info-send-section">
+                                                        {isEstimateDataSet && Number(filled) === 0 && key < 2 ? (
+                                                            <DataLoader />
+                                                        ) : (filled && (
+                                                            <WalletGroupButton
+                                                                inProgress={infoSend}
+                                                                isLeft
+                                                                isBuy={!isArrowBuy}
+                                                                progress={animatable}
+                                                                isWhite={key > 1 || !isLiveTrading}
+                                                                position={isDefaultCrypto}
                                                             >
-                                                            </Tooltip>
-                                                            */}
-                                                            <ArrowIcon1 className="arrow-icon"/>
-                                                            {val.isFailed && !tradingProgress.progress && <WarningIcon className="warning-icon"/>}
+                                                                <CoinIcon value="BTC" defaultFiat={defaultFiat} />
+                                                                <span className="infoIcon">
+                                                                    <BTCIcon/>
+                                                                </span>
+                                                                <span>
+                                                                    {strFilled}
+                                                                </span>
+                                                                <WalletSideIcon />
+                                                            </WalletGroupButton>
+                                                        ))}
+                                                    </div>
+                                                    <Tooltip
+                                                        className="history-row-tooltip"
+                                                        arrow={true}
+                                                        animation="shift"
+                                                        position="left"
+                                                        distance={350}
+                                                        theme="bct"
+                                                        interactive={true}
+                                                        hideDelay={2000}
+                                                        html={
+                                                            <InfoTooltip isArrowBuy={isArrowBuy}>
+                                                                <div className="info-arrow-directional">
+                                                                    <div className="info-title">
+                                                                        <div className="info-direction">
+                                                                            <div className="label-arrow-info">
+                                                                                {L2}
+                                                                            </div>
+                                                                            <div className="wrapper_arrow">
+                                                                                {isArrowBuy ? <BuyArrowIcon withText /> : <SellArrowIcon withText />}
+                                                                                {isFailed && !isProgress && (
+                                                                                    <WarningIcon className="warning-icon" />
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div
+                                                                        className="label-arrow-text"
+                                                                        dangerouslySetInnerHTML={{
+                                                                            __html: formatMessage(Messages.item_info, {
+                                                                                status: isFailed ? 'Failed' : 'Completed',
+                                                                                type: capitalizeFirstLetter(type),
+                                                                                side: mode,
+                                                                                amount: filled,
+                                                                                l2: L2,
+                                                                                price: customDigitFormat(prices[0]),
+                                                                                l1: L1,
+                                                                                time,
+                                                                                more,
+                                                                            }),
+                                                                        }}
+                                                                    />
+                                                                </div>
+                                                            </InfoTooltip>
+                                                        }
+                                                    >
+                                                        <div className="info-arrow-directional">
+                                                            <div className="wrapper_arrow">
+                                                                <ArrowIconAnim isBuy={isBuy} isAnimate={key < 2 && isLiveTrading && animatable}/>
+                                                                {isFailed && !isProgress && (
+                                                                    <WarningIcon className="warning-icon" />
+                                                                )}
+                                                            </div>
                                                         </div>
-                                                        <div className="info-get-section">
-                                                            <span>{val.total}</span>
-                                                            <CoinIcon value={L1} size={38} hasMarginRight/>
-                                                        </div>
-                                                    </InfoHistory>
-                                                </Column>
-                                            </Tooltip>
-                                            { key !== OrderHistoryData.length - 1 &&
-                                                <div className="info-arrow">
-                                                    <svg className="exch-form__switch-arrows" viewBox="0 0 8.8106 6.7733" xmlns="http://www.w3.org/2000/svg">
-                                                        <g transform="matrix(1.2645 0 0 1.2645 -2.3188 -365.95)" strokeMiterlimit="10" strokeWidth=".26327">
-                                                            <path d="m2.1205 292.68h4.6888v0.93039c0 0.0419 0.015007 0.0782 0.045808 0.10899 0.030802 0.0305 0.067133 0.0461 0.10899 0.0461 0.045019 0 0.082403-0.0145 0.11136-0.0434l1.5506-1.5509c0.028959-0.0287 0.043439-0.0661 0.043439-0.11136 0-0.045-0.014481-0.0821-0.043702-0.1111l-1.5454-1.5459c-0.038963-0.0321-0.077664-0.0484-0.11663-0.0484-0.045282 0-0.082403 0.0145-0.1111 0.0437-0.028959 0.0287-0.043439 0.0661-0.043439 0.11136v0.93038h-4.6888c-0.042123 0-0.078454 0.015-0.10899 0.0458-0.030539 0.0311-0.046072 0.0671-0.046072 0.10926v0.93012c0 0.0421 0.015533 0.0784 0.046072 0.10926 0.030539 0.0303 0.06687 0.0458 0.10899 0.0458z"/>
-                                                        </g>
-                                                    </svg>
-                                                </div>
-                                            }
+                                                    </Tooltip>
+                                                    <div className="info-get-section">
+                                                        {!isCoinPairInversed && isEstimateDataSet && Number(total) === 0 && key < 2 ? (
+                                                            <DataLoader />
+                                                        ) : (
+                                                            <WalletGroupButton
+                                                                inProgress={infoGet}
+                                                                isBuy={!isArrowBuy}
+                                                                progress={animatable}
+                                                                isWhite={key > 1 || !isLiveTrading}
+                                                                position={isDefaultCrypto}
+                                                            >
+                                                                { total !== 0 ? (
+                                                                    <span>{commafy(total.toPrecision(7))}</span>
+                                                                ) : (key < 2 && isLiveTrading) && (
+                                                                    <DataLoader />
+                                                                )}
+                                                                <CoinIcon value="USDT" defaultFiat={userDefaultFiat} />
+                                                                <WalletSideIcon isRight />
+                                                            </WalletGroupButton>
+                                                        )}
+                                                    </div>
+                                                </InfoHistory>
+                                                <MaskAnimation
+                                                    index={key}
+                                                    isBuy={isDefaultCrypto ? isBuy : !isBuy}
+                                                    isOrderStarted={isOrderStarted}
+                                                    isNumberFilled={!isOrderStarted && this.isOrderStarted}
+                                                />
+                                            </Column>
                                         </Row>
                                     );
                                 })}
-                            </PerfectScrollbar>
-                        </TableBody>
+                            </TableBody>
+                            {isMobileDevice && (
+                                <ScanContainer>
+                                    <ScanIcon className="on"/>
+                                    <ScanIcon className="off"/>
+                                    <ScanIcon className="off"/>
+                                </ScanContainer>
+                            )}
+                        </Swipeable>
                     </OrdersWrapper>
                 )}
             </AutoSizer>
@@ -279,32 +479,44 @@ export default compose(
         STORE_KEYS.ORDERENTRY,
         STORE_KEYS.LOWESTEXCHANGESTORE,
         STORE_KEYS.SETTINGSSTORE,
+        STORE_KEYS.ORDERBOOK,
+        STORE_KEYS.VIEWMODESTORE,
+        STORE_KEYS.NETWORKSTORE,
+        STORE_KEYS.PRICECHARTSTORE,
+        STORE_KEYS.YOURACCOUNTSTORE
     ),
     observer,
     withProps(
         ({
-            [STORE_KEYS.CONVERTSTORE]: {
-                convertState,
-            },
-            [STORE_KEYS.ORDERHISTORY]: {
-                OrderHistoryData,
-            },
-            [STORE_KEYS.ORDERENTRY]: {
-                CoinsPairSearchMarketOrderBuyForm: orderForm,
-            },
-            [STORE_KEYS.LOWESTEXCHANGESTORE]: {
-                totalPrice,
-            },
+            [STORE_KEYS.CONVERTSTORE]: { convertState, currentProgress },
+            [STORE_KEYS.ORDERHISTORY]: { OrderHistoryData },
+            [STORE_KEYS.ORDERENTRY]: { CoinsPairSearchMarketOrderBuyForm: orderForm },
+            [STORE_KEYS.LOWESTEXCHANGESTORE]: { totalPrice, PlanForExchangesBar: Plan },
             [STORE_KEYS.SETTINGSSTORE]: {
-                getLocalPrice,
+                timerAfter,
+                isDefaultCrypto,
+                defaultCrypto,
+                defaultFiat,
+                defaultFiatSymbol,
+                price: currentFiatPrice,
             },
+            [STORE_KEYS.ORDERBOOK]: { isCoinPairInversed },
+            [STORE_KEYS.YOURACCOUNTSTORE]: { portfolioData },
         }) => ({
             convertState,
+            currentProgress,
             OrderHistoryData,
             orderForm,
             totalPrice,
-            getLocalPrice,
+            timerAfter,
+            isCoinPairInversed,
+            isDefaultCrypto,
+            defaultCrypto,
+            defaultFiat,
+            defaultFiatSymbol,
+            currentFiatPrice,
+            Plan,
+            portfolioData,
         })
     )
 )(injectIntl(OrderHistoryTable));
-

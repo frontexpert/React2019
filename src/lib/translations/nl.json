@@ -9,6 +9,7 @@
   "settings.label_access_level": "Toegangsniveau",
   "settings.label_balance_includes_credit": "Saldo omvat krediet",
   "settings.label_google_2fa": "Google 2FA",
+  "settings.label_email_2fa": "Email 2FA",
   "settings.label_arbitrage_mode": "Arbitrage-modus",
   "settings.label_private_vpn": "Privé VPN",
   "settings.label_store_credit": "Winkel tegoed",
@@ -94,7 +95,7 @@
 
   "modal.logout.label_confirm": "Weet je zeker dat je moet uitloggen?",
   "modal.logout.button_logout": "Uitloggen",
-  "modal.logout.button_cancel": "annuleren",
+  "modal.logout.button_cancel": "Annuleren",
 
   "mobile_login.label_resend_code": "Code nogmaals versturen",
   "mobile_login.label_whatis_number": "Wat is uw nummer?",
@@ -187,7 +188,6 @@
   "data_loader_done.label_done": "GEDAAN",
   "sms_verification.label_enter_mobile_number": "Voer het mobiele telefoonnummer in",
   "sms_verification.label_what_code": "Wat is de code?",
-  "switch_custom.label_off": "UIT",
 
   "button.save": "Opslaan",
   "button.confirm": "Bevestigen",
@@ -216,5 +216,6 @@
   "order_book.buy_book.label_max_order_size": "MAX. BESTELGROOTTE: ",
   "settings.label_auto_flip": "Auto Flip",
   "settings.label_swaps": "ruil",
-  "settings.label_is_auto_convert": "Automatisch converteren"
+  "settings.label_is_auto_convert": "Automatisch converteren",
+  "settings.label_support_center": "Platform ondersteuningscentrum"
 }

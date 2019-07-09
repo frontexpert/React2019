@@ -1,20 +1,23 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 
 const GradientButtonStyleWrapper = styled.button.attrs({ className: 'gradient-button' })`
-    position: relative;
+    position: ${props => props.isSimple ? 'absolute' : 'relative'};
     overflow: hidden;
     padding: 0;
+    margin: auto;
     width: ${props => props.width ? (props.width + 'px') : '100%'};
     height: ${props => props.height ? props.height : '30'}px;
+    top: ${props => props.isSimple ? '0px' : ''};
+    left: ${props => props.isSimple ? '0px' : ''};
     border: none;
     border-radius: 3px;
     background: transparent;
     outline: none !important;
     cursor: pointer;
-
+    ${props => props.isSimple ? 'display: flex' : ''};
+    ${props => props.isSimple ? 'justify-content: center' : ''};
     .gradient-button__label {
-        position: absolute;
         top: 0;
         right: 0;
         bottom: 0;
@@ -28,7 +31,13 @@ const GradientButtonStyleWrapper = styled.button.attrs({ className: 'gradient-bu
         color: white;
         font-weight: 400;
         z-index: 2;
-        
+        ${props => props.isSimple ? 'width: 45px' : ''};
+        ${props => props.isSimple ? 'height: 45px' : ''};
+        position: ${props => props.isSimple ? 'relative' : 'absolute'};
+        &:hover {
+              ${props => props.isSimple ? `background: ${props.theme.palette.clrBorderHover}` : ''};
+              ${props => props.isSimple ? 'border-radius: 50%' : ''};
+        }  
         svg {
             height: 30px;
             width: 30px;
@@ -59,7 +68,7 @@ const GradientButtonStyleWrapper = styled.button.attrs({ className: 'gradient-bu
         justify-content: center;
         margin: 0;
         overflow: hidden;
-        background: ${props => props.red ? props.theme.palette.gradientBtnCloseBg : props.theme.palette.gradientBtnNextBg};
+        background: ${props => props.header  ? 'inherit' : (props.red ? props.theme.palette.gradientBtnCloseBg : props.theme.palette.gradientBtnNextBg)};
         border: none;
         border-radius: 3px;
         z-index: 1;
@@ -80,8 +89,7 @@ const GradientButtonStyleWrapper = styled.button.attrs({ className: 'gradient-bu
     
     &:hover, &:focus {
         .gradient-button__content {
-            background: ${props => props.red ? props.theme.palette.gradientBtnCloseHoverBg : props.theme.palette.gradientBtnNextHoverBg};
-
+            background: ${props => props.header  ? 'inherit' : (props.red ? props.theme.palette.gradientBtnCloseHoverBg : props.theme.palette.gradientBtnNextHoverBg)};
             .gradient-button__content__glow {
                 opacity: .5;
             }
@@ -90,7 +98,6 @@ const GradientButtonStyleWrapper = styled.button.attrs({ className: 'gradient-bu
     
     &.exchange-progress {
         cursor: pointer;
-        border: 1px ${props => props.theme.palette.clrBorder} solid;
 
         .gradient-button__content {
             background: transparent;
@@ -102,7 +109,6 @@ const GradientButtonStyleWrapper = styled.button.attrs({ className: 'gradient-bu
     
     &[disabled], &.progress, &.completed {
         cursor: url('/img/not-allowed1.cur'), not-allowed !important;
-        border: 1px ${props => props.theme.palette.clrBorder} solid;
 
         .gradient-button__label {
             &, & * {
@@ -144,7 +150,7 @@ const GradientButtonStyleWrapper = styled.button.attrs({ className: 'gradient-bu
         }
         
         .gradient-button__content {
-            background: ${props => props.theme.palette.coinPairNextBtnBg};
+             background: ${props => props.header  ? 'inherit' : props.theme.palette.coinPairNextBtnBg};
 
             .gradient-button__content__glow {
                 opacity: 0 !important;
@@ -175,7 +181,7 @@ const GradientButtonStyleWrapper = styled.button.attrs({ className: 'gradient-bu
             }
             
             .gradient-button__content {
-                background: ${props => props.theme.palette.coinPairNextBtnActiveBg};
+                background: ${props => props.header  ? 'inherit' : props.theme.palette.coinPairNextBtnActiveBg};
             }
         }
 
@@ -207,7 +213,7 @@ const GradientButtonStyleWrapper = styled.button.attrs({ className: 'gradient-bu
             }
     
             .gradient-button__content {
-                background: ${props => props.theme.palette.coinPairSelectBg};
+                background: ${props => props.header  ? 'inherit' : props.theme.palette.coinPairSelectBg};
             }
         }
     }
@@ -293,7 +299,7 @@ const GradientButtonStyleWrapper = styled.button.attrs({ className: 'gradient-bu
             }
     
             .gradient-button__content {
-                background: ${props => props.theme.palette.coinPairDoneBtnBg};
+                background: ${props => props.header  ? 'inherit' : props.theme.palette.coinPairDoneBtnBg};
                 opacity: 0.3;
             }
         }
@@ -381,24 +387,24 @@ const GradientButtonStyleWrapper = styled.button.attrs({ className: 'gradient-bu
             }
     
             .gradient-button__content {
-                background: ${props => props.theme.palette.btnNegativeBg};
+                background: ${props => props.header  ? 'inherit' : props.theme.palette.btnNegativeBg};
                 opacity: 0.3;
             }
         }
     }
     
     &.search-btn .gradient-button__content {
-        background: ${props => props.theme.palette.clrBlue};
+        background: ${props => props.header  ? 'inherit' : props.theme.palette.clrBlue};
     }
     &.search-btn:hover .gradient-button__content {
-        background: ${props => props.theme.palette.clrDarkBlue};
+        background: ${props => props.header  ? 'inherit' : props.theme.palette.clrDarkBlue};
     }
 `;
 
 const OrderGradientButton = ({
-    children, width, height, red, ...props
+    children, width, height, red, header, ...props
 }) => (
-    <GradientButtonStyleWrapper width={width} height={height} red={red} {...props}>
+    <GradientButtonStyleWrapper width={width} height={height} red={red} header={header} {...props}>
         <div className="gradient-button__label">
             {children}
         </div>

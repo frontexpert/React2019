@@ -2,95 +2,155 @@ import React from 'react';
 import styled, { keyframes } from 'styled-components';
 
 export const Wrapper = styled.div.attrs({ className: 'crypto-app-wrapper' })`
-    position: fixed;
+    position: ${props => props.isForexApp ? 'absolute' : 'fixed'};
     left: 0;
     top: 0;
     right: 0;
     bottom: 0;
-    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     width: 100%;
     height: 100%;
     margin: 0;
-    padding: 30px;
-    background: ${props => props.theme.palette.mobile2Bg};
+    padding: 30px 50px 30px 50px;
+    ${props => !props.isForexApp && `background: ${props => props.theme.palette.mobile2Bg};`}
     border-radius: ${props => props.theme.palette.borderRadius};
     overflow: ${props => props.overflowVisible ? 'visible' : 'hidden'};
-    
-    // &:before,
-    // &:after {
-    //     content: '';
-    //     position: absolute;
-    //     left: 0;
-    //     right: 0;
-    //     z-index: 30;
-    //     height: 200px;
-    // }
-    
-    // &:before {
-    //     top: 0;
-    //     background: linear-gradient(#000, transparent);
-    // }
-    
-    // &:after {
-    //     bottom: 0;
-    //     background: linear-gradient(transparent, #000);
-    // }
+    display: ${props => props.isVisible ? 'flex' : 'none'};
+`;
 
-    @media screen and (orientation: landscape) {
-        &&& {
-            transform: rotate(-90deg) !important;
-            transform-origin: left top !important;
-            width: 100vh !important;
-            height: 100vw !important;
-            overflow-x: hidden !important;
-            position: absolute !important;
-            top: calc(100% + 12px) !important;
-            left: -10px !important;
+export const BillWrapper = styled.div.attrs({ className: 'crypto-app-bill-wrapper' })`
+    position: absolute;
+    width: auto
+    height: 100%%;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+
+    ${props => !props.isForexApp && `
+        @media(orientation: landscape) {
+            top: 0;
+            bottom: 0;
         }
-    }
+    `}
+`;
+
+export const BackCurrencyContainer = styled.div.attrs({ className: 'crypto-app-back-currency-container', id: 'crypto-app-back-currency-container' })`
+    position: relative;
+    display: inline-block;
+    height: 100%;
+    width: auto;
 `;
 
 export const BackCurrency = styled.img.attrs({ className: 'crypto-app-back-currency' })`
     height: 100%;
-    width: 100%;
-    border: 2px solid #3266d1;
-    box-shadow: 0 0 20px 20px #3269D17f;
+    width: auto;
+    display: ${props => props.isVisible ? 'block' : 'none'};
+    border: 2px solid transparent;
     z-index: 1;
 `;
 
-export const Controller = styled.div.attrs({ className: 'crypto-scanner' })`
+export const BackCurrencyDataContainer = styled.div.attrs({ className: 'crypto-app-back-currency-data-container' })`
     position: absolute;
-    left: calc(50% - 60px);
-    bottom: 23%;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+`;
+
+export const LoadingWrapper = styled.div.attrs({ className: 'crypto-app-loading-wrapper' })`
+    position: fixed;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    background: black;
+    margin: 0;
+    display: ${props => props.isVisible ? 'flex' : 'none'};
+`;
+
+export const LoadingBill = styled.img.attrs({ className: 'crypto-app-loading-bill', id: 'crypto-app-loading-bill' })`
+    position: absolute;
+    height: 100%;
+    top: 0;
+    bottom: 0;
+    width: auto;
+    margin: auto;
+    z-index: 9999;
+`;
+
+export const FadeWrapper = styled.div.attrs({ className: 'crypto-app-fade-wrapper' })`
+    @keyframes fadeIn { 
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    position: fixed;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: black;
+    z-index: 10000;
+    opacity: 0;
+    animation: fadeIn ease-in 1;
+    animation-fill-mode: forwards;
+    animation-duration:1s;
+    animation-delay: 1s;
+`;
+
+export const CurrencyHead = styled.div`
+    height: 20%;
+    width: 60%;
+    border-radius: 63%;
+    left: 13%;
+    top: 40%;
+    background: black;
+    z-index: 101;
+    opacity: 0;
+    position: absolute;
+`;
+
+export const Controller = styled.div.attrs({ className: 'private-container' })`
+    position: absolute;
+    left: calc(50% - 65px);
+    bottom: 19%;
     z-index: 100;
-    width: 80px;
-    height: 80px;
+    width: 110px;
+    height: auto;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
     cursor: pointer;
 
-    &.crypto-scanner--on {
-        left: calc(50% - 30px);
-        bottom: 20px;
-        width: 60px;
-        height: 60px;
-        background: radial-gradient(${props => props.theme.palette.clrDarkGray}, ${props => props.theme.palette.clrBackground}, ${props => props.theme.palette.clrBackground});
-        border: 1px solid ${props => props.theme.palette.clrBlue};
-        box-shadow: 0 0 10px 10px #3269D143;
+    .private-shadow {
+        position: absolute;
+        width: 95%;
+        height: 91%;
+        border-radius: 100%;
+        top: 3%;
+        left: 2.5%;
+        z-index: -1;
+        box-shadow: 0 0 12px 2.5px rgba(69, 105, 209, 1);
     }
 `;
 
-export const ScannerIcon = styled.img.attrs({ className: 'crypto-app-scanner-icon' })`
-    height: 100%;
+export const PrivateIcon = styled.img.attrs({ className: 'private-icon' })`
     width: 100%;
-    // border: 2px solid #3266d1;
-    // box-shadow: 0 0 20px 20px #3269D17f;
-    z-index: 1;
+    z-index: 10;
 `;
 export const InnerWrapper = styled.div`
     position: relative;
@@ -116,24 +176,21 @@ export const InnerWrapper = styled.div`
     }
 `;
 
-// export const QRWrapper = styled.div.attrs({ className: 'qr-outer-wrapper' })`
-//     position: absolute;
-//     top: 5%;
-//     left: 0;
-//     display: flex;
-//     align-items: stretch;
-//     justify-content: stretch;
-//     margin: 0;
-//     border: none;
-//     padding: 0;
-//     width: 100%;
-//     height: 45%;
-//     z-index: 100;
-//     background: ${props => props.hasBg ? palette.mobile2Bg : 'transparent'};
-// `;
-
 export const QRWrapper = styled.div.attrs({ className: 'qr-outer-wrapper' })`
-    position: fixed;
+    position: ${props => props.isForexApp ? 'absolute' : 'fixed'};
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: ${props => props.currencyHeadIndex ? 109 : 100};
+    display: ${props => props.isVisible ? 'flex': 'none'};
+`;
+
+export const PayQRWrapper = styled.div.attrs({ className: 'qr-outer-wrapper' })`
+    position: ${props => props.isForexApp ? 'absolute' : 'fixed'};
     top: 0;
     left: 0;
     bottom: 0;
@@ -142,28 +199,32 @@ export const QRWrapper = styled.div.attrs({ className: 'qr-outer-wrapper' })`
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    z-index: 100;
+    z-index: 106;
 `;
 
 export const QRBalanceButton = styled.div`
-
-    display: flex;
-    background-color: #000;
-    color : #fff;
-    margin: 0;
-    border: none;
-    padding: 0;
-    width: 50%;
-    height: 4%;
-    z-index: 1000;
-    justify-content:center;
+    border: 1px solid rgb(50,102,209);
+    border-radius: 50px;
+    padding: 0.5rem 1rem 0.5rem 1rem;
+    color: white;
+    background: black;
     position:absolute;
-    top:8px;
+    top:10px;
+    z-index:1000;
+    box-shadow: 0 0 20px 10px rgba(50,102,209,0.7);
+    display: flex;
+    width: 60%;
+    align-items: center;
+    justify-content: space-around;
 
-    
+    .prefix {
+        color: white;
+    }
+    .amount {
+        padding-left: 0.5rem;
+        color: grey;
+    }
 `;
-
-
 
 const CopySVG = styled.svg`
     position: absolute;
@@ -184,3 +245,80 @@ export const CopyIcon = (props) => (
         <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"/>
     </CopySVG>
 );
+
+export const ScanContainer = styled.div.attrs({ className: 'scan-container' })`
+    position: absolute;
+    z-index: 1000;
+    left: calc(50% - 20px);
+    width: 40px;
+    bottom: 5px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+
+    .on {
+        background-color: #fff8;
+    }
+    .off {
+        background-color: #fff4;
+    }
+`;
+
+export const ScanIcon = styled.div.attrs({ className: 'scan-icon' })`
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+`;
+
+export const LoadingScreen = styled.div.attrs({ className: 'loading-screen' })`
+    width: 100%;
+    height: 100vh;
+    align-items: center;
+    justify-content: center;
+    padding-bottom: 30px;
+    display: ${props => props.isVisible ? 'flex' : 'none'};
+`;
+
+const keyFrameSpin = keyframes`
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+`;
+
+export const LoadingSpinner = styled.div`
+    position: relative;
+    width: 74px !important;
+    height: 74px !important;
+    border-radius: 50% !important;
+    border: 2px solid white !important;
+    animation: ${keyFrameSpin} 1s linear infinite !important;
+    text-align: center;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    p {
+        position: absolute;
+        top: -19px;
+        width: 18px;
+        height: 5px;
+        border-radius: 105%;
+        background-color: white;
+        box-shadow: 0 0 5.67px #fff;
+    }
+    
+    &:after {
+        content: "";
+        width: 99%;
+        height: 99%;
+        border-radius: 50%;
+        position: absolute;
+        background-color: black;
+    }
+`;

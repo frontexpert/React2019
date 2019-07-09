@@ -77,7 +77,7 @@ data:
     window.REACT_APP_WS_PRIVATE_PORT=443
     window.REACT_APP_HISTORICAL_DATA_URL="https://rest.qa.bct.trade/api/getDataForPeriod?tsBeg=@tsBeg&tsEnd=@tsEnd&interval=@interval&exchangeId=@exchangeId&marketId=@marketId"
     window.REACT_APP_IMAGE_SERVER_URL="https://storage.googleapis.com/bct-minicharts/charts"
-    window.REACT_APP_Whitelabel_Title={{ .FEATURE }}
+    window.REACT_APP_Whitelabel_Title="{{ .FEATURE }}"
 ---
 apiVersion: v1
 kind: Service

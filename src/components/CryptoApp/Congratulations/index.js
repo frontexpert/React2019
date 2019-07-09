@@ -11,15 +11,19 @@ import {
     CongratsText
 } from './Components';
 
-const Congratulations = ({ onClose }) => (
+const Congratulations = ({
+    onClose,
+    message,
+}) => (
     <Wrapper>
         <CongratsClose src={CloseIcon} onClick={onClose} />
-        <CongratsIcon src={CheckIcon} />
-        <CongratsText>Congratulations</CongratsText>
+        <CongratsIcon src={message === 'Congratulations' ? CheckIcon : CloseIcon} />
+        <CongratsText>{message}</CongratsText>
     </Wrapper>
 );
 
 Congratulations.propTypes = {
+    message: PropTypes.string.isRequired,
     onClose: PropTypes.func.isRequired,
 };
 

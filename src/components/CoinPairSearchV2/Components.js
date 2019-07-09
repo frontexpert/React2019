@@ -1,5 +1,5 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 
 export const CoinPairRatioText = styled.span.attrs({ className: 'exch-head__switch__ratio' })`
     display: flex;
@@ -40,50 +40,39 @@ export const AddonLabel = styled.div.attrs({ className: 'exch-dropdown-addon__la
 export const LoaderWrapper = styled.div`
     position: absolute;
     top: 0;
-    // left: 0;
-    right: 30px;
+    ${props => props.isCoinPairInversed ? 'right: 135px;' : 'left: 135px;'}
     bottom: 0;
     z-index: 2;
     background: rgba(0, 0, 0, 0.6);
 `;
 
-export const WalletButton = styled.div.attrs({ className: 'exch-dropdown__wallet-btn' })`
-    position: relative;
-    margin-left: auto;
-    margin-right: 6px;
+export const WalletButton = styled.div`
+    width: ${props => props.width || 220}px;
+    ${props => props.direction === 'Left' ? 'left: 0;' : 'right: 0;'}
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
     border: 2px solid ${props => props.theme.palette.walletBtn};
-    border-radius: ${props => props.theme.palette.borderRadius};
-    padding: 17px 20px 10px 5px;
-    width: 130px;
-    min-height: 50px !important;
-    color: ${props => (props.isActive && props.isLoggedIn) ? props.theme.palette.clrPurple : props.theme.palette.clrBorder};
-    font-size: 24px;
-    line-height: 0.8;
+    border-radius: 7px;
+    border-right: props.theme.palette.clrHighContrast;
+    outline-offset: -10px;
+    padding: 5px 20px;
+    height: 65px;
+    color: ${props => props.theme.palette.clrPurple};
+    font-size: 33px;
     text-align: right;
     cursor: pointer;
     opacity: 1 !important;
     word-break: break-all;
     white-space: nowrap;
     background: ${props => props.theme.palette.clrBackground};
-    outline: none;
-    pointer-events: all;
-    
+    outline: 2px dashed ${props => props.theme.palette.clrMouseClick} !important;
+
     div {
         overflow: hidden;
         white-space: initial;
         word-break: break-word;
     }
-    
-    // &:after {
-    //     content: '';
-    //     position: absolute;
-    //     right: -8px;
-    //     top: calc(50% - 18px);
-    //     width: 30px;
-    //     height: 30px;
-    //     background: transparent url(/img/wallet-button-after.png) no-repeat center;
-    //     background-size: cover;
-    // }
 
     &:hover {
         background: ${props => props.theme.palette.clrWalletHover};
@@ -107,8 +96,7 @@ export const WalletButton = styled.div.attrs({ className: 'exch-dropdown__wallet
 
 export const SvgSide = styled.svg.attrs({ className: 'wallet-side-icon' })`
     position: absolute;
-    right: -8px;
-    top: calc(50% - 7px);
+    right: -5px;
     width: 23px;
     height: 20px;
     fill: ${props => props.theme.palette.clrBackground};
@@ -210,11 +198,29 @@ const Svg = styled.svg`
 // );
 
 export const SearchIcon = props => (
-    <svg className="exch-search__icon" role="img" aria-hidden="true" viewBox="0 0 10.583 10.583" xmlns="http://www.w3.org/2000/svg">
-        <g transform="translate(0 -286.42)">
-            <path d="m10.144 295.34-2.3931-2.3786c-0.35646 0.55128-0.82824 1.0202-1.3829 1.3745l2.3931 2.3784c0.382 0.37989 1.0015 0.37989 1.3829 0 0.382-0.37885 0.382-0.99463 0-1.3743"/>
-            <path d="m3.9114 293.44c-1.618 0-2.9338-1.3079-2.9338-2.9157 0-1.608 1.3158-2.9157 2.9338-2.9157 1.6178 0 2.9336 1.3076 2.9336 2.9157 0 1.6078-1.3158 2.9157-2.9336 2.9157m3.9111-2.9157c0-2.1469-1.751-3.8877-3.9111-3.8877-2.1601 0-3.9114 1.7407-3.9114 3.8877 0 2.147 1.7513 3.8874 3.9114 3.8874 2.1601 0 3.9111-1.7404 3.9111-3.8874"/>
-            <path d="m1.6296 290.52h0.65211c0-0.89326 0.73083-1.6199 1.6296-1.6199v-0.6479c-1.2579 0-2.2817 1.0173-2.2817 2.2678"/>
-        </g>
+    <svg className="exch-search__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+        <path fill="white" d="M424.4 214.7L72.4 6.6C43.8-10.3 0 6.1 0 47.9V464c0 37.5 40.7 60.1 72.4 41.3l352-208c31.4-18.5 31.5-64.1 0-82.6z"></path>
+    </svg>
+    // <svg className="exch-search__icon" xmlns="http://www.w3.org/2000/svg" data-name="Layer 1" viewBox="0 0 100 100" x="0px" y="0px">
+    //     <path d="M38,76.45A38.22,38.22,0,1,1,76,38.22,38.15,38.15,0,0,1,38,76.45Zm0-66.3A28.08,28.08,0,1,0,65.84,38.22,28,28,0,0,0,38,10.15Z"/>
+    //     <rect x="73.84" y="54.26" width="10.15" height="49.42" transform="translate(-32.73 79.16) rotate(-45.12)"/>
+    // </svg>
+    // <svg className="exch-search__icon" role="img" aria-hidden="true" viewBox="0 0 10.583 10.583" xmlns="http://www.w3.org/2000/svg">
+    //     <g transform="translate(0 -286.42)">
+    //         <path d="m10.144 295.34-2.3931-2.3786c-0.35646 0.55128-0.82824 1.0202-1.3829 1.3745l2.3931 2.3784c0.382 0.37989 1.0015 0.37989 1.3829 0 0.382-0.37885 0.382-0.99463 0-1.3743"/>
+    //         <path d="m3.9114 293.44c-1.618 0-2.9338-1.3079-2.9338-2.9157 0-1.608 1.3158-2.9157 2.9338-2.9157 1.6178 0 2.9336 1.3076 2.9336 2.9157 0 1.6078-1.3158 2.9157-2.9336 2.9157m3.9111-2.9157c0-2.1469-1.751-3.8877-3.9111-3.8877-2.1601 0-3.9114 1.7407-3.9114 3.8877 0 2.147 1.7513 3.8874 3.9114 3.8874 2.1601 0 3.9111-1.7404 3.9111-3.8874"/>
+    //         <path d="m1.6296 290.52h0.65211c0-0.89326 0.73083-1.6199 1.6296-1.6199v-0.6479c-1.2579 0-2.2817 1.0173-2.2817 2.2678"/>
+    //     </g>
+    // </svg>
+);
+
+export const CoinWrapper = styled.div`
+    display: flex;
+    align-items: center;
+`;
+
+export const PlayIcon = props => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+        <path fill="white" d="M424.4 214.7L72.4 6.6C43.8-10.3 0 6.1 0 47.9V464c0 37.5 40.7 60.1 72.4 41.3l352-208c31.4-18.5 31.5-64.1 0-82.6z"></path>
     </svg>
 );

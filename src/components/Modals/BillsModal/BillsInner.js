@@ -1,148 +1,310 @@
 import React from 'react';
-import { AutoSizer } from 'react-virtualized';
-import { inject, observer } from 'mobx-react';
 
-import { STORE_KEYS } from '../../../stores';
+import { toFixedWithoutRounding } from '../../../utils';
 import BillChip from './BillChip';
+import BillDetail from './BillDetail';
 import {
-    BalanceOutline, BillLine, Close, Icon,
-    InnerWrapper, StyledReactPanZoom, StyledSlider
+    OuterWrapper,
+    BillLine,
+    BillsInnerWrapper,
+    BillsWrapper,
+    BalanceCol,
+    BillDetailWrapper,
+    InputAddon,
+    InputFieldWrapper
 } from './Components';
-import SMSVerification from '../../../components-generic/SMSVerification3';
-
-import imgX from '../../../components-generic/Modal/x.svg';
-
-const showSMSModal = (Modal, onClose, portal, additionalVerticalSpace) => {
-    return Modal({
-        portal,
-        additionalVerticalSpace,
-        showClose: false,
-        ModalComponentFn: () => <SMSVerification portal={portal} onClose={onClose} isMobile />,
-    });
-};
+import BalanceInCurrency from './BalanceInCurrency';
+import InputField from './InputField';
+import SliderInput from './SliderInput';
+import DataLoader from '@/components-generic/DataLoader';
 
 class BillsInner extends React.Component {
     state = {
-        zoom: 1,
+        selected: this.props.isDeposit ? this.props.selected : null,
+        symbol: this.props.symbol,
     };
 
-    changeZoom = (zoom) => {
-        this.setState({
-            zoom,
-        });
+    static getDerivedStateFromProps(props, state) {
+        if (props.isDeposit) {
+            if (state.selected !== props.selected) {
+                return {
+                    selected: props.selected,
+                };
+            }
+        } else if (state.symbol !== props.symbol) {
+            return {
+                symbol: props.symbol,
+                selected: null,
+            };
+        }
+        return null;
+    }
+
+    componentDidMount() {
+        document.addEventListener('mousedown', this.handleClickOutside);
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('mousedown', this.handleClickOutside);
+    }
+
+    handleClickOutside = (event) => {
+        if (
+            this.state.selected &&
+            this.billDetailRef &&
+            this.billDetailRef.contains &&
+            !this.billDetailRef.contains(event.target)
+        ) {
+            this.closeDetail();
+        }
     };
+
+    getInnerRef = ref => this.billDetailRef = ref;
+
+    closeDetail = () => {
+        if (!this.props.isDeposit) {
+            this.setState({
+                selected: null,
+            });
+        }
+    };
+
+    handleInputClick = (e) => {
+        e.stopPropagation();
+    };
+
+    handleChipClick = (level, symbol, deno, publicAddress, serial, disabled) => () => {
+        this.setState({
+            selected: {
+                level,
+                symbol,
+                deno,
+                publicAddress,
+                serial,
+                disabled,
+            },
+        });
+    }
 
     render() {
-        const { zoom } = this.state;
+        const { selected } = this.state;
         const {
-            [STORE_KEYS.BILLCHIPSTORE]: {
-                symbol, balance, position, denominations,
-            },
-            [STORE_KEYS.MODALSTORE]: {
-                Modal, onClose,
-            },
-            isOpen,
+            width,
+            height,
+            padding,
+            isDeposit,
+            symbol,
+            balance,
+            newDeno,
+            isReceivedUserBills,
+            listUserBills,
+            withdrawAddress,
+            handleChange,
+            amount,
+            handleAmountChange,
+            isFromMarketModal = false,
+            estFilled,
+            estTotal,
+            isDefaultCrypto,
         } = this.props;
 
-        let deno = 6;
-        for (let i = 0; i < denominations.length; i++) {
-            if (denominations[i] && (denominations[i].symbol === symbol)) {
-                deno = denominations[i].deno;
-                break;
+        const h = 850;
+        const scale = (height || 55) / (h || 852);
+        const w = Math.floor(width / scale);
+        let bills = [];
+        let chipHeight;
+
+        if (!isDeposit) {
+            const row = 16;
+            const col = 9;
+            let chip = {};
+
+            chipHeight = Math.floor((h - 32 - 10 * (col - 1)) / col);
+            const newHeight = chipHeight * col + 10 * (col - 1);
+            const lineWidth = Math.floor((w - 150) / 16);
+
+            const balanceStr = balance.toString().split('.');
+            let backPos = newDeno;
+            if (balanceStr.length > 1 && balanceStr[1].length) {
+                backPos += balanceStr[1].length;
+            } else if (balanceStr.length > 0 && balanceStr[0].length) {
+                backPos += balanceStr[0].length;
+            }
+
+            for (let i = 0; i < row; i++) {
+                chip.level = i;
+                chip.symbol = symbol;
+                chip.deno = newDeno - i;
+                const nominal = (chip.deno > -4)
+                    ? Math.pow(10, chip.deno)
+                    : (1 / Math.pow(10, -(chip.deno)));
+
+                let curColBalance = Math.floor((balance / nominal) % 10);
+                if (typeof curColBalance === 'undefined' || Number.isNaN(curColBalance)) {
+                    curColBalance = 0;
+                }
+
+                let startPos = 0;
+                for (let k = 0; k < listUserBills.length; k++) {
+                    if (listUserBills[k].Nominal === nominal) {
+                        startPos = k;
+                        break;
+                    }
+                }
+
+                let singleBill = [];
+                for (let j = 0; j < col; j++) {
+                    const disabled = j >= curColBalance;
+
+                    if (!disabled) {
+                        if (listUserBills.length > (startPos + j) && listUserBills[startPos + j].Nominal === nominal) {
+                            chip.publicAddress = listUserBills[startPos + j].Address;
+                            chip.serial = listUserBills[startPos + j].Serial;
+                        }
+                    }
+
+                    chip.disabled = disabled || !chip.publicAddress;
+
+                    singleBill.push(
+                        <BillChip
+                            key={`balance-col-${i}-row-${j}`}
+                            level={i}
+                            symbol={symbol}
+                            deno={chip.deno}
+                            publicAddress={chip.publicAddress}
+                            serial={chip.serial}
+                            disabled={chip.disabled}
+                            onClick={this.handleChipClick(chip.level, symbol, chip.deno, chip.publicAddress, chip.serial, chip.disabled)}
+                        />
+                    );
+                }
+
+                singleBill.push(
+                    <BalanceCol
+                        key={`balance-line-${i}`}
+                        active={newDeno === i}
+                        isShowComma={(newDeno > i) && (balance >= Math.pow(10, chip.deno)) && ((chip.deno) % 3 === 0)}
+                        isTransparent={balance < Math.pow(10, chip.deno) || (i > backPos)}
+                        height={chipHeight}
+                        isFromMarketModal={isFromMarketModal}
+                        onClick={this.handleChipClick(chip.level, symbol, chip.deno, chip.publicAddress, chip.serial, chip.disabled)}
+                    >
+                        {curColBalance}
+                    </BalanceCol>
+                );
+
+                bills.push(
+                    <BillLine
+                        key={`balance-col-${i}`}
+                        width={lineWidth}
+                        height={newHeight}
+                    >
+                        {singleBill}
+                    </BillLine>
+                );
             }
         }
 
+        let depositChipWidth = width - 60;
+        let depositChipHeight = Math.floor(depositChipWidth * 1800 / 3192);
+        if (depositChipHeight > height - 100) {
+            depositChipHeight = height - 100;
+            depositChipWidth = Math.floor(depositChipHeight * 3192 / 1800);
+        }
+        const addonWidth = Math.max(Math.floor(depositChipWidth * 749 / 3192), 100);
+
         return (
-            <AutoSizer>
-                {({ width, height }) => {
-                    let bills = [];
-                    const row = 8;
-                    const col = 9;
-                    const h = 852;
-                    const chipHeight = Math.floor((h - 50 - 70) / row);
-                    const chipWidth = Math.floor(chipHeight * 3192 / 1801);
-                    const newWidth = chipWidth * col + 10 * (col - 1); // (chipWidth * 2389 / 3192) * (col - 1) + chipWidth + 16;
+            <OuterWrapper>
+                {!isDeposit && (
+                    <BillsInnerWrapper
+                        width={w}
+                        height={h}
+                        realHeight={height}
+                    >
+                        {!isFromMarketModal && (
+                            <div className="bill-description">{`MY ${symbol} IN COLD STORAGE`}</div>
+                        )}
 
-                    for (let i = 0; i < row; i++) {
-                        const curRowBalance = Math.floor((position / Math.pow(10, deno - i)) % 10);
-                        const outLineWidth = chipWidth * curRowBalance + 10 * (curRowBalance - 1) + 8; // (chipWidth * 2389 / 3192) * (curRowBalance - 1) + chipWidth + 8;
+                        <BillsWrapper
+                            padding={padding}
+                            chipHeight={chipHeight}
+                            isFromMarketModal={isFromMarketModal}
+                        >
+                            {bills}
+                            <BalanceInCurrency balance={balance} chipHeight={chipHeight} />
+                        </BillsWrapper>
 
-                        let singleBill = [];
-                        for (let j = 0; j < col; j++) {
-                            singleBill.push(
-                                <BillChip
-                                    key={j}
-                                    index={j}
-                                    width={chipWidth}
-                                    height={chipHeight}
-                                    level={i + 1}
-                                    symbol={symbol}
-                                    deno={deno - i}
-                                    disabled={j < col - curRowBalance}
-                                    onClick={() => {
-                                        if (j >= col - curRowBalance) {
-                                            showSMSModal(Modal, onClose, 'root', true);
-                                        }
-                                    }}
+                        {!isReceivedUserBills && (
+                            <DataLoader width={200} height={200} dark />
+                        )}
+                    </BillsInnerWrapper>
+                )}
+
+                {selected && (
+                    <BillDetailWrapper
+                        isDeposit={isDeposit}
+                        onClick={this.closeDetail}
+                    >
+                        <BillDetail
+                            isOpened
+                            wrapperHeight={852}
+                            hoverable={false}
+                            width={depositChipWidth}
+                            height={depositChipHeight}
+                            level={selected.level}
+                            symbol={selected.symbol}
+                            deno={selected.deno}
+                            disabled={!isDeposit && selected.disabled}
+                            getInnerRef={this.getInnerRef}
+                            isDeposit={isDeposit}
+                            publicAddress={selected.publicAddress}
+                            serial={selected.serial}
+                            depositBalance={balance}
+                            estFilled={estFilled}
+                            estTotal={estTotal}
+                            isDefaultCrypto={isDefaultCrypto}
+                        />
+
+                        {isDeposit && (
+                            <InputFieldWrapper
+                                width={depositChipWidth}
+                                height={50 + padding}
+                                onClick={this.handleInputClick}
+                            >
+                                <InputField
+                                    id="withdraw_address"
+                                    label={`Withdraw ${symbol}`}
+                                    placeholder={`Enter ${symbol} Wallet Address`}
+                                    size={20}
+                                    value={withdrawAddress}
+                                    readOnly={false}
+                                    changeValue={handleChange('withdrawAddress')}
+                                    addonWidth={addonWidth}
+                                    addon={
+                                        <InputAddon
+                                            key="2"
+                                            width={addonWidth}
+                                            id="withdraw-addon"
+                                        >
+                                            Withdraw
+                                        </InputAddon>
+                                    }
+                                    slider={
+                                        <SliderInput
+                                            value={amount}
+                                            max={balance}
+                                            addonWidth={addonWidth}
+                                            onChange={handleAmountChange}
+                                        />
+                                    }
                                 />
-                            );
-                        }
-
-                        bills.push(
-                            <BillLine
-                                key={i}
-                                width={newWidth}
-                                height={chipHeight}
-                            >
-                                {singleBill}
-
-                                {/*
-                                {curRowBalance > 0 && (
-                                    <BalanceOutline size={outLineWidth} />
-                                )}
-                                */}
-                            </BillLine>
-                        );
-                    }
-
-                    return (
-                        <InnerWrapper realHeight={Math.min(height, h)}>
-                            <StyledReactPanZoom
-                                width={newWidth}
-                                height={h - 50}
-                                zoom={zoom}
-                            >
-                                {bills}
-                            </StyledReactPanZoom>
-
-                            <StyledSlider
-                                axis="x"
-                                x={zoom}
-                                xstep={0.02}
-                                xmin={1}
-                                xmax={3}
-                                onChange={({ x }) => this.changeZoom(x)}
-                                styles={{
-                                    thumb: {
-                                        backgroundColor: '#2780ff',
-                                    },
-                                }}
-                            />
-
-                            {isOpen && (
-                                <Close onClick={this.props.onClose}>
-                                    <Icon src={imgX}/>
-                                </Close>
-                            )}
-                        </InnerWrapper>
-                    );
-                }}
-            </AutoSizer>
+                            </InputFieldWrapper>
+                        )}
+                    </BillDetailWrapper>
+                )}
+            </OuterWrapper>
         );
     }
 }
 
-export default inject(
-    STORE_KEYS.BILLCHIPSTORE,
-    STORE_KEYS.MODALSTORE
-)(observer(BillsInner));
+export default BillsInner;

@@ -1,15 +1,13 @@
 /* eslint-disable no-bitwise */
 import React from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import decode from 'jwt-decode';
 import moment from 'moment';
 import uuidv4 from 'uuid/v4';
 import get from 'lodash.get';
-import Linkify from 'linkifyjs/react';
-import isUrl from 'is-url';
 import isMobile from 'is-mobile';
+import { round } from 'mathjs/number';
 
-import math from '../lib/mathjs/math';
 import { refreshSecurityToken } from '../lib/sms-auth';
 
 const Text = styled.p`
@@ -29,7 +27,7 @@ export const splitAmtOnDecimal = (amt) => {
 };
 
 export const roundToFixedNum = (amt, decimals) => {
-    const roundedNum = math.round(amt, decimals);
+    const roundedNum = round(amt, decimals);
     return roundedNum.toFixed(decimals);
 };
 
@@ -95,20 +93,33 @@ export const isUrlContain = text => {
     return new RegExp('([a-zA-Z0-9]+://)?([a-zA-Z0-9_]+:[a-zA-Z0-9_]+@)?([a-zA-Z0-9.-]+\\.[A-Za-z]{2,4})(:[0-9]+)?(/.*)?').test(text);
 };
 
-export const splitStringToP = text => {
-    // return text.split('\n').map((item, key) => <Linkify className="linkify" tagName="p" key={key}>{item}</Linkify>)
-    return text.split('\n').map(item => ((!isUrl(item) && !isUrlContain(item)) ? <Linkify className="linkify" tagName="p" key={uuidv4()}>{item}</Linkify> : item));
-};
-
 export const formatCoinString = (string, num) => parseFloat(string).toLocaleString('en-US', {
     minimumFractionDigits: num,
     maximumFractionDigits: num,
 });
 
-export const formatString = (string, digits = 4) => parseFloat(string).toLocaleString('en-US', {
+export const formatString = (string, digits = 4, useGrouping = true) => parseFloat(string).toLocaleString('en-US', {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
+    useGrouping,
 });
+
+/**
+ * https://stackoverflow.com/a/51411377
+ *
+ * @param {String} locale
+ * @param {String} separatorType - eather 'decimal' or 'group'
+ */
+export const getSeparator = (locale = 'en-US', separatorType = 'decimal') => {
+    if (locale === 'en-US' && separatorType === 'decimal') {
+        return '.';
+    }
+    const numberWithGroupAndDecimalSeparator = 1000.1;
+    return Intl.NumberFormat(locale)
+        .formatToParts(numberWithGroupAndDecimalSeparator)
+        .find(part => part.type === separatorType)
+        .value;
+};
 
 export const formatStringMinMax = (string, min, max) => trimTrailingZero(parseFloat(string).toLocaleString('en-US', {
     minimumFractionDigits: min,
@@ -298,7 +309,7 @@ export const customDigitFormat = (input, count = 6) => {
     }), input);
 };
 
-export const customDigitFormatWithNoTrim = (input, count = 6, unit = -1) => {
+export const customDigitFormatWithNoTrim = (input, count = 6) => {
     let num = input;
     if (typeof input === 'string') {
         num = input.replace(',', '');
@@ -311,26 +322,15 @@ export const customDigitFormatWithNoTrim = (input, count = 6, unit = -1) => {
     num = parseFloat(num.toFixed(6));
 
     const digitLength = parseInt(num).toString().length;
-    if (unit !== -1) {
-        if (unit === 3) {
-            return formatTotalDigitString(num / 1000000000, count) + 'B';
-        }
-        if (unit === 2) {
-            return formatTotalDigitString(num / 1000000, count) + 'M';
-        }
-        if (unit === 1) {
-            return formatTotalDigitString(num / 1000, count) + 'K';
-        }
-    } else {
-        if (digitLength > 9) {
-            return formatTotalDigitString(num / 1000000000, count) + 'B';
-        }
-        if (digitLength > 6) {
-            return formatTotalDigitString(num / 1000000, count) + 'M';
-        }
-        if (digitLength > 5) {
-            return formatTotalDigitString(num / 1000, count) + 'K';
-        }
+
+    if (digitLength > 9) {
+        return formatTotalDigitString(num / 1000000000, count - 1) + 'B';
+    }
+    if (digitLength > 6) {
+        return formatTotalDigitString(num / 1000000, count - 1) + 'M';
+    }
+    if (digitLength > 5) {
+        return formatTotalDigitString(num / 1000, count - 1) + 'K';
     }
 
     let decimals = count - digitLength;
@@ -397,10 +397,6 @@ export const capitalizeFirstLetter = (input) => {
     return string.charAt(0).toUpperCase() + string.slice(1);
 };
 
-export const getMaxRows = (height, rowHeight) => {
-    return parseInt(((height - rowHeight - 30) / 2) / rowHeight) + 1;
-};
-
 export const getDecimalPlaces = input => {
     let num = input;
     if (typeof input === 'string') {
@@ -434,6 +430,82 @@ export const getDecimalPlaces = input => {
     if (num < 10000) {
         return 1;
     }
+};
+
+export const numberWithCommas = input => {
+    let num = input;
+    if (typeof input === 'string') {
+        num = input.replace(',', '');
+        if (!Number.parseFloat(num)) {
+            num = 0;
+        }
+    }
+
+    if (num < 0.001) {
+        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
+            minimumFractionDigits: 8,
+            maximumFractionDigits: 8,
+        }), input);
+    }
+    if (num < 0.01) {
+        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
+            minimumFractionDigits: 7,
+            maximumFractionDigits: 7,
+        }), input);
+    }
+    if (num < 0.1) {
+        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
+            minimumFractionDigits: 6,
+            maximumFractionDigits: 6,
+        }), input);
+    }
+    if (num < 1) {
+        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
+            minimumFractionDigits: 5,
+            maximumFractionDigits: 5,
+        }), input);
+    }
+    if (num < 10) {
+        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
+            minimumFractionDigits: 4,
+            maximumFractionDigits: 4,
+        }), input);
+    }
+    if (num < 100) {
+        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
+            minimumFractionDigits: 3,
+            maximumFractionDigits: 3,
+        }), input);
+    }
+    if (num < 1000) {
+        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }), input);
+    }
+    if (num < 10000) {
+        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }), input);
+    }
+    if (num < 100000) {
+        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+        }), input);
+    }
+
+    const digitLength = parseInt(num).toString().length;
+    let decimals = 7 - digitLength;
+    if (decimals < 0) {
+        decimals = 0;
+    }
+
+    return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+    }), input);
 };
 
 export const unifyDigitString = input => {
@@ -503,10 +575,84 @@ export const unifyDigitString = input => {
     return customDigitFormat(num, 7);
 };
 
+export const unifyDigitStringLimit = input => {
+    let num = input;
+    let limit;
+    const isMobile = getScreenInfo();
+    const { screenWidth, isMobileDevice } = isMobile;
+    if (typeof input === 'string') {
+        num = input.replace(',', '');
+        if (!Number.parseFloat(num)) {
+            num = 0;
+        }
+    }
+
+    if (num < 0.001) {
+        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
+            minimumFractionDigits: 8,
+            maximumFractionDigits: 8,
+        }), input);
+    }
+    if (num < 0.01) {
+        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
+            minimumFractionDigits: 7,
+            maximumFractionDigits: 7,
+        }), input);
+    }
+    if (num < 0.1) {
+        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
+            minimumFractionDigits: 6,
+            maximumFractionDigits: 6,
+        }), input);
+    }
+    if (num < 1) {
+        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
+            minimumFractionDigits: 5,
+            maximumFractionDigits: 5,
+        }), input);
+    }
+    if (num < 10) {
+        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
+            minimumFractionDigits: 4,
+            maximumFractionDigits: 4,
+        }), input);
+    }
+    if (num < 100) {
+        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
+            minimumFractionDigits: 3,
+            maximumFractionDigits: 3,
+        }), input);
+    }
+    if (num < 1000) {
+        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }), input);
+    }
+    if (num < 10000) {
+        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }), input);
+    }
+    if (num < 100000) {
+        return trimTrailingZero(parseFloat(num).toLocaleString('en-US', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+        }), input);
+    }
+    if (isMobileDevice || screenWidth < 1248) {
+        limit = 6;
+    }    else {
+        limit = 7;
+    }
+
+    return customDigitFormat(num, limit);
+};
 // If input has trailing zeros, cut them as long as original does not have more decimals
 // ex: input: 1.0000, original: 1.0000001, then do not cut
 // input: 1.0000, original: 1, then cut .0000
-const trimTrailingZero = (input, original) => {
+export const trimTrailingZero = (input, original) => {
     // Get original decimal length
     let numOriginal = original;
     if (typeof numOriginal === 'string') {
@@ -752,4 +898,230 @@ export const refreshToken = () => {
 export const toFixedWithoutRounding = (num, fixed) => {
     const re = new RegExp('^-?\\d+(?:\.\\d{0,' + (fixed || -1) + '})?'); // eslint-disable-line
     return (num || 0).toString().match(re)[0];
+};
+
+export const getDenoSymbol = (deno) => {
+    if (deno > 8) {
+        return {
+            unit: Math.pow(10, deno - 9),
+            unitSymbol: 'B',
+        };
+    }
+
+    if (deno > 5) {
+        return {
+            unit: Math.pow(10, deno - 6),
+            unitSymbol: 'M',
+        };
+    }
+
+    if (deno > 2) {
+        return {
+            unit: Math.pow(10, deno - 3),
+            unitSymbol: 'K',
+        };
+    }
+
+    if (deno > -1) {
+        return {
+            unit: Math.pow(10, deno),
+            unitSymbol: '',
+        };
+    }
+
+    if (deno > -4) {
+        return {
+            unit: Math.pow(10, deno + 3),
+            unitSymbol: 'm',
+        };
+    }
+
+    if (deno > -8) {
+        return {
+            unit: 1 / Math.pow(10, -(deno + 3)),
+            unitSymbol: 'm',
+        };
+    }
+
+    return {
+        unit: Math.pow(10, deno + 6),
+        unitSymbol: 'μ',
+    };
+};
+
+export const getUpperLowerValue = (balance = 0) => {
+    let balanceStr = balance.toString().split('.');
+
+    if (balance < 1) {
+        return {
+            upper: balanceStr[0] + '',
+            lower: balanceStr[1] ? '.' + balanceStr[1].substr(0, 4) : '',
+        };
+    }
+
+    if (balance < 1000) {
+        return {
+            upper: balanceStr[0] + '',
+            lower: balanceStr[1] ? '.' + balanceStr[1].substr(0, 2) : '',
+        };
+    }
+
+    if (balance < 1000000) {
+        return {
+            upper: Math.floor(balance / 1000).toString() + '',
+            lower: ',' + Math.floor(balance).toString().substr(Math.floor(balance).toString().length - 3, 3),
+        };
+    }
+
+    if (balance < 1000000000) {
+        return {
+            upper: Math.floor(balance / 1000000).toString() + 'M',
+            lower: '.' + Math.floor(balance % 1000000).toString().substr(0, 4),
+        };
+    }
+
+    return {
+        upper: Math.floor(balance / 1000000000).toString() + 'B',
+        lower: '.' + Math.floor(balance % 1000000000).toString().substr(0, 4),
+    };
+};
+
+export const commafy = (num) => {
+    var str = num.toString().split('.');
+    if (str[0].length >= 4) {
+        str[0] = str[0].replace(/(\d)(?=(\d{3})+$)/g, '$1,');
+    }
+    return str.join('.');
+};
+
+export const commafyDigitFormat = (num, digitLength) => {
+    var str;
+    var ePlus = num.toString().split('e+')[1];
+    var eMinus = num.toString().split('e-')[1];
+    var catenateSymbol = '';
+    var decimalDigits = 0;
+    if (ePlus) {
+        decimalDigits = digitLength - 4;
+        catenateSymbol = 'e+';
+        str = num.toString().split(catenateSymbol);
+        str[0] = parseFloat(str[0]).toFixed(decimalDigits);
+    } else if (eMinus) {
+        decimalDigits = digitLength - 4;
+        catenateSymbol = 'e-';
+        str = num.toString().split(catenateSymbol);
+        str[0] = parseFloat(str[0]).toFixed(decimalDigits);
+    } else {
+        catenateSymbol = '.';
+        num = Number(num).toPrecision(digitLength);
+        str = num.toString().split(catenateSymbol);
+    }
+    if (str[0].length >= 4 && catenateSymbol === '.') {
+        str[0] = str[0].replace(/(\d)(?=(\d{3})+$)/g, '$1,');
+    }
+    return str.join(catenateSymbol);
+};
+
+export const getOrderBookColumnWidth = (rowWidth, column) => {
+    const isWidthOverThreshold = rowWidth > 530;
+
+    switch (column) {
+        case 'exchange':
+            return rowWidth * (isWidthOverThreshold ? 0.4 : 0.33);
+        case 'amount':
+            return rowWidth * (isWidthOverThreshold ? 0.2 : 0.23);
+        case 'amountQuote':
+            return rowWidth * (isWidthOverThreshold ? 0.22 : 0.24);
+        case 'price':
+            return rowWidth * (isWidthOverThreshold ? 0.18 : 0.2);
+        default:
+            return rowWidth * 0.25;
+    }
+}
+
+export const noop = () => {};
+
+const getLeadingExtraZeroes = (onlyDigitsIntegerPart, fractionalPart, trailingZeros, maxNumberOfDigits) => {
+    const numberOfDigits = onlyDigitsIntegerPart.length + fractionalPart.length + trailingZeros.length;
+    const numberOfLeadingExtraZeroes = maxNumberOfDigits - numberOfDigits;
+    if (numberOfLeadingExtraZeroes > 0) {
+        return '0'.repeat(numberOfLeadingExtraZeroes)
+            .split('')
+            .map((item, i) => {
+                const position = numberOfLeadingExtraZeroes - (i + 1) + onlyDigitsIntegerPart.length;
+                if (position % 3 === 0) {
+                    return `${item} `;
+                }
+                return item;
+            })
+            .join('');
+    }
+    return '';
+}
+
+const getLeadingExtraHiddenZeroes = (leadingExtraZeroes, onlyDigitsIntegerPart) => {
+    const preparedExtra = leadingExtraZeroes.split(' ')
+            .map((group, i, array) => {
+                if (
+                    onlyDigitsIntegerPart === '0' ||
+                    i !== array.length - 1
+                ) {
+                    return group;
+                }
+                return '';
+            })
+            .join(' ');
+        return preparedExtra;
+}
+
+export const getSplittedNumber = (priceString, maxNumberOfDigits) => {
+    const leadingZerosRegex = priceString.match(/^[0, .]+/);
+    let leadingZeros = leadingZerosRegex && leadingZerosRegex[0];
+
+    const decimalSeparator = getSeparator();
+
+    if (leadingZeros && leadingZeros.length === priceString.length) {
+        // only zeroes
+        return {
+            integerPart: '',
+            fractionalPart: '',
+            resultNumber: '',
+            trailingZeros: '',
+            leadingZeros,
+            leadingExtraZeroes: '',
+            leadingExtraHiddenZeroes: '',
+            showDecimalSeparator: false,
+            decimalSeparator,
+        };
+    }
+
+    let resultNumber = priceString;
+    let [integerPart = '', fractionalPart = ''] = `${resultNumber}`.split(decimalSeparator);
+
+    const trailingZerosRegex = fractionalPart.match(/0+$/);
+    const trailingZeros = trailingZerosRegex ? trailingZerosRegex[0] : '';
+
+    if (trailingZeros) {
+        fractionalPart = fractionalPart.slice(0, trailingZerosRegex.index);
+    }
+
+    const showDecimalSeparator = !!fractionalPart || !!trailingZeros;
+
+    const onlyDigitsIntegerPart = integerPart.split(',').join('');
+    let leadingExtraZeroes = getLeadingExtraZeroes(onlyDigitsIntegerPart, fractionalPart, trailingZeros, maxNumberOfDigits);
+    const leadingExtraHiddenZeroes = getLeadingExtraHiddenZeroes(leadingExtraZeroes, onlyDigitsIntegerPart);
+    if (leadingExtraHiddenZeroes) {
+        leadingExtraZeroes = leadingExtraZeroes.slice(leadingExtraHiddenZeroes.length, leadingExtraZeroes.length);
+    }
+
+    return {
+        integerPart,
+        fractionalPart,
+        resultNumber,
+        trailingZeros,
+        leadingZeros,
+        leadingExtraZeroes,
+        leadingExtraHiddenZeroes,
+        showDecimalSeparator,
+        decimalSeparator,
+    };
 };

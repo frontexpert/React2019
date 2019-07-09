@@ -1,8 +1,136 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { darkTheme } from '../../../theme/core';
 
 const { palette } = darkTheme;
+
+const keyFrameSpin = keyframes`
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+`;
+
+const keyFrameShake = keyframes`
+    0%  { -webkit-transform:     translate(8px, 0px) rotate(0deg); }
+    10% { -webkit-transform:     translate(-4px, -0px) rotate(-0deg); }
+    20% { -webkit-transform:     translate(-12px, 0px) rotate(0deg); }
+    30% { -webkit-transform:     translate(0px, 0px) rotate(0deg); }
+    40% { -webkit-transform:     translate(4px, -0px) rotate(0deg); }
+    50% { -webkit-transform:     translate(-4px, 0px) rotate(-0deg); }
+    60% { -webkit-transform:     translate(-12px, 0px) rotate(0deg); }
+    70% { -webkit-transform:     translate(8px, 0px) rotate(-0deg); }
+    80% { -webkit-transform:     translate(-4px, -0px) rotate(0deg); }
+    90% { -webkit-transform:     translate(8px, 0px) rotate(0deg); }
+    100%{ -webkit-transform:     translate(4px, -0px) rotate(-0deg); }
+}`;
+
+export const PayText = styled.div.attrs({ className: 'pay-text' })`
+    position: absolute;
+    background-color: black;
+    color: #FDB913;
+    width: 58px;
+    height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: 500;
+    font-size: 21px;
+    box-shadow: 0 0 9.07px rgba(50,105,209,0.5);
+
+    img {
+        height: 65%;
+        width: auto;
+        padding-left: 3px;
+    }
+`;
+
+export const CircleText = styled.span.attrs({ className: 'circle-text' })`
+    @mixin rotated-text($num-letters: 80, $angle-span: 360deg) {
+        $angle: $angle-span / $num-letters;
+        @for $i from 1 through $num-letters {
+            .char-#{$i} {
+                transform: rotate($angle * $i);
+            }
+        }
+    }
+    height: 47%;
+    top: 7.5%;
+    left: 49%;
+    position: absolute;
+    [class*="char"] {
+        bottom: 0;
+        height: 92%;
+        left: 0;
+        margin: auto;
+        min-width: 1px;
+        position: absolute;
+        right: 0;
+        text-align: center;
+        transform-origin: center bottom;
+        width: auto;
+    }
+    @include rotated-text();
+    display: block;
+
+    span {
+        font-size: 7px;
+        font-weight: 600;
+        display: block;
+        color: black;
+    }
+
+    opacity: 1;
+`;
+
+export const SMLoadingSpinner = styled.div`
+    position: absolute !important;
+    right: 8px !important;
+    top: 8px !important;
+    width: 58px !important;
+    height: 58px !important;
+    border-radius: 50% !important;
+    animation: ${keyFrameSpin} 1s linear infinite !important;
+    text-align: center;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 9.32px rgba(255, 255, 255, 0.5) !important;
+
+    &.left {
+        left: 8px !important;
+        right: auto;
+    }
+
+    p {
+        position: absolute;
+        top: -19px;
+        width: 13px;
+        height: 8px;
+        border-radius: 105%;
+        background-color: white;
+        box-shadow: 0 0 5.67px #fff;
+    }
+
+    img {
+        width: 99% !important;
+        height: 99% !important;
+    }
+
+    &:after {
+        content: "";
+        width: 99%;
+        height: 99%;
+        border-radius: 50%;
+        position: absolute;
+        background-color: transparent;
+    }
+`;
 
 export const Main = styled.div`
     position: absolute;
@@ -10,24 +138,20 @@ export const Main = styled.div`
     left: 0;
     bottom: 0;
     right: 0;
+    z-index: 109;
 
     .input-bar-containers {
         position: relative;
-        top: calc(30%);
+        top: 22.7%;
         transform: translateY(-50%);
         margin: 0 auto;
         
         &.shadow {
-            top: 30%;
             max-width: calc(100% - 10px);
-            box-shadow: 0 0 37px 10px #3269D143;
             border-radius: 37px;
         
             .input-bar {
                 box-shadow: none;
-                > number-prefix {
-                    display: none;
-                }
             }
         }
     }
@@ -61,71 +185,92 @@ export const Main = styled.div`
         width: 100%;
         max-width: 74px;
         position: relative;
-        z-index: 1;
+        z-index: 110;
         margin: 0 auto;
-        transform: scale(4.5);
+        transform: scale(1.5);
         background: transparent;
         transition: max-width 250ms ease-in 500ms, transform 250ms ease-in, left 250ms ease-in;
 
         > prefix-number {
             display: none;
         }
-    
+
+        .input-circle {
+            display: none;
+        }
+
+        .number-input-wrapper {
+            display: none !important;
+        }
+
     .qr-code-container {
         position: absolute;
-        top: 23%;
-        left: 23%;
+        top: 13px;
+        left: 9px;
         bottom: 0;
-        height: 48%;
+        height: 72px;
+        width: 72px;
+        padding: 12px;
         border-radius: 50%;
-        box-shadow: 0 0 10px 10px rgba(240, 168, 35, 0.3);
-    
-        .qr-code {
-        height: 100%;
-        border-radius: 100%;
-        object-fit: cover;
-        transform: translateY(0%) rotate(0deg);
-        transition: transform 250ms ease-in;
-        opacity: 1;
+        transition: transform 0.5s ease-in-out;
+        z-index: 200;
+
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+            display: flex;
+            opacity: 1;
+            z-index: 7;
+        }
+
+        .pay-text {
+            display: none;
+        }
+
+        .qr-pay {
+            display: none;
+        }
+
+        .gold-certificate {
+            display: none;
+            z-index: 6;
         }
     
         .image-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        object-fit: contain;
-        width: 100%;
-        height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            object-fit: contain;
+            width: 100%;
+            height: 100%;
         }
     
         .animate {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
         }
     
         &.arrow, &.spinner, &.none {
-        .animate {
-            display: none;
-        }
+            .animate {
+                display: none;
+            }
         }
     
         &.arrow {
-        .qr-code {
             padding: 14px;
-        }
         }
     
         &.spinner {
-        .qr-code {
-            height: 30px;
-            margin: 11px;
-            border: none;
-        }
+            .qr-code {
+                height: 30px;
+                margin: 11px;
+                border: none;
+            }
         }
     
         &.none {
@@ -134,116 +279,344 @@ export const Main = styled.div`
             opacity: 0;
         }
         }
+
+        &.balance {
+            border: none;
+            opacity: 0;
+        }
+    }
+
+    .number-input-wrapper {
+        position: absolute;
+        width: 100%;
+        height: 74px;
+        top: 0;
+        left: 0;
+        padding-top: 1px;
+        padding-bottom: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+
+        .number-input-currency {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-weight: 700;
+            color: rgb(50,105,209) !important;
+            padding: 0 5px 0 5px;
+
+            img {
+                height: 20px;
+                width: auto;
+            }
+        }
+
+        .number-input-hide {
+            font-family: 'open-sans', sans-serif;
+            font-weight: 700;
+            font-style: normal;
+            text-align: center;
+        }
+
+        .hide {
+            opacity: 0;
+        }
+
+        &.len-1 {
+            font-size: 40px;
+        }
+        &.len-2 {
+            font-size: 40px;
+        }
+        &.len-3 {
+            font-size: 40px;
+        }
+        &.len-5 {
+            font-size: 40px;
+        }
+        &.len-6 {
+            font-size: 36px;
+        }
+        &.len-7 {
+            font-size: 32px;
+        }
+        &.len-9 {
+            font-size: 26px;
+        }
+        &.len-10 {
+            font-size: 24px;
+        }
     }
     
     .number-input {
         width: 100%;
         height: 74px;
         box-sizing: border-box;
-        margin: 0;
-        padding-left: 75px;
-        padding-right: 74px;
         border: none;
         outline: none;
-        font-size: 18px;
-        background: transparent;
-        color: #ffffff;
+        font-size: 40px;
+        background-color: transparent;
+        color: transparent;
+        // font-family: 'AvantGardeLT-CondDemi';
+        font-family: 'open-sans', sans-serif;
+        font-weight: 700;
+        font-style: normal;
+        text-align: center;
+        opacity: 0;
+        padding-bottom: 5px;
+        caret-color: transparent !important;
     
         &::placeholder {
-        opacity: 0;
-        color: #999999;
-        transition: opacity 250ms 500ms ease-out;
+            font-size: 20px;
+            opacity: 0;
+            color: #999999;
+            transition: opacity 250ms 500ms ease-out;
+        }
+
+        &:first-letter {
+            font-size: 16px;
+            color: rgb(50, 115, 209) !important;
         }
     }
 
     .number-prefix {
         display: none;
         position: absolute;
-        left: 18px;
+        left: 6%;
         color: white;
         top: 29%;
-        font-size: 1.4rem;
-    }
-    
-    &.load {
-        max-width: calc(100% - 10px);
-        transform: scale(1);
-        border: 2px solid rgb(50, 102, 209);
-        background: black;
-        overflow: hidden;
 
-        > .number-prefix {
-            display: block !important;
+        &__pay {
+            font-size: 22.64px;
+            font-family: 'Exo 2', sans-serif;
+            font-weight: 600;
+            color: #999;
         }
-    
-        .qr-code-container {
-            top: 8px !important;
-            left: auto !important;
-            right: 8px !important;
-            bottom: 8px !important;
-            height: calc(100% - 20px) !important;
-            border-radius: 100%;
-            border: 2px solid rgb(50, 102, 209);
-            box-shadow: 0 0 20px 20px #3269D143;
-    
-            .qr-code {
-                transform: translateY(0%) rotate(360deg);
+
+        &__symbol {
+            font-size: 20px;
+            font-family: 'Exo 2', sans-serif;
+            color: white;
+        }
+    }
+
+    .balance-prefix {
+        display: none;
+        position: absolute;
+        color: #999;
+        left: 30px;
+        top: 21px;
+
+        p {
+            font-size: 12px;
+            margin: 0;
+            text-align: left;
+        }
+
+        span {
+            font-size: 12px;
+            text-align: left;
+        }
+    }
+
+        &.error {
+            -webkit-animation-name:              ${keyFrameShake};
+            -webkit-animation-duration:          0.4s;
+            -webkit-animation-iteration-count:   infinite;
+            -webkit-animation-timing-function:   linear;
+            -webkit-transform-origin:            50% 100%;
+            box-shadow: 0 0 11.8px #ED1C24 !important;
+            border: 1px solid #ED1C24 !important;
+
+            .number-input {
+                color: #ED1C24 !important;
+            }
+
+            &::after {
+                color: #ED1C24 !important;
+            }
+
+            .qr-code-container {
+                .pay-text {
+                    color: rgba(237, 28, 36) !important;
+                    box-shadow: 0 0 9.07px rgba(237, 28, 36, 0.5) !important;
+                }
+            }
+
+            .input-circle {
+                box-shadow: 0 0 9.07px rgba(237, 28, 36, 0.5) !important;
+
+                .balance {
+                    color: rgba(237, 28, 36) !important;
+                }
+            }
+        }
+
+        &.load {
+            max-width: calc(100% - 10px);
+            transform: scale(1) !important;
+            border: 1.51px solid white;
+            background: black;
+            overflow: hidden;
+            box-shadow: 0 0 5.03px rgb(206, 206, 206);
+            top: 15px;
+
+            .input-circle {
+                display: flex !important;
+            }
+
+            .number-input-wrapper {
+                display: flex !important;
+            }
+
+            .number-prefix {
+                display: flex !important;
+                align-items: flex-end;
+                justify-content: space-between;
+            }
+
+            .certificate {
+                display: none !important;
+            }
+
+            .gold-certificate {
+                display: block !important;
+                transform: rotate(-90deg);
+            }
+
+            .balance-prefix {
+                display: flex !important;
+                align-items: center;
+                flex-direction: column;
+                justify-content: space-between;
             }
         
-            &.arrow {
+            .qr-code-container {
+                top: 0px !important;
+                left: auto !important;
+                right: 0px !important;
+                bottom: 8px !important;
+                height: 100% !important;
+                border-radius: 100%;
+                padding: 37px;
+                align-items: center;
+                display: flex;
+                justify-content: center;
+                transform: translateY(0%) rotate(360deg);
+                background-color: black;
+
+                canvas {
+                    width: 36px !important;
+                    height: 36px !important;
+                    opacity: 1;
+                }
+
+                .pay-text {
+                    display: flex !important;
+                }
+
+                .circle-text {
+                    display: none !important;
+                }
+
+                .qr-pay {
+                    font-family: 'Exo 2', sans-serif;
+                    font-weight: 600;
+                    display: block !important;
+                }
+        
                 .qr-code {
-                    &:active {
-                        opacity: 0.7;
+                    position: absolute;
+                    width: 20px !important;
+                    height: 20px !important;
+                    display: flex;
+                    justify-content: center;
+                    z-index: 7;
+                }
+        
+                &.none {
+                    border: none;
+                    box-shadow: none;
+                }
+
+                &.changed {
+
+                    .qr-pay {
+                        // font-family: 'AvantGardeLT-Bold' !important;
+                        font-family: 'open-sans', sans-serif;
+                        font-weight: 800;
+                        font-style: normal;
+                        text-shadow: 0 0 2px rgba(0,0,0,0.196);
+                        color: white !important;
                     }
                 }
             }
-    
-            &.none {
-                border: none;
-                box-shadow: none;
+            .number-input {
+                display: block;
+                caret-color: transparent !important;
+                opacity: 1 !important;
+
+                &::placeholder {
+                    opacity: 1;
+                }
+            }
+
+            &::after {
+                opacity: 1 !important;
             }
         }
-
+    
         &.unload {
-            background: none !important;
-        }
-    
-        .number-input {
-            display: block;
-            &::placeholder {
-                opacity: 1;
+            max-width: 74px;
+            transform: scale(1);
+            border-width: 0;
+            transition: transform 250ms ease-in 500ms, max-width 250ms ease-in, border-width 250ms ease-in 250ms;
+            overflow: hidden;
+            box-shadow: none !important;
+
+            > .number-prefix {
+                display: none !important;
+            }
+
+            > .balance-prefix {
+                display: none !important;
+            }
+
+            &.load {
+                transform: scale(1) !important;
+
+                .qr-code-container {
+                    right: 0 !important;
+                    top: 0 !important;
+                }
+            }
+        
+            .qr-code-container {
+                position: absolute !important;
+                top: 12% !important;
+                right: 11% !important;
+                left: auto !important;
+                bottom: 0 !important;
+                height: 25px !important;
+                border-radius: 50% !important;
+                border: none !important;
+                transform: translateY(0%) rotate(0deg);
+                transition: transform 250ms ease-in 500ms;
+        
+                .qr-code {
+                    transform: translateY(0%) rotate(0deg);
+                    transition: transform 250ms ease-in 500ms;
+                }
+            }
+
+            .number-input {
+                caret-color: transparent !important;
             }
         }
-    }
-    
-    &.unload {
-        max-width: 74px;
-        transform: scale(4.5);
-        border-width: 0;
-        transition: transform 250ms ease-in 500ms, max-width 250ms ease-in, border-width 250ms ease-in 250ms;
-        overflow: hidden;
-
-        > .number-prefix {
-            display: none !important;
-        }
-    
-        .qr-code-container {
-            position: absolute !important;
-            top: 23% !important;
-            left: 23% !important;
-            right: auto !important;
-            bottom: 0 !important;
-            height: 48% !important;
-            border-radius: 50% !important;
-            border: none !important;
-            box-shadow: 0 0 10px 10px rgba(240, 168, 35, 0.3) !important;
-    
-        .qr-code {
-            transform: translateY(0%) rotate(0deg);
-            transition: transform 250ms ease-in 500ms;
-        }
-        }
-    }
     }
     
     /* Animation for background */
@@ -367,27 +740,155 @@ export const Wrapper = styled.div.attrs({ className: 'qr-code-view-wrapper' })`
     z-index: 2;
 `;
 
-export const QRCodeWrapper = styled.div.attrs({ className: 'qr-code-wrapper' })`
-    flex-shrink: 0;
-    position: relative;
+export const InputCircle = styled.div.attrs({ className: 'input-circle' })`
+    padding: ${props => props.isBalance ? 11 : 14}px;
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    bottom: 8px;
+    height: 58px;
+    width: 58px;
+    background-color: black;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 100%;
-    height: 100%;
-    opacity: 1;
-    border-radius: 50%;
+    box-shadow: 0 0 10px ${props => props.borderColor ? props.borderColor : '#fff4'};
 
-    .qr-code-back {
-        position: absolute;
+    img {
         width: 100%;
-        height: 100%;
     }
-    
-    .qr-code, canvas {
-        width: 48% !important;
-        height: 48% !important;
-        z-index: 1;
+
+    .balance {
+        position: absolute;
+        width: 22px;
+        height: 18px;
+        top: 22px;
+        left: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        font-weight: 600;
+        color: white;
+
+        &.long span {
+            transform: scale(0.65, 1)
+        }
+    }
+`;
+
+export const QRCodeWrapper = styled.div.attrs({ className: 'qr-code-wrapper' })`
+    top: 32%;
+    position: absolute;
+    width: 47% !important;
+    height: 46% !important;
+    display: flex;
+    opacity: 1;
+    z-index: 7;
+    padding: 4px;
+    background-color: rgb(255, 180, 0);
+
+    canvas {
+        width: 100% !important;
+        height: 100% !important;
+    }
+`;
+
+
+export const CertificateContainer = styled.div.attrs({ className: 'certificate' })`
+    position: absolute;
+    top: -15px;
+    left: -15px;
+    bottom: 0;
+    height: 104px;
+    width: 104px;
+    display: flex;
+    justify-content: center;
+    transform: scale(1);
+    transition: transform 2s ease-in;
+
+    img {
+        height: 111.6%;
+        width: 74%;
+        position: absolute;
+        top: 0;
+    }
+
+    &.zoom {
+        -webkit-backface-visibility: hidden;
+        transform: scale(2.2) translateZ(0);
+        transition: transform 2s ease-in;
+
+        .circle-text {
+            display: none !important;
+        }
+
+        img {
+            opacity: 0.5 !important;
+        }
+    }
+
+    &.usd_1 {
+        top: ${props => -9 - (props.billHeight - 581.0) * 0.08074}px !important;
+        left: ${props => 37 - props.billHeight * 0.1755593 / 2}px !important;
+        // left: ${props => -5 - (props.billHeight / 581.0 * 254.0 - 254.0) * 0.15574}px !important;
+        height: ${props => props.billHeight * 0.1807289}px !important;
+        width: ${props => props.billHeight * 0.1755593}px !important;
+    }
+
+    &.usd_10 {
+        top: ${props => -14 - (props.billHeight - 581.0) * 0.09074}px !important;
+        // left: ${props => -22 - (props.billHeight / 581 * 254 - 254.0) * 0.24074}px !important;
+        left: ${props => 37 - props.billHeight * 0.1755593 / 2}px !important;
+        bottom: 0 !important;
+        height: ${props => props.billHeight * 0.1807289}px !important;
+        width: ${props => props.billHeight * 0.1755593}px !important;
+    }
+
+    &.usd_100 {
+        top: ${props => -19 - (props.billHeight - 581.0) * 0.10374}px !important;
+        // left: ${props => -18 - (props.billHeight / 581 * 254 - 254.0) * 0.20574}px !important;
+        left: ${props => 37 - props.billHeight * 0.1755593 / 2}px !important;
+        bottom: 0 !important;
+        height: ${props => props.billHeight * 0.1807289}px !important;
+        width: ${props => props.billHeight * 0.1755593}px !important;
+    }
+
+    &.usd_1000 {
+        top: ${props => -20 - (props.billHeight - 581.0) * 0.10074}px !important;
+        // left: ${props => -10 - (props.billHeight / 581 * 254 - 254.0) * 0.20574}px !important;
+        left: ${props => 37 - props.billHeight * 0.1755593 / 2}px !important;
+        bottom: 0 !important;
+        height: ${props => props.billHeight * 0.1807289}px !important;
+        width: ${props => props.billHeight * 0.1755593}px !important;
+    }
+
+    &.usd_10000 {
+        top: ${props => -5 - (props.billHeight - 581.0) * 0.07474}px !important;
+        // left: ${props => -19 - (props.billHeight / 581 * 254 - 254.0) * 0.22574}px !important;
+        left: ${props => 37 - props.billHeight * 0.1755593 / 2}px !important;
+        bottom: 0 !important;
+        height: ${props => props.billHeight * 0.1807289}px !important;
+        width: ${props => props.billHeight * 0.1755593}px !important;
+    }
+
+    &.usd_100000 {
+        top: ${props => -5 - (props.billHeight - 581.0) * 0.07474}px !important;
+        // left: ${props => -19 - (props.billHeight / 581 * 254 - 254.0) * 0.22574}px !important;
+        left: ${props => 37 - props.billHeight * 0.1755593 / 2}px !important;
+        bottom: 0 !important;
+        height: ${props => props.billHeight * 0.1807289}px !important;
+        width: ${props => props.billHeight * 0.1755593}px !important;
+    }
+
+    &.zoomIn {
+        .qr-code-wrapper {
+            width: 102% !important;
+            height: 100% !important;
+            top: 11% !important;
+            padding: 8px !important;
+        }
     }
 `;
 
@@ -753,3 +1254,138 @@ export const SpinnerIcon = props => (
         </g>
     </SpinnerIconSvg>
 );
+
+const rotateOpenAnim = keyframes`
+    0% { transform: scale(0) rotate(0deg); }
+    100% { transform: scale(1) rotate(1080deg); }
+`;
+
+const rotateCloseAnim = keyframes`
+    0% { transform: scale(1) rotate(1080deg); }
+    100% { transform: scale(0) rotate(0deg); }
+`;
+
+export const PortalWrapper = styled.div`
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    top: 27%;
+    left: 34%;
+`;
+
+export const PortalInnerWrapper = styled.div`
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    box-shadow: 0 0 6px 1.5px rgba(69, 105, 209, 1);
+    animation: ${rotateOpenAnim} 1s linear;
+    transform-origin: center;
+    
+    &.close {
+        animation: ${rotateCloseAnim} 1s linear;
+    }
+
+    > img {
+        width: 100%;
+        height: 100%;
+    }
+`;
+
+export const WithdrawInfo = styled.div`
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    
+    img {
+        width: 50%;
+    }
+    
+    span {
+        font-size: 16px;
+        font-weight: 600;
+    }
+`;
+
+export const ImgBills = styled.img`
+    cursor: pointer;
+`;
+
+export const CountrySelect = styled.div`
+    position: absolute;
+    width: 75%;
+    height: 54vh;
+    background-color: black;
+    border: solid 1.69px white;
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+    top: calc(20.7% + 64px);
+    left: 50%;
+    transform: translateX(-50%);
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+`;
+
+export const CountrySearch = styled.div`
+    top: 0;
+    position: sticky;
+    background-color: black;
+    border-bottom: 1px solid white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1rem 1rem 1rem;
+
+    input {
+        outline: none;
+        width: 100%;
+        margin-left: 1rem;
+        color: white;
+        border: none;
+        font-size: 16px;
+        font-family: 'Exo 2', sans-serif;
+        font-weight: 400;
+        background: transparent;
+    }
+
+    img {
+        width: 40px;
+        height: auto;
+    }
+`;
+
+export const CountrySelectItem = styled.div`
+    border-bottom: 0.5px solid white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1rem 1rem 1rem;
+
+    h1 {
+        font-size: 16px;
+        font-family: 'Exo 2', sans-serif;
+        font-weight: 600;
+        margin-left: 1rem;
+    }
+
+    img {
+        height: 40px;
+        width: auto;
+    }
+
+    &:hover {
+        background-color: rgb(50, 105, 209);
+    }
+
+    .currency-item-container {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+`;

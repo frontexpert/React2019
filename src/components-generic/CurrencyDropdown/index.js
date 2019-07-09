@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import { inject, observer } from 'mobx-react';
 import { FormattedMessage } from 'react-intl';
 import { compose, withProps } from 'recompose';
 import sortBy from 'lodash/sortBy';
 import { AutoSizer, Table, Column } from 'react-virtualized';
 import PerfectScrollbar from 'react-perfect-scrollbar';
+import { withSafeTimeout } from '@hocs/safe-timers';
 
 import { STORE_KEYS } from '../../stores';
 import { highlightSearchDom } from '../../utils';
@@ -14,7 +15,7 @@ import {
     SearchInputWrapper, SearchInput,
     ItemList, ListStyleWrapper, ListItem, SearchIcon
 } from '../SelectDropdown/Components';
-import CoinIcon from '../CoinIcon';
+import { CoinIcon } from '../CoinIcon';
 
 const Dropdown = styled.div`
     position: absolute;
@@ -24,7 +25,7 @@ const Dropdown = styled.div`
     z-index: 100;
     width: ${props => (!props.alignLeft || !props.alignRight) ? props.width + 'px' : 'unset'};
     height: ${props => props.height}px;
-    left: 12px;
+    right: 10px;
     margin: 0;
     padding: 0;
     display: flex;
@@ -41,7 +42,7 @@ const Dropdown = styled.div`
             : `0 0 ${props.theme.palette.borderRadius} ${props.theme.palette.borderRadius}`};
     box-shadow: 2px 0 0 2px rgba(0, 0, 0, .2);
     font-size: 18px;
-    
+
     &.mobile {
         position: ${props => props.isMobileAbsolute ? 'absolute' : 'fixed'};
         left: 0;
@@ -52,7 +53,7 @@ const Dropdown = styled.div`
         height: unset;
         padding: 12px;
         font-size: 24px;
-        
+
         &:before {
             content: '';
             position: absolute;
@@ -64,7 +65,7 @@ const Dropdown = styled.div`
             border-radius: ${props => props.theme.palette.borderRadius};
         }
     }
-    
+
     &.fullscreen {
         position: fixed;
         left: 12px;
@@ -87,18 +88,17 @@ class CurrencyDropdown extends Component {
 
     dropdownScrollRef = null;
 
-    componentDidMount() {
-        this.updateTableItems(this.props);
+    clearUpdateTableItemsTimeout = null;
+    clearHandeSelectItemTimeout = null;
 
-        setTimeout(() => {
+    componentDidMount() {
+        this.updateTableItems();
+
+        this.props.setSafeTimeout(() => {
             if (this.searchValueRef) {
                 this.searchValueRef.focus();
             }
         });
-    }
-
-    componentWillReceiveProps(nextProps, nextContext) {
-        this.updateTableItems(nextProps);
     }
 
     handleScroll = ({ scrollTop }) => {
@@ -110,35 +110,57 @@ class CurrencyDropdown extends Component {
             searchValue: (e && e.target && e.target.value) || '',
         });
 
-        setTimeout(this.updateTableItems);
+        if (this.clearUpdateTableItemsTimeout) {
+            this.clearUpdateTableItemsTimeout();
+        }
+        this.clearUpdateTableItemsTimeout = this.props.setSafeTimeout(this.updateTableItems);
     };
 
-    handleSelectItem = (currency, symbol, price, isDefaultCrypto) => () => {
-        this.props.setDefaultCurrency(currency, symbol, price, isDefaultCrypto);
+    handleSelectItem = (currency, symbol, price, isDefaultCrypto, disableCrypto) => () => {
+        if (!disableCrypto) {
+            const {
+                setDefaultCurrency,
+                setSafeTimeout,
+                [STORE_KEYS.SETTINGSSTORE]: { defaultCryptoSymbol },
+                onChange,
+                isForexMode,
+            } = this.props;
 
-        this.setState({ searchValue: '' });
-
-        setTimeout(() => {
-            // let newQuote = isDefaultCrypto ? this.props[STORE_KEYS.SETTINGSSTORE].defaultCryptoSymbol : 'F:' + this.props[STORE_KEYS.SETTINGSSTORE].defaultFiat;
-            let newQuote = '';
-
-            if (isDefaultCrypto) {
-                newQuote = this.props[STORE_KEYS.SETTINGSSTORE].defaultCryptoSymbol;
-            } else {
-                newQuote = 'USDT';
+            if (onChange && isForexMode && currency !== 'Bitcoin' && currency !== 'USD') {
+                onChange(`F:${currency}`);
+            } else if (onChange) {
+                onChange(currency, symbol, price, isDefaultCrypto);
             }
 
-            this.props.setQuote(newQuote);
-            this.props.addRecentQuote(newQuote);
+            setDefaultCurrency(currency, symbol, price, isDefaultCrypto);
 
-            if (this.props.onChange) {
-                this.props.onChange(currency, symbol, price, isDefaultCrypto);
+
+            this.setState({ searchValue: '' });
+
+            if (this.clearHandeSelectItemTimeout) {
+                this.clearHandeSelectItemTimeout();
             }
-        });
+            this.clearHandeSelectItemTimeout = setSafeTimeout(() => {
+                // let newQuote = isDefaultCrypto ? this.props[STORE_KEYS.SETTINGSSTORE].defaultCryptoSymbol : 'F:' + this.props[STORE_KEYS.SETTINGSSTORE].defaultFiat;
+                let newQuote = '';
+
+                if (isDefaultCrypto) {
+                    newQuote = defaultCryptoSymbol;
+                } else {
+                    newQuote = 'USDT';
+                }
+
+                // this.props.setQuote(newQuote);
+                // this.props.addRecentQuote(newQuote);
+            });
+        }
 
         this.props.toggleDropDown(false);
 
-        // setTimeout(() => {
+        // if (this.clearUpdateTableItemsTimeout) {
+        //     this.clearUpdateTableItemsTimeout();
+        // }
+        // this.clearUpdateTableItemsTimeout = this.props.setSafeTimeout(() => {
         //     this.updateTableItems();
         // });
     };
@@ -213,7 +235,7 @@ class CurrencyDropdown extends Component {
         return weight;
     };
 
-    updateTableItems = (propsInput) => {
+    updateTableItems = () => {
         const { searchValue } = this.state;
         const { type, isMobile } = this.props;
 
@@ -227,6 +249,7 @@ class CurrencyDropdown extends Component {
                 if (weight >= 0) {
                     tableItems.push({
                         weight,
+                        isCrypto: false,
                         value: items[i],
                     });
                 }
@@ -240,50 +263,48 @@ class CurrencyDropdown extends Component {
             activeOptionIdx = tableItems.findIndex(item => item.code === this.props.value);
         }
 
-        let props = propsInput || this.props;
         let cryptoTable = [];
-        if (type !== 'fiat' && props && props.portfolioData && props.portfolioData.length) {
-            const portfolioData = props.portfolioData;
+        if (type !== 'fiat' && this.props.portfolioData && this.props.portfolioData.length) {
+            const portfolioData = this.props.portfolioData;
             for (let i = 0; i < portfolioData.length; i++) {
                 try {
-                    if (!portfolioData[i].Coin.startsWith('F:') && portfolioData[i].coin !== 'USDT') {
+                    if (portfolioData[i].Coin === 'BTC') {
                         const weight = this.isCryptoSearched(portfolioData[i], searchValue);
+                        const obj = {
+                            weight,
+                            isCrypto: true,
+                            value: portfolioData[i],
+                        };
                         if (weight >= 0) {
-                            cryptoTable.push({
-                                weight,
-                                value: portfolioData[i],
-                            });
+                            cryptoTable.push(obj);
+                            break;
                         }
                     }
                 } catch (e) {
                     console.log(e);
                 }
             }
-
-            cryptoTable = sortBy(cryptoTable, item => item.weight).map(item => ({
-                ...item.value,
-                isCrypto: true,
-            }));
-            activeOptionIdx = cryptoTable.findIndex(item => item.Name === this.props.value);
+            activeOptionIdx = 0;
         }
 
-        this.setState({ tableItems: tableItems.concat(cryptoTable) }, () => {
+        this.setState({ tableItems: cryptoTable.concat(tableItems) }, () => {
             this.dropdownScrollRef.scrollTop = activeOptionIdx * (isMobile ? 80 : 60);
         });
     };
 
     itemCellRenderer = ({ rowData }) => {
-        const { value, isMobile } = this.props;
+        const { value, isMobile, disableCrypto } = this.props;
         const { searchValue } = this.state;
 
         if (rowData.isCrypto) {
+            rowData = rowData.value;
             const isSelected = rowData.Name === value;
             const coinSymbol = rowData.Coin.replace('F:', '');
             return (
                 <ListItem
                     className={isSelected ? 'active' : ''}
                     isMobile={isMobile}
-                    onClick={this.handleSelectItem(rowData.Name, coinSymbol, rowData.Price || 0, true)}
+                    onClick={this.handleSelectItem(rowData.Name, coinSymbol, rowData.Price || 0, true, disableCrypto)}
                 >
                     <CoinIcon value={coinSymbol} size={28}/>&nbsp;&nbsp;
                     <div className="bigger">{highlightSearchDom(rowData.Coin.replace('F:', ''), searchValue)} - {highlightSearchDom(rowData.Name, searchValue)}</div>
@@ -292,14 +313,23 @@ class CurrencyDropdown extends Component {
         }
 
         const isSelected = rowData.code === value;
+        const STRING_LENGTH_THRESHOLD = 30;
+        const itemString = `${rowData.symbol} - ${rowData.code} ${rowData.name}`;
+        const isStringOverThreshold = itemString.length > STRING_LENGTH_THRESHOLD;
+
         return (
             <ListItem
                 className={isSelected ? 'active' : ''}
                 isMobile={isMobile}
-                onClick={this.handleSelectItem(rowData.code, rowData.symbol, 1, false)}
+                isLongString={isStringOverThreshold}
+                onClick={this.handleSelectItem(rowData.code, rowData.symbol, 1, false, false)}
             >
                 <img src={`/img/icons-coin/${rowData.code.toLowerCase()}.png`} className="flag" alt=""/>
-                <div className="bigger">{highlightSearchDom(rowData.symbol, searchValue)} - {highlightSearchDom(rowData.code, searchValue)} ({highlightSearchDom(rowData.name, searchValue)})</div>
+                <div className="bigger">
+                    <span className="list-item">
+                        {highlightSearchDom(rowData.symbol, searchValue)} - {highlightSearchDom(rowData.code, searchValue)} ({highlightSearchDom(rowData.name, searchValue)})
+                    </span>
+                </div>
             </ListItem>
         );
     };
@@ -331,7 +361,7 @@ class CurrencyDropdown extends Component {
                         {placeholder =>
                             <SearchInput
                                 isBigger
-                                innerRef={ref => this.searchValueRef = ref}
+                                ref={ref => this.searchValueRef = ref}
                                 value={searchValue}
                                 readOnly={isDisabled}
                                 onChange={this.handleChangeSearchValue}
@@ -353,7 +383,7 @@ class CurrencyDropdown extends Component {
                                 length={tableItems.length}
                             >
                                 <PerfectScrollbar
-                                    option={{
+                                    options={{
                                         suppressScrollX: true,
                                         minScrollbarLength: 50,
                                     }}
@@ -388,7 +418,8 @@ class CurrencyDropdown extends Component {
     }
 }
 
-const withStore = compose(
+const enhanced = compose(
+    withSafeTimeout,
     inject(
         STORE_KEYS.YOURACCOUNTSTORE,
         STORE_KEYS.SETTINGSSTORE,
@@ -420,4 +451,4 @@ const withStore = compose(
     )
 );
 
-export default withStore(CurrencyDropdown);
+export default enhanced(CurrencyDropdown);

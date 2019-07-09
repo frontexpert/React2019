@@ -1,5 +1,5 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import { darkTheme } from '../../theme/core';
 
 const { palette } = darkTheme;
@@ -31,6 +31,7 @@ export const InputWrapper = styled.div`
     width: 100%;
     height: 100%;
     overflow: hidden;
+    min-height: 38px !important;
     
     &:last-child {
         margin-right: 0 !important;
@@ -72,6 +73,7 @@ export const InputAddon = styled.div`
     height: 100%;
     background: ${palette.clrBlue};
     cursor: pointer;
+    min-height: 33px;
     
     .sprite-icon.close {
         width: 20px;

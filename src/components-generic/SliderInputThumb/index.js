@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 
 const thumbRadius = 12;
 const MULTIPLIER = 10000;

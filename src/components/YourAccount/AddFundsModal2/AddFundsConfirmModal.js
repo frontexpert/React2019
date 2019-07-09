@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import { compose, withProps } from 'recompose';
 import { inject, observer } from 'mobx-react';
 import { FormattedMessage } from 'react-intl';

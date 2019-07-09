@@ -1,5 +1,5 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 
 const Wrapper = styled.section`
@@ -42,7 +42,7 @@ const Link = styled.a`
 
 const Content = props => (
     <Wrapper>
-        <PerfectScrollbar option={{ maxScrollbarLength: 60 }}>
+        <PerfectScrollbar options={{ maxScrollbarLength: 60 }}>
             <InnerWraper>
                 <Header>Terms Of Service</Header>
 

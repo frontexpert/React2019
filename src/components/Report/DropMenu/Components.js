@@ -1,16 +1,17 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 
 export const Wrapper = styled.div.attrs({ className: 'dropmenu-wrapper' })`
     box-sizing: border-box;
-    display: block;
-    font-weight: 400;
+    display: flex;
+    font-weight: 700;
     font-size: 11px;
-    height: 35px;
+    font-family: 'open_sans',sans-serif;
     letter-spacing: 1px;
     padding: 10px;
     position: relative;
     user-select: none;
+    align-items: center;
     
     &:after {
         background-image: url(/img/icon_dp_back.svg);
@@ -24,7 +25,8 @@ export const Wrapper = styled.div.attrs({ className: 'dropmenu-wrapper' })`
         opacity: 0.6;
         position: absolute;
         right: 6px;
-        top: 15px;
+        top: 50%;
+        transform: translateY(-50%);
         width: 14px;
         z-index: 101;
     }
@@ -34,24 +36,25 @@ export const Label = styled.div`
     box-sizing: border-box;
     cursor: pointer;
     display: block;
-    height: 13px;
     padding-right: 13px;
+    font-weight: 700;
     user-select: none;
+    color: ${props => props.theme.palette.clrPurple};
     
     .label {
         box-sizing: border-box;
-        color: #09f;
         cursor: pointer;
-        display: inline;
+        display: block;
         user-select: none;
+        color: ${props => props.theme.palette.clrPurple};
     }
     
     .value {
         box-sizing: border-box;
         cursor: pointer;
-        display: inline;
-        margin-left: 6px;
+        display: block;
         user-select: none;
+        color: ${props => props.theme.palette.clrPurple};
     }
 `;
 
@@ -61,12 +64,13 @@ export const DropdownList = styled.div`
     border-top-left-radius: 3px;
     border-top-right-radius: 3px;
     box-sizing: border-box;
-    background-color: #fff;
+    color: ${props => props.theme.palette.clrPurple};
+    background-color: ${props => props.theme.palette.clrMainWindow};
+    border: 1px solid ${props => props.theme.palette.clrPurple};
     box-shadow: 0 0 5px 0 rgba(0,0,0,0.3);
-    display: ${props => props.opened ? 'block' : 'none'};
     position: absolute;
     right: 0px;
-    top: 30px;
+    top: 60%;
     user-select: none;
     width: auto;
     z-index: 1000;
@@ -89,6 +93,6 @@ export const DropdownItem = styled.div`
     }
     
     ${props => props.isActive ? `
-        color: #0057a3;
+        color: #fff;
     ` : ''}
 `;

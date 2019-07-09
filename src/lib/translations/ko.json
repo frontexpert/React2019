@@ -8,7 +8,8 @@
   "settings.label_real_trading": "실제 거래 (레벨 1 액세스)",
   "settings.label_access_level": "액세스 수준",
   "settings.label_balance_includes_credit": "잔액은 신용을 포함",
-  "settings.label_google_2fa": "구글 2FA",
+  "settings.label_google_2fa": "이메일 2FA",
+  "settings.label_email_2fa": "Email 2FA",
   "settings.label_arbitrage_mode": "중재 방법",
   "settings.label_private_vpn": "개인 VPN",
   "settings.label_store_credit": "상점 크레딧",
@@ -187,7 +188,6 @@
   "data_loader_done.label_done": "끝난",
   "sms_verification.label_enter_mobile_number": "휴대 전화 번호 입력",
   "sms_verification.label_what_code": "코드 란 무엇입니까?",
-  "switch_custom.label_off": "떨어져서",
 
   "button.save": "구하다",
   "button.confirm": "확인",
@@ -216,5 +216,6 @@
   "order_book.buy_book.label_max_order_size": "최대 주문 크기 : ",
   "settings.label_auto_flip": "자동 뒤집기",
   "settings.label_swaps": "교환",
-  "settings.label_is_auto_convert": "자동 변환"
+  "settings.label_is_auto_convert": "자동 변환",
+  "settings.label_support_center": "플랫폼 지원 센터"
 }

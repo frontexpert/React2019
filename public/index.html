@@ -2,18 +2,21 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=yes, minimal-ui">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#000000" />
+    <meta http-equiv="ScreenOrientation" content="autoRotate:disabled" />
+    <meta name="format-detection" content="telephone=no" />
     <!--
-      manifest.json provides metadata used when your web app is added to the
-      homescreen on Android. See https://developers.google.com/web/fundamentals/engage-and-retain/web-app-manifest/
+      manifest.json provides metadata used when your web app is installed on a
+      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
     -->
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json">
+    <link rel="manifest" crossOrigin="use-credentials" href="%PUBLIC_URL%/manifest.json" />
     <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.png">
-    <noscript id="jss-insertion-point"></noscript>
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/favicon.png" />
+    <!-- jss-insertion-point -->
     <!--
     <script src="https://browser.sentry-cdn.com/4.6.4/bundle.min.js" crossorigin="anonymous"></script>
     <script type="text/javascript">
@@ -21,16 +24,9 @@
     </script>
     //-->
     <title>Blockchain Terminal</title>
-    <script type="text/javascript" src="libs/charting_library_new/charting_library.js"></script>
-    <script type="text/javascript" src="libs/AwesomeQR/require.js"></script>
-    <script>
-    <!--
-        var __awesome_qr_base_path = "libs/AwesomeQR";
-        require([__awesome_qr_base_path + '/awesome-qr'], function (AwesomeQR) {
-            window.awesomeQR = AwesomeQR;
-        });
-    //-->
-    </script>
+    <!-- TODO refactoring: inject inside the components using ReactHelmet -->
+    <script src="trading_view/charting_library.min.js"></script>
+    <!-- <script type="text/javascript" src="libs/charting_library_new/charting_library.js"></script> -->
   </head>
   <body>
     <noscript>

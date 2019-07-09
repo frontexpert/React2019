@@ -1,318 +1,144 @@
-import {
-    computed, observable, autorun, action, runInAction, reaction
-} from 'mobx';
-import {
-    scheduleVisualDOMUpdate,
-    getDepthChartData
-} from './utils/storeUtils';
-import {
-    pageIsVisible,
-    getScreenInfo
-} from '../utils';
+import { computed, observable, runInAction, reaction } from 'mobx';
+import { pageIsVisible, getScreenInfo } from '../utils';
 import { getOrderBookDataFeed } from '../lib/ws/feed';
 import { STATE_KEYS } from './ConvertStore';
 
-const throttleMs = 500;
-const requestLevels = 300;
-// const maxRows = 50;
-
-
-// purpose of reversedInsertionOrder is to return an exchange map whose insertion order is the stable reverse of the passed OrderBookMap
-// we use reversedInsertionOrder=true for Asks
-export const distinctExchangesFromOrderBook = (OrderBookMap, reversedInsertionOrder = false) => {
-    const orderBookMapKeys = reversedInsertionOrder ? [...OrderBookMap.keys()].reverse() : [...OrderBookMap.keys()];
-
-    return orderBookMapKeys.reduce(
-        (acc, itemKey) => {
-            const item = OrderBookMap.get(itemKey);
-            const [, , exchangeStr] = item;
-            exchangeStr.split(',').forEach((exchange) => {
-                if (!acc.has(exchange)) acc.set(exchange, [item]);
-                else acc.get(exchange).push(item);
-            });
-            return acc;
-        },
-        new Map()
-    );
-};
+const throttleMs = 2000;
+const levels = 150;
 
 class OrderBookStore {
-    @observable Asks = [];
-    @observable Bids = [];
-    @observable Spread = new Map();
-    @observable PricesByExchangeSorted = new Map();
-    @observable PricesByExchangeCCASorted = new Map();
+    @observable.shallow Asks = [];
+    @observable.shallow Bids = [];
+    @observable midPrice = 0;
+    @observable pricesByExchangeCCA = new Map();
     @observable isPricesByExchangeCCASorted = 0; // 0: default, 1: no exchanges, 2: several exchanges
-    @observable MarketDepth = new Map();
     @observable base = ''; // incoming data feed's base coin
     @observable quote = ''; // incoming data feed's quote coin
+    @observable isCoinPairInversed = false;
     @observable isOrderBookStop = false; // FALSE: no data stream, TRUE: data stream exists
     @observable isFetchingBestRates = false;
     @observable isDGLoaded = false;
-    @observable isSymbolUpdated = true;
+    @observable isSymbolUpdated = false;
+    @observable symbol = '';
 
-    symbol = '';
-    __subscriptionInited = false;
-    depthChartMode = false;
-    orderHistoryMode = false;
-    isGBExistMonitor = false;
-    viewMode = '';
-    spread$ = null;
-    levels = 90;
-    orderbookArrivedTime = 0;
+    orderbookArrivedTime = Date.now();
     exchange = 'Global';
-    convertState = null;
+    convertState = STATE_KEYS.coinSearch;
     exchanges = {};
+    marketsStore;
+    isDepthChartMode = false;
+    isMobileDevice = false;
 
-    constructor(instrumentStore, viewModeStore, exchangesStore, convertStore, marketsStore) {
-        autorun(() => {
-            if (this.isSyncing) return;
-            if (this.depthChartMode) this.deriveMarketDepth();
-            this.deriveBestBidsByExchange();
-        }, { delay: 0 });
+    constructor(instrumentStore, viewModeStore, exchangesStore, convertStore, marketsStore, settingsStore) {
+        this.isMobileDevice = getScreenInfo().isMobileDevice;
+        this.exchanges = this.loadFromStorage();
+        this.marketsStore = marketsStore;
 
-        instrumentStore.instrumentsReaction(
-            (base, quote) => {
-                /**
-                 * Init OrderBooks ws data
-                 */
-                this.Asks = [];
-                this.Bids = [];
-                this.spread$ = null;
-                this.Spread.clear();
+        instrumentStore.instrumentsReaction((base, quote) => {
+            this.resetStore(base, quote);
+        }, true);
 
-                try {
-                    const newPair = marketsStore.markets[`${base}-${quote}`];
-                    const pair = newPair.split('-');
-                    if (pair.length === 2) {
-                        this.base = pair[0];
-                        this.quote = pair[1];
-                    } else {
-                        this.base = base;
-                        this.quote = quote;
+        reaction(
+            () => ({ depthChartMode: viewModeStore.depthChartMode }),
+            ({ depthChartMode }) => {
+                this.isDepthChartMode = depthChartMode;
+                if (depthChartMode) {
+                    if (this.base && this.quote && !this.isMobileDevice) {
+                        this.subscribe();
                     }
-                } catch(e) {
-                    this.base = base;
-                    this.quote = quote;
+                } else {
+                    this.unsubscribe();
                 }
-
-                if (!getScreenInfo().isMobileDevice) {
-                    this.initOrderBooksSubscription(base, quote);
-                }
-
-                this.PricesByExchangeCCASorted = new Map();
-                this.isPricesByExchangeCCASorted = 0;
-
-                base = (base || '').replace('F:', '');
-                quote = (quote || '').replace('F:', '');
-                const symbol = base + '-' + quote;
-                this.fetchBestRates(symbol);
-                const isSymbolUpdated = this.symbol === symbol;
-                if (isSymbolUpdated !== this.isSymbolUpdated) this.isSymbolUpdated = isSymbolUpdated;
             },
-            true
-        );
-
-        this.orderbookArrivedTime = Math.round((new Date()).getTime() / 1000);
-
-        reaction(
-            () => ({
-                depthChartMode: viewModeStore.depthChartMode,
-                orderHistoryMode: viewModeStore.orderHistoryMode,
-                viewMode: viewModeStore.viewMode,
-                isGBExistMonitor: viewModeStore.isGBExistMonitor,
-            }),
-            (viewMode) => {
-                this.depthChartMode = viewMode.depthChartMode;
-                this.orderHistoryMode = viewMode.orderHistoryMode;
-                this.viewMode = viewMode.viewMode;
-                this.isGBExistMonitor = viewMode.isGBExistMonitor;
-            }
+            { fireImmediately: true }
         );
 
         reaction(
-            () => {
-                return {
-                    exchanges: exchangesStore.exchanges,
-                };
-            },
-            ({
-                exchanges,
-            }) => {
-                if (!getScreenInfo().isMobileDevice) {
+            () => ({ exchanges: exchangesStore.exchanges }),
+            ({ exchanges }) => {
+                if (!this.isMobileDevice) {
                     this.exchanges = exchanges;
-                    this.updateOrderBooksByExchange();
+                    this.subscribe();
                 }
             }
         );
 
-        this.loadFromStorage().then((exches) => {
-            this.exchanges = exches;
-        });
-
         reaction(
-            () => {
-                return {
-                    convertState: convertStore.convertState,
-                };
-            },
-            ({
-                convertState,
-            }) => {
+            () => ({ convertState: convertStore.convertState }),
+            ({ convertState }) => {
                 this.convertState = convertState;
             }
         );
 
         setInterval(() => {
-            if (this.__subscriptionInited) {
-                const currentUnix = Math.round((new Date()).getTime() / 1000);
-                const delta = currentUnix - this.orderbookArrivedTime;
-                if (delta > 5) {
+            if (this.subscribe) {
+                const delta = Date.now() - this.orderbookArrivedTime;
+                if (delta > throttleMs * 2) {
                     this.isOrderBookStop = true;
                 }
             }
-        }, 1000);
-
-        this.convertState = STATE_KEYS.coinSearch;
+        }, throttleMs);
     }
 
     loadFromStorage = () => {
-        return new Promise((resolve, reject) => {
-            const exchangesStr = localStorage.getItem('exchanges') || '{}';
+        const exchangesStr = localStorage.getItem('exchanges') || '{}';
+        try {
+            return JSON.parse(exchangesStr) || {};
+        } catch (e) {
+            console.log(e);
+            return true;
+        }
+    };
+
+    resetStore = (base, quote) => {
+        runInAction(() => {
+            this.Asks = [];
+            this.Bids = [];
+            this.isDGLoaded = false;
+            this.isCoinPairInversed = false;
+
             try {
-                resolve(JSON.parse(exchangesStr) || {});
+                const newPair = this.marketsStore.markets[`${base}-${quote}`];
+                const pair = newPair.split('-');
+                if (pair.length === 2) {
+                    this.base = pair[0];
+                    this.quote = pair[1];
+                    this.isCoinPairInversed = base === this.quote && quote === this.base;
+                } else {
+                    this.base = base;
+                    this.quote = quote;
+                }
             } catch (e) {
-                console.log(e);
-                resolve(true);
+                this.base = base;
+                this.quote = quote;
+            }
+
+            this.pricesByExchangeCCA.clear();
+            this.isPricesByExchangeCCASorted = 0;
+
+            base = (base || '').replace('F:', '');
+            quote = (quote || '').replace('F:', '');
+            const symbol = base + '-' + quote;
+
+            this.fetchBestRates(symbol);
+            const isSymbolUpdated = this.symbol !== symbol;
+            if (isSymbolUpdated) {
+                this.isSymbolUpdated = isSymbolUpdated;
+                this.symbol = symbol;
+            }
+
+            if (this.isDepthChartMode && !this.isMobileDevice) {
+                this.subscribe();
             }
         });
     };
 
-    @computed get asks() {
-        return this.Asks;
-    }
-
-    @computed get pricesByExchange() {
-        return this.PricesByExchangeSorted;
-    }
-
-    @computed get pricesByExchangeCCA() {
-        return this.PricesByExchangeCCASorted;
-    }
-
-    @computed get bids() {
-        return this.Bids;
-    }
-
-    @computed get spread() {
-        return this.Spread;
-    }
-
-    @computed get depthChartData() {
-        return this.MarketDepth;
-    }
-
-    @computed get orderBookCoinPair() {
-        return [this.base, this.quote];
-    }
-
     @computed get highestBidPrice() {
-        return (this.Bids && this.Bids.length > 0) ? this.Bids[0][0] : 0;
+        return this.Bids && this.Bids.length > 0 ? this.Bids[0][0] : 0;
     }
 
     @computed get lowestAskPrice() {
-        return (this.Asks && this.Asks.length > 0) ? this.Asks[0][0] : 0;
-    }
-
-    @computed get totalDistinctExchangesBidSide() {
-        return this.distinctExchangesBidSide.size;
-    }
-
-    @observable syncState = new Map([
-        ['asks', false],
-        ['bids', false],
-        ['spread', false]
-    ]);
-
-    @action.bound asksSyncComplete() {
-        this.syncState.set('asks', false);
-    }
-
-    @action.bound bidsSyncComplete() {
-        this.syncState.set('bids', false);
-    }
-
-    @action.bound spreadSyncComplete() {
-        this.syncState.set('spread', false);
-    }
-
-    @action.bound
-    allSyncStart() {
-        this.syncState.set('asks', true);
-        this.syncState.set('bids', true);
-        this.syncState.set('spread', true);
-    }
-
-    @computed get isSyncing() {
-        for (let [, isSync] of this.syncState) {
-            if (isSync) return true;
-        }
-        return false;
-    }
-
-    @action.bound
-    deriveMarketDepth() {
-        const [sells, buys] = getDepthChartData(this.Asks, this.Bids, this.spread$, this.levels);
-        const isDGLoaded = this.Asks.length > 10 && this.Bids.length > 10
-            && sells && buys && (sells.length > 1) && (buys.length > 1);
-
-        let midPrice = 1;
-        let spreadMax = 10;
-        let spreadMin = 1;
-        if (isDGLoaded) {
-            midPrice = (buys[buys.length - 1].x + sells[0].x) / 2;
-            spreadMax = Math.min(this.Asks[this.Asks.length - 1][0] - midPrice, midPrice - this.Bids[this.Bids.length - 1][0]);
-            spreadMin = Math.max(this.Asks[10][0] - midPrice, midPrice - this.Bids[10][0]);
-
-            if (buys[buys.length - 1].x > sells[0].x) {
-                const spreadArb = Math.max(midPrice - this.Asks[0][0], this.Bids[0][0] - midPrice);
-                if (spreadArb >= spreadMin) {
-                    spreadMin = spreadArb;
-                }
-            }
-        }
-
-        const symbol = this.base + '-' + this.quote;
-        const isSymbolUpdated = this.symbol === symbol;
-        if (isSymbolUpdated !== this.isSymbolUpdated) this.isSymbolUpdated = isSymbolUpdated;
-
-        this.MarketDepth.set('symbol', this.symbol);
-        this.MarketDepth.set('midMarket', midPrice);
-        this.MarketDepth.set('spreadMax', spreadMax);
-        this.MarketDepth.set('spreadMin', spreadMin);
-        this.MarketDepth.set('sells', sells);
-        this.MarketDepth.set('buys', buys);
-        this.MarketDepth.set('lastTrade', 5888.8);
-    }
-
-    initOrderBooksSubscription = (base, quote) => {
-        let exchanges = [];
-        for (let property in this.exchanges) {
-            if (this.exchanges[property] && this.exchanges[property].active && property !== 'Global') {
-                exchanges.push(property);
-            }
-        }
-        if (this.subscribe) this.subscribe.unsubscribe();
-        this.subscribe = getOrderBookDataFeed({
-            symbol: `${base}-${quote}`,
-            levels: requestLevels,
-            throttleMs,
-            min: null,
-            max: null,
-            exchanges,
-        }).subscribe(this.handleIncomingOrderBooksFrames.bind(this));
-
-        this.__subscriptionInited = true;
+        return this.Asks && this.Asks.length > 0 ? this.Asks[0][0] : 0;
     }
 
     async fetchBestRates(symbol) {
@@ -321,113 +147,88 @@ class OrderBookStore {
 
         this.isFetchingBestRates = true;
 
-        fetch(url)
-            .then(response => response.json())
-            .then(Data => {
+        try {
+            const rawResponse = await fetch(url);
+            const response = await rawResponse.json();
+
+            runInAction(() => {
                 this.isFetchingBestRates = false;
 
-                if (Data.ok === 1) {
-                    const pricesData = Data.data;
-                    if (pricesData && pricesData.prices) {
-                        for (let i = 0; i < pricesData.prices.length; i++) {
-                            this.PricesByExchangeCCASorted.set(i, [pricesData.prices[i].exchangeName, pricesData.prices[i].price]);
-                        }
+                const { data, ok } = response;
 
-                        if (pricesData.prices.length > 0) {
-                            this.isPricesByExchangeCCASorted = 2;
-                        } else {
-                            this.isPricesByExchangeCCASorted = 1;
-                        }
-                    }
-                } else {
-                    this.PricesByExchangeCCASorted = new Map();
+                if (ok !== 1) {
+                    this.pricesByExchangeCCA.clear();
                     this.isPricesByExchangeCCASorted = 1;
+                    return;
                 }
-            })
-            .catch(err => {
-                this.isFetchingBestRates = false;
-                console.log('[fetchBestRates error]', err);
+
+                if (data && data.prices) {
+                    for (let i = 0; i < data.prices.length; i++) {
+                        this.pricesByExchangeCCA.set(i, [data.prices[i].exchangeName, data.prices[i].price]);
+                    }
+
+                    this.isPricesByExchangeCCASorted = data.prices.length > 0 ? 2 : 1;
+                }
             });
+        } catch (e) {
+            this.isFetchingBestRates = false;
+            console.log('[fetchBestRates error]', e);
+        }
     }
 
-    updateSpread = (spread) => {
-        this.spread$ = spread;
-        this.deriveMarketDepth();
+    patchLevels = data => {
+        if (!data.length) {
+            return data;
+        }
+
+        const spread = Math.abs(data[data.length - 1][0] - data[0][0]);
+        const step = spread / levels;
+
+        let prevItem;
+        return data.slice(1).reduce((res, [price, amount]) => {
+            if (!prevItem) {
+                prevItem = [price, amount];
+                return res;
+            }
+
+            const [prevPrice, prevAmount] = prevItem;
+
+            if (Math.abs(price - prevPrice) < step) {
+                prevItem = [(price + prevPrice) / 2, amount + prevAmount];
+            } else {
+                res.push(prevItem);
+                prevItem = [price, amount];
+            }
+            return res;
+        }, [data[0]]);
     };
 
-    handleIncomingOrderBooksFrames(
-        {
-            Asks = [],
-            Bids = [],
-            Spread = 0,
-            MidPrice = 0,
-            Symbol = '',
-        } = {}
-    ) {
-        if (!pageIsVisible() ||
-            this.convertState !== STATE_KEYS.coinSearch
-        ) return;
+    handleIncomingOrderBooksFrames({ Asks = [], Bids = [], Symbol = '' } = {}) {
+        if (!pageIsVisible() || this.convertState !== STATE_KEYS.coinSearch) {
+            return;
+        }
 
-        if (Asks.length > 1 && Asks[0][0] > Asks[Asks.length - 1][0]) Asks.reverse();
-        if (Bids.length > 1 && Bids[0][0] < Bids[Bids.length - 1][0]) Bids.reverse();
+        runInAction(() => {
+            this.orderbookArrivedTime = Date.now();
+            this.isOrderBookStop = false;
 
-        // --- check if data feed is exist in correct coin pair --- //
-        // try {
-        //     this.base = Symbol.split('-')[0];
-        //     this.quote = Symbol.split('-')[1];
-        // } catch (e) {
-        //     this.base = '';
-        //     this.quote = '';
-        // }
+            const bestBuy = Asks[Asks.length - 1][0];
+            const bestSell = Bids[0][0];
 
-        // --- check if data feed is coming continuously --- //
-        this.orderbookArrivedTime = Math.round((new Date()).getTime() / 1000);
-        this.isOrderBookStop = false;
+            this.Bids = this.patchLevels(Bids);
+            this.Asks = this.patchLevels(Asks.reverse());
+            this.midPrice = (bestSell + bestBuy) / 2;
 
-        this.allSyncStart();
+            const isDGLoaded = this.Asks.length > 10 && this.Bids.length > 10;
+            if (isDGLoaded !== this.isDGLoaded) {
+                this.isDGLoaded = isDGLoaded;
+            }
 
-        scheduleVisualDOMUpdate(() => {
-            runInAction(() => {
-                this.Asks = Asks;
-                this.Bids = Bids;
-                this.asksSyncComplete();
-                this.bidsSyncComplete();
-                const isDGLoaded = this.Asks.length > 10 && this.Bids.length > 10;
-                if (isDGLoaded !== this.isDGLoaded) this.isDGLoaded = isDGLoaded;
-            });
+            this.symbol = Symbol;
         });
-
-        scheduleVisualDOMUpdate(() => {
-            runInAction(() => {
-                this.Spread.set(0, Spread);
-                this.Spread.set('midPrice', MidPrice);
-                this.spreadSyncComplete();
-            });
-        });
-        this.symbol = Symbol;
     }
 
-    deriveBestBidsByExchange() {
-        // scheduleVisualDOMUpdate(() => {
-        //     const maxItems = 100;
-        //     let i = -1;
-
-        //     for (let [exchange, askItem] of this.distinctExchangesBidSide) {
-        //         if (++i < maxItems) {
-        //             this.PricesByExchangeSorted.set(i, [exchange, askItem[0][0]]);
-        //         }
-        //     }
-
-        //     while (i < maxItems) {
-        //         if (this.PricesByExchangeSorted.has(i)) {
-        //             this.PricesByExchangeSorted.delete(i);
-        //         }
-        //         i++;
-        //     }
-        // });
-    }
-
-    updateOrderBooksByExchange = () => {
+    subscribe = () => {
         let exchanges = [];
         for (let property in this.exchanges) {
             if (this.exchanges[property] && this.exchanges[property].active && property !== 'Global') {
@@ -435,20 +236,25 @@ class OrderBookStore {
             }
         }
 
-        if (this.subscribe) this.subscribe.unsubscribe();
+        this.unsubscribe();
 
-        this.subscribe = getOrderBookDataFeed({
+        this.subscription = getOrderBookDataFeed({
             symbol: `${this.base}-${this.quote}`,
-            levels: requestLevels,
+            levels,
             throttleMs,
             min: null,
             max: null,
-            exchanges,
+            exchanges
         }).subscribe(this.handleIncomingOrderBooksFrames.bind(this));
-    }
+    };
+
+    unsubscribe = () => {
+        if (this.subscription) {
+            this.subscription.unsubscribe();
+            this.subscription = undefined;
+        }
+    };
 }
 
-export default (instrumentStore, viewModeStore, exchangesStore, convertStore, marketsStore) => {
-    const store = new OrderBookStore(instrumentStore, viewModeStore, exchangesStore, convertStore, marketsStore);
-    return store;
-};
+export default (instrumentStore, viewModeStore, exchangesStore, convertStore, marketsStore, settingsStore) =>
+    new OrderBookStore(instrumentStore, viewModeStore, exchangesStore, convertStore, marketsStore, settingsStore);

@@ -3,13 +3,13 @@ import { FormattedMessage } from 'react-intl';
 import { AutoSizer, Column, Table } from 'react-virtualized';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import sortBy from 'lodash/sortBy';
+import { withSafeTimeout } from '@hocs/safe-timers';
 
 import { highlightSearchDom } from '../../utils';
 import {
     DropdownWrapper, SelectedItemLabel, Dropdown, SearchInputWrapper,
-    SearchInput, ItemList, ListStyleWrapper, ListItem, SearchIcon
+    SearchInput, ItemList, ListStyleWrapper, ListItem, SearchIcon, DropMenuIcon
 } from './Components';
-import icon from './icon_drop.png';
 
 class SelectDropdown extends React.Component {
     state = {
@@ -22,6 +22,9 @@ class SelectDropdown extends React.Component {
     wrapperRef = null;
     searchValueRef = null;
 
+    clearUpdateTableItemsTimeout = null;
+    clearFocusTimeout = null;
+
     componentDidMount() {
         document.addEventListener('mousedown', this.handleClickOutside);
         this.updateTableItems(this.props);
@@ -33,6 +36,12 @@ class SelectDropdown extends React.Component {
 
     componentWillUnmount() {
         document.removeEventListener('mousedown', this.handleClickOutside);
+        if (this.clearUpdateTableItemsTimeout) {
+            this.clearUpdateTableItemsTimeout();
+        }
+        if (this.clearFocusTimeout) {
+            this.clearFocusTimeout();
+        }
     }
 
     handleClickOutside = (event) => {
@@ -48,7 +57,10 @@ class SelectDropdown extends React.Component {
             searchValue: (e && e.target && e.target.value) || '',
         });
 
-        setTimeout(this.updateTableItems);
+        if (this.clearUpdateTableItemsTimeout) {
+            this.clearUpdateTableItemsTimeout();
+        }
+        this.props.setSafeTimeout(this.updateTableItems);
     };
 
     toggleDropDown = isOpen => {
@@ -56,7 +68,10 @@ class SelectDropdown extends React.Component {
             isOpen: (typeof isOpen === 'boolean') ? isOpen : !prevState.isOpen,
         }));
 
-        setTimeout(() => {
+        if (this.clearFocusTimeout) {
+            this.clearFocusTimeout();
+        }
+        this.clearFocusTimeout = this.props.setSafeTimeout(() => {
             if (this.searchValueRef && this.state.isOpen) {
                 this.searchValueRef.focus();
             }
@@ -78,7 +93,10 @@ class SelectDropdown extends React.Component {
 
             this.toggleDropDown(false);
 
-            setTimeout(() => {
+            if (this.clearUpdateTableItemsTimeout) {
+                this.clearUpdateTableItemsTimeout();
+            }
+            this.props.setSafeTimeout(() => {
                 this.updateTableItems();
             });
         }
@@ -159,7 +177,7 @@ class SelectDropdown extends React.Component {
         return (
             <DropdownWrapper
                 width={width}
-                innerRef={ref => { this.wrapperRef = ref; }}
+                ref={ref => { this.wrapperRef = ref; }}
                 isOpen={isOpen}
                 alignTop={alignTop}
                 className={isOpen ? '' : 'close'}
@@ -174,7 +192,7 @@ class SelectDropdown extends React.Component {
                     }}
                 >
                     <span>{value}</span>
-                    <img src={icon} alt=""/>
+                    <DropMenuIcon/>
                 </SelectedItemLabel>
 
                 {isOpen && (
@@ -194,7 +212,7 @@ class SelectDropdown extends React.Component {
                                             value={searchValue}
                                             onChange={this.handleChangeSearchValue}
                                             placeholder={placeholder}
-                                            innerRef={ref => { this.searchValueRef = ref; }}
+                                            ref={ref => { this.searchValueRef = ref; }}
                                         />
                                     }
                                 </FormattedMessage>
@@ -210,7 +228,7 @@ class SelectDropdown extends React.Component {
                                         length={tableItems.length}
                                     >
                                         <PerfectScrollbar
-                                            option={{
+                                            options={{
                                                 suppressScrollX: true,
                                                 minScrollbarLength: 50,
                                             }}
@@ -246,4 +264,4 @@ class SelectDropdown extends React.Component {
     }
 }
 
-export default SelectDropdown;
+export default withSafeTimeout(SelectDropdown);

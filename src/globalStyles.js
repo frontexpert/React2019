@@ -1,7 +1,7 @@
-import { injectGlobal } from 'styled-components';
+import { createGlobalStyle } from 'styled-components/macro';
 import 'react-tippy/dist/tippy.css';
 
-export default () => injectGlobal`
+export default () => createGlobalStyle`
     html, body {
         height: 100% !important;
         -webkit-font-smoothing: auto !important;
@@ -25,10 +25,28 @@ export default () => injectGlobal`
     input {
         -webkit-touch-callout: auto; /* iOS Safari */
         -webkit-user-select: auto; /* Safari */
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
 
         &::-ms-clear {
             display: none; 
         }
+    }
+
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover, 
+    input:-webkit-autofill:focus,
+    input:-webkit-autofill:active,
+    textarea:-webkit-autofill,
+    textarea:-webkit-autofill:hover,
+    textarea:-webkit-autofill:focus,
+    select:-webkit-autofill,
+    select:-webkit-autofill:hover,
+    select:-webkit-autofill:focus {
+        -webkit-text-fill-color: white;
+        -webkit-box-shadow: 0 0 0 1000px black inset !important;
+        background-clip: content-box !important;
     }
     
     #root {
@@ -38,56 +56,81 @@ export default () => injectGlobal`
             height: 100%;        
         }
     }
-    
-    #root > div:first-child {
-        height: 100% !important;
-    }
-    
+
     @font-face {
-        font-family: 'open_sans';
-        src: url('/fonts/opensans-light-webfont.woff') format('woff');
-        font-weight: 300;
-        font-style: normal;
-    }
-    
-    @font-face {
-        font-family: 'open_sans';
-        src: url('/fonts/opensans-regular-webfont.woff') format('woff');
-        font-weight: 400;
-        font-style: normal;
-    }
-    
-    @font-face {
-        font-family: 'open_sans';
-        src: url('/fonts/opensans-semibold-webfont.woff') format('woff');
-        font-weight: 600;
-        font-style: normal;
-    }
-    
-    @font-face {
-        font-family: 'open_sans';
-        src: url('/fonts/opensans-bold-webfont.woff') format('woff');
-        font-weight: 700;
-        font-style: normal;
-    }
-    
-    @font-face {
-        font-family: 'open_sans';
-        src: url('/fonts/opensans-extrabold-webfont.woff') format('woff');
-        font-weight: 800;
-        font-style: normal;
-    }
-    
-    @font-face {
-        font-family: 'open_sans_condensed';
-        src: url('/fonts/opensanscondensed-light-webfont.woff') format('woff');
+        font-family: 'AvantGardeLT-Regular';
+        src: url('fonts/AvantGardeLT/AvantGardeLT-Regular.TTF') format('truetype');
         font-weight: 300;
         font-style: normal;
     }
 
     @font-face {
+        font-family: 'AvantGardeLT-CondBook';
+        src: url('fonts/AvantGardeLT/AvantGardeLT-CondBook.otf') format('woff');
+        font-weight: 500;
+        font-style: normal;
+    }
+
+    @font-face {
+        font-family: 'AvantGardeLT-CondDemi';
+        src: url('fonts/AvantGardeLT/AvantGardeLT-CondDemi.otf') format('woff');
+        src: url('fonts/AvantGardeLT/AvantGardeLT-CondDemi.eot'),
+            url('fonts/AvantGardeLT/AvantGardeLT-CondDemi.eot?#iefix') format('embedded-opentype'),
+            url('fonts/AvantGardeLT/AvantGardeLT-CondDemi.woff2') format('woff2'),
+            url('fonts/AvantGardeLT/AvantGardeLT-CondDemi.woff') format('woff'),
+            url('fonts/AvantGardeLT/AvantGardeLT-CondDemi.ttf') format('truetype'),
+            url('fonts/AvantGardeLT/AvantGardeLT-CondDemi.svg#AvantGardeLT-CondDemi') format('svg');
+        font-weight: 600;
+        font-style: normal;
+    }
+
+    @font-face {
+        font-family: 'AvantGardeLT-Bold';
+        src: url('fonts/AvantGardeLT/AvantGardeLT-Bold.otf') format('woff');
+        font-weight: 700;
+        font-style: normal;
+    }
+
+    
+    @font-face {
+        font-family: 'open_sans';
+        src: url('/fonts/Opensans/opensans-light-webfont.woff') format('woff');
+        font-weight: 300;
+        font-style: normal;
+    }
+    @font-face {
+        font-family: 'open_sans';
+        src: url('/fonts/Opensans/opensans-regular-webfont.woff') format('woff');
+        font-weight: 400;
+        font-style: normal;
+    }
+    @font-face {
+        font-family: 'open_sans';
+        src: url('/fonts/Opensans/opensans-semibold-webfont.woff') format('woff');
+        font-weight: 600;
+        font-style: normal;
+    }
+    @font-face {
+        font-family: 'open_sans';
+        src: url('/fonts/Opensans/opensans-bold-webfont.woff') format('woff');
+        font-weight: 700;
+        font-style: normal;
+    }
+    @font-face {
+        font-family: 'open_sans';
+        src: url('/fonts/Opensans/opensans-extrabold-webfont.woff') format('woff');
+        font-weight: 800;
+        font-style: normal;
+    }
+    @font-face {
         font-family: 'open_sans_condensed';
-        src: url('/fonts/opensanscondensed-bold-webfont.woff') format('woff');
+        src: url('/fonts/Opensans/opensanscondensed-light-webfont.woff') format('woff');
+        font-weight: 300;
+        font-style: normal;
+    }
+    @font-face {
+        font-family: 'open_sans_condensed';
+        src: url('/fonts/Opensans/opensanscondensed-bold-webfont.woff') format('woff');
         font-weight: 800;
         font-style: normal;
     }
@@ -98,14 +141,12 @@ export default () => injectGlobal`
         font-weight: 500;
         font-style: normal;
     }
-
     @font-face {
         font-family: CoreSansC_Light;
         src: url('/fonts/CoreSansC/CoreSansC-35Light.otf') format('woff');
         font-weight: 500;
         font-style: normal;
     }
-
     @font-face {
         font-family: CoreSansC_ExtraLight;
         src: url('/fonts/CoreSansC/CoreSansC-25ExtraLight.otf') format('woff');
@@ -233,7 +274,113 @@ export default () => injectGlobal`
         font-family: 'Bernard MT Condensed';
         font-style: normal;
         font-weight: 400;
-        src: local('Bernard MT Condensed'), local('Bernard-MT-Condensed'), url('/fonts/Bernard/BERNHC.TTF') format('truetype');
+        src: local('Bernard MT Condensed'), local('Bernard-MT-Condensed'), url('/fonts/Bernard/BERNHC.ttf') format('truetype');
+    }
+
+    @font-face {
+        font-family: 'Dollar Bill';
+        font-style: normal;
+        font-weight: 400;
+        src: url('/fonts/Dollar Bill.otf') format('woff');
+    }
+
+    @font-face {
+        font-family: 'Caslon RR Regular ExtraCond Diagonal';
+        font-style: normal;
+        font-weight: 400;
+        src: local('Caslon RR Regular ExtraCond Diagonal'), local('Caslon-RR-Regular-ExtraCond-Diagonal'), url('/fonts/Caslon/Caslon RR Regular ExtraCond Diagonal.ttf') format('truetype');
+    }
+
+    @font-face {
+        font-family: 'Caslon RR Regular ExtraCond Outline';
+        font-style: normal;
+        font-weight: 400;
+        src: local('Caslon RR Regular ExtraCond Outline'), local('Caslon-RR-Regular-ExtraCond-Outline'), url('/fonts/Caslon/Caslon RR Regular ExtraCond Outline.ttf') format('truetype');
+    }
+
+    @font-face {
+        font-family: 'Caslon RR Regular ExtraCond';
+        font-style: normal;
+        src: url('/fonts/Caslon/Caslon RR Regular ExtraCond.otf') format('woff');
+    }
+
+    @font-face {
+        font-family: 'ARB-187 Modern Caps';
+        font-style: normal;
+        src: url('/fonts/PayApp/ARB-187 Modern Caps.otf') format('woff');
+    }
+
+    @font-face {
+        font-family: 'Federal Regular';
+        font-style: normal;
+        src: url('/fonts/PayApp/Federal-Regular.otf') format('woff');
+    }
+
+    @font-face {
+        font-family: 'Tungsten Medium';
+        font-style: normal;
+        src: url('/fonts/PayApp/Tungsten-Medium.otf') format('woff');
+    }
+
+    @font-face {
+        font-family: 'Europa Grotesque Extra Bold';
+        font-style: normal;
+        src: local('Europa Grotesque Extra Bold'), local('Europa-Grotesque-Extra-Bold'), url('/fonts/PayApp/EuropaGrotesqueExtraBold.ttf') format('truetype');
+    }
+
+    @font-face {
+        font-family: 'Century Ultra Condensed';
+        font-style: normal;
+        src: url('/fonts/PayApp/centurystd-ultracondensed.otf') format('woff');
+    }
+
+    @font-face {
+        font-family: 'Ubuntu';
+        font-style: italic;
+        font-weight: 300;
+        src: local('Ubuntu Light Italic'), local('Ubuntu-LightItalic'), url('/fonts/Ubuntu/Ubuntu-LightItalic.ttf') format('truetype');
+    }
+    @font-face {
+        font-family: 'Ubuntu';
+        font-style: italic;
+        font-weight: 400;
+        src: local('Ubuntu Italic'), local('Ubuntu-Italic'), url('/fonts/Ubuntu/Ubuntu-Italic.ttf') format('truetype');
+    }
+    @font-face {
+        font-family: 'Ubuntu';
+        font-style: italic;
+        font-weight: 500;
+        src: local('Ubuntu Medium Italic'), local('Ubuntu-MediumItalic'), url('/fonts/Ubuntu/Ubuntu-MediumItalic.ttf') format('truetype');
+    }
+    @font-face {
+        font-family: 'Ubuntu';
+        font-style: italic;
+        font-weight: 700;
+        src: local('Ubuntu Bold Italic'), local('Ubuntu-BoldItalic'), url('/fonts/Ubuntu/Ubuntu-BoldItalic.ttf') format('truetype');
+    }
+    @font-face {
+        font-family: 'Ubuntu';
+        font-style: normal;
+        font-weight: 300;
+        src: local('Ubuntu Light'), local('Ubuntu-Light'), url('/fonts/Ubuntu/Ubuntu-Light.ttf') format('truetype');
+    }
+    @font-face {
+        font-family: 'Ubuntu';
+        font-style: normal;
+        font-weight: 400;
+        src: local('Ubuntu'), local('Ubuntu-Regular'), url('/fonts/Ubuntu/Ubuntu-Regular.ttf') format('truetype');
+    }
+    @font-face {
+        font-family: 'Ubuntu';
+        font-style: normal;
+        font-weight: 500;
+        src: local('Ubuntu Medium'), local('Ubuntu-Medium'), url('/fonts/Ubuntu/Ubuntu-Medium.ttf') format('truetype');
+    }
+    @font-face {
+        font-family: 'Ubuntu';
+        font-style: normal;
+        font-weight: 700;
+        src: local('Ubuntu Bold'), local('Ubuntu-Bold'), url('/fonts/Ubuntu/Ubuntu-Bold.ttf') format('truetype');
     }
 
     html, body {
@@ -499,6 +646,7 @@ export default () => injectGlobal`
                 width: 20px;
                 height: 28px;
                 fill: #7f8bc2;
+                margin: 0;
             }
     
             &:hover {
@@ -541,10 +689,6 @@ export default () => injectGlobal`
 
     .tippy-tooltip {
         font-size: 16px !important;
-        
-        span {
-            font-size: 13px !important;
-        }
     
         &.bct-theme {
             padding: 4px;
@@ -587,13 +731,19 @@ export default () => injectGlobal`
         }*/
         
         .advanced-tooltip {
+            list-style-type: none;
+            padding: 6px 8px;
+            margin: 0;
             &.text-left {
                 text-align: left !important;
             }
         }
         
         @media(max-width: 1500px) {
-            transform:scale(0.75) !important;
+            .advanced-tooltip.text-left span {
+                font-size: 13px !important;
+                transform: unset !important;
+            }
         }
         
         @media(max-width: 1080px) { 

@@ -9,6 +9,7 @@
   "settings.label_access_level": "アクセスレベル",
   "settings.label_balance_includes_credit": "残高は貸方を含む",
   "settings.label_google_2fa": "Google 2FA",
+  "settings.label_email_2fa": "メール2FA",
   "settings.label_arbitrage_mode": "裁定モード",
   "settings.label_private_vpn": "プライベートVPN",
   "settings.label_store_credit": "ストアクレジット",
@@ -187,7 +188,6 @@
   "data_loader_done.label_done": "完了",
   "sms_verification.label_enter_mobile_number": "携帯電話番号を入力",
   "sms_verification.label_what_code": "コードは何ですか？",
-  "switch_custom.label_off": "オフ",
 
   "button.save": "保存する",
   "button.confirm": "確認する",
@@ -216,5 +216,6 @@
   "order_book.buy_book.label_max_order_size": "最大注文サイズ：",
   "settings.label_auto_flip": "オートフリップ",
   "settings.label_swaps": "スワップ",
-  "settings.label_is_auto_convert": "自動変換"
+  "settings.label_is_auto_convert": "自動変換",
+  "settings.label_support_center": "プラットフォームサポートセンター"
 }

@@ -9,6 +9,7 @@
   "settings.label_access_level": "Cấp độ truy cập",
   "settings.label_balance_includes_credit": "Số dư bao gồm Tín dụng",
   "settings.label_google_2fa": "Google 2FA",
+  "settings.label_email_2fa": "Email 2FA",
   "settings.label_arbitrage_mode": "Chế độ trọng tài",
   "settings.label_private_vpn": "VPN riêng",
   "settings.label_store_credit": "Tín dụng lưu trữ",
@@ -187,7 +188,6 @@
   "data_loader_done.label_done": "LÀM XONG",
   "sms_verification.label_enter_mobile_number": "Nhập số điện thoại di động",
   "sms_verification.label_what_code": "Cái mã là gì?",
-  "switch_custom.label_off": "TẮT",
 
   "button.save": "Tiết kiệm",
   "button.confirm": "Xác nhận",
@@ -216,5 +216,6 @@
   "order_book.buy_book.label_max_order_size": "KÍCH THƯỚC ĐẶT HÀNG TỐI ĐA: ",
   "settings.label_auto_flip": "Tự động lật",
   "settings.label_swaps": "Trao đổi",
-  "settings.label_is_auto_convert": "Tự động chuyển đổi"
+  "settings.label_is_auto_convert": "Tự động chuyển đổi",
+  "settings.label_support_center": "Trung tâm hỗ trợ nền tảng"
 }

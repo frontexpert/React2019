@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 
 const valueThumbWidth = 70;
 const valueThumbHeight = 16;
@@ -249,13 +249,13 @@ const SliderTrackProgress = styled.div.attrs({ className: 'slider-input__slider-
 const SliderTrackCurrentValue = styled.div`
     position: absolute;
     top: ${valueThumbHeight / 2 - 1}px;
-    left: ${props => Number.parseFloat(props.progress) <= 100 ? `calc(${props.progress}% - ${70 * props.progress / 100}px)` : 'calc(100% - 70px)'};
+    left: ${props => Number.parseFloat(props.progress) <= 100 ? `calc(${props.progress}% - ${(props.tooltipValue.length < 12 ? 80 : 90) * props.progress / 100}px)` : `calc(100% - ${props.tooltipValue.length < 12 ? 80 : 90}px)`};
     bottom: 0;
     z-index: 4;
-    width: ${valueThumbWidth}px;
+    min-width: ${valueThumbWidth}px;
     height: ${valueThumbHeight}px;
     margin: 0;
-    padding: 0;
+    padding: 0 5px;
     background: ${props => props.theme.palette.ctrlSliderTrackCurrentBg};
     border: 1px solid ${props => props.theme.palette.ctrlSliderTrackProgressBg};
     border-radius: 3px;
@@ -291,18 +291,13 @@ const SliderTrackCurrentValue = styled.div`
 const Delimeter = styled.div.attrs({ className: 'slider-input__slider-delimeter' })`
     position: absolute;
     top: calc(50% - 4px);
-    left: calc(${props => props.position}% - 4px);
+    left: ${props => props.position === 0 ? 0 : `calc(${props.position}% - 8px)`};
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: ${props => (props.colors && props.colors.ctrlSliderDelimiterBg) || props.theme.palette.ctrlSliderDelimiterBg};
+    background: ${props => (props.colors && props.colors.ctrlSliderTrackProgressBg) || props.theme.palette.ctrlSliderTrackProgressBg};
     border: 1px solid ${props => (props.colors && props.colors.ctrlSliderDelimiterBorder) || props.theme.palette.ctrlSliderDelimiterBorder};
     z-index: 3;
-    
-    &.active {
-        background: ${props => (props.colors && props.colors.ctrlSliderDelimiterActiveBg) || props.theme.palette.ctrlSliderDelimiterActiveBg};
-        border: 2px solid ${props => (props.colors && props.colors.ctrlSliderDelimiterActiveBorder) || props.theme.palette.ctrlSliderDelimiterActiveBorder};
-    }
 `;
 
 class SliderInput extends Component {
@@ -346,7 +341,7 @@ class SliderInput extends Component {
                 <SliderTrackWrapper colors={colors}>
                     <SliderTrack colors={colors}/>
                     {showTooltip &&
-                    <SliderTrackCurrentValue progress={progress}>
+                    <SliderTrackCurrentValue progress={progress} tooltipValue={tooltipValue}>
                         {tooltipValue}
                     </SliderTrackCurrentValue>
                     }

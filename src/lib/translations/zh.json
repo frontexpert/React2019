@@ -9,6 +9,7 @@
   "settings.label_access_level": "访问权限",
   "settings.label_balance_includes_credit": "余额包括信贷",
   "settings.label_google_2fa": "谷歌2FA",
+  "settings.label_email_2fa": "电邮2FA",
   "settings.label_arbitrage_mode": "套利模式",
   "settings.label_private_vpn": "私人VPN",
   "settings.label_store_credit": "商场信用积分",
@@ -187,7 +188,6 @@
   "data_loader_done.label_done": "DONE",
   "sms_verification.label_enter_mobile_number": "输入手机号码",
   "sms_verification.label_what_code": "代码是什么？",
-  "switch_custom.label_off": "关闭",
 
   "button.save": "保存",
   "button.confirm": "确认",
@@ -216,5 +216,6 @@
   "order_book.buy_book.label_max_order_size": "最大订单尺寸：",
   "settings.label_auto_flip": "自动翻转",
   "settings.label_swaps": "交换",
-  "settings.label_is_auto_convert": "自动转换"
+  "settings.label_is_auto_convert": "自动转换",
+  "settings.label_support_center": "平台支持中心"
 }

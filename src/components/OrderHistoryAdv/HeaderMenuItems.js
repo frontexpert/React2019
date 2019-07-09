@@ -1,14 +1,25 @@
 import React, { Component } from 'react';
 import { inject, observer } from 'mobx-react';
-import { HeaderMenu, Menu, DropMenuWrapper } from './Components';
-import { activeSetStateKeys } from './index';
+import _ from 'lodash';
+
+import { MODE_KEYS, MODE_LABELS, EXTRA_DROPMENU_LABELS } from './Constants';
+import { HeaderMenu, Menu, DropMenuWrapper, ToolbarItem, IcFullScreen, IcExitFullScreen } from './Components';
 import DropMenu from './DropMenu';
-import { STORE_KEYS } from '../../stores';
+import { STORE_KEYS } from '@/stores';
+import { getScreenInfo } from '@/utils';
+
+const IS_MOBILE = getScreenInfo().isMobileDevice;
 
 class HeaderMenuItems extends Component {
     state = {};
     render() {
-        const { activeSet, setMenuItem, [STORE_KEYS.INSTRUMENTS]: instrumentsStore } = this.props;
+        const {
+            rightBottomSectionOpenMode,
+            setRightBottomSectionOpenMode,
+            rightBottomSectionFullScreenMode,
+            setRightBottomSectionFullScreenMode,
+            [STORE_KEYS.INSTRUMENTS]: instrumentsStore
+        } = this.props;
         const instrumentData = ['All', instrumentsStore.selectedBase, instrumentsStore.selectedQuote];
         const statusData = ['All', 'Filled', 'Canceled', 'Rejected', 'Expired'];
         const tradeData = ['All', 'Yes', 'No'];
@@ -16,40 +27,36 @@ class HeaderMenuItems extends Component {
 
         return (
             <HeaderMenu>
-                <Menu
-                    active={activeSet === activeSetStateKeys.activeModeKey}
-                    onClick={() => setMenuItem(activeSetStateKeys.activeModeKey)}
-                >
-                    Active
-                </Menu>
-                <Menu
-                    active={activeSet === activeSetStateKeys.filledModeKey}
-                    onClick={() => setMenuItem(activeSetStateKeys.filledModeKey)}
-                >
-                    Filled and Cancelled
-                </Menu>
-                <Menu
-                    active={activeSet === activeSetStateKeys.myTradesModeKey}
-                    onClick={() => setMenuItem(activeSetStateKeys.myTradesModeKey)}
-                >
-                    My Trades
-                </Menu>
-
-                <DropMenuWrapper>
-                    <DropMenu data={instrumentData} label="Instrument"/>
-                    {
-                        activeSet === activeSetStateKeys.filledModeKey &&
-                        <DropMenu data={statusData} label="Status"/>
-                    }
-                    {
-                        activeSet !== activeSetStateKeys.myTradesModeKey &&
-                        <DropMenu data={tradeData} label="Trade"/>
-                    }
-                    {
-                        activeSet !== activeSetStateKeys.myTradesModeKey &&
-                        <DropMenu data={sourceData} label="Source"/>
-                    }
-                </DropMenuWrapper>
+                {Object.values(MODE_KEYS).map(key =>
+                    <Menu
+                        key={key}
+                        active={rightBottomSectionOpenMode === key}
+                        onClick={() => setRightBottomSectionOpenMode(key)}
+                    >
+                        {MODE_LABELS[key]}
+                    </Menu>
+                )}
+                {
+                    [
+                        MODE_KEYS.activeModeKey,
+                        MODE_KEYS.filledModeKey,
+                        MODE_KEYS.myTradesModeKey,
+                    ].includes(rightBottomSectionOpenMode) &&
+                    !IS_MOBILE &&
+                    <DropMenuWrapper>
+                        <DropMenu data={instrumentData} label="Instrument" />
+                        {EXTRA_DROPMENU_LABELS[rightBottomSectionOpenMode].map(label => <DropMenu key={label} data={statusData} label={label} />)}
+                    </DropMenuWrapper>
+                }
+                {
+                    ![MODE_KEYS.depthChartKey].includes(rightBottomSectionOpenMode) &&
+                    <ToolbarItem
+                        onClick={() => setRightBottomSectionFullScreenMode(!rightBottomSectionFullScreenMode)}
+                    >
+                        {!rightBottomSectionFullScreenMode && <IcFullScreen />}
+                        {rightBottomSectionFullScreenMode && <IcExitFullScreen />}
+                    </ToolbarItem>
+                }
             </HeaderMenu>
         );
     }

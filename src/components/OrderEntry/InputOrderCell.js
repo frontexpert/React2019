@@ -1,7 +1,7 @@
 import React from 'react';
 import Input from '@material-ui/core/Input';
-import styled, { css } from 'styled-components';
-import { withStyles } from '@material-ui/core/styles';
+import styled, { css } from 'styled-components/macro';
+import { withStyles } from '@material-ui/styles';
 import { formatTotalDigitString } from '../../utils';
 
 const OrderStyles = css`
@@ -34,7 +34,9 @@ const OrderStyles = css`
         overflow: auto;
         
         input {
-            padding: 0.25rem 0.25rem 0.25rem 5px;
+            padding: 4px 4px 4px 6px;
+            height: 20px;
+            line-height: 20px;
             
             @media only screen and (max-width: 1300px) {
                 padding: 0.2rem 0.2rem 0.2rem 5px;
@@ -45,9 +47,10 @@ const OrderStyles = css`
     [data-coin] {
         /* coin */
         color: ${props => props.theme.palette.orderFormInputText};
+        line-height: 20px;
+        height: 100%;
         text-align: right;
-        padding: 0 4px;
-        min-width: 49px;
+        padding: 4px 6px 4px 4px;
         max-width: 60px;
     }
 `;

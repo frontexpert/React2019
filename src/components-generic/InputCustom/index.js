@@ -1,79 +1,103 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
+import Clipboard from "clipboard";
 import IconCopy from './icon_copy.png';
 
 const Wrapper = styled.div`
     width: ${props => props.width ? props.width + 'px' : '100%'};
-    height: 40px;
-    border: 1px solid ${props => props.theme.palette.clrInnerBorder};
-    border-radius: ${props => props.theme.palette.borderRadius};
-    background: ${props => props.theme.palette.clrBackground};
-    padding: 9px 0 9px 15px;
-    display: flex;
+    ${props => props.noContrast ?
+        `
+            padding: 9px 0;
+        `
+        : `
+            border: 1px solid ${props => props.theme.palette.clrInnerBorder};
+            border-radius: ${props => props.theme.palette.borderRadius};
+            background: ${props => props.theme.palette.clrBackground};
+            > .imgWrapper {
+                border-left: 1px solid ${props => props.theme.palette.clrInnerBorder};
+            }
+        `
+    }
+    display: inline-flex;
     align-items: center;
-    
+
     > span {
+        display: flex;
+        align-items: center;
         flex: 1;
         font-size: 14px;
         font-weight: 400;
         overflow: hidden;
-        
+        height: 40px;
+
         text-align: left;
-        direction: rtl;
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
     }
-    
-    > .imgWrapper {
-        border-left: 1px solid ${props => props.theme.palette.clrInnerBorder};
-        width: 35px;
+
+    > .copy-affiliate-link {
         height: 40px;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        
+
         &:hover {
             opacity: 0.7;
         }
     }
 `;
 
-const AffiliateInput = styled.input`
-    border:none;
-    background:none;
-    font-size: 14px;
-    font-weight: 700;
-    line-height: 1em;
-    color: #7f8bc2;
-    width: ${props => props.width ? props.width + 'px' : '100%'};
-    overflow:hidden;
-    outline:none;
-`;
-
 class InputCustom extends React.Component {
-    componentDidMount() {
+    constructor(props) {
+        super(props);
 
+        this.state = {
+            isCopied: false
+        };
+        this.timeOutId = null;
+    }
+
+    componentDidMount() {
+        const { userId } = this.props;
+
+        new Clipboard(".copy-affiliate-link", {
+            text: function() {
+                return 'demo.bct.trade/' + userId;
+            }
+        });
+    }
+
+    componentWillUnmount() {
+        if (this.timeOutId) {
+            clearTimeout(this.timeOutId);
+        }
     }
 
     copyToClipboard = () => {
-        this.affiliateRef.select();
-        document.execCommand('copy');
-    }
+        this.setState({
+            isCopied: true
+        });
 
-    setAffiliateRef = (node) => {
-        this.affiliateRef = node;
+        this.timeOutId = setTimeout(() => {
+            this.setState({
+                isCopied: false
+            });
+            this.timeOutId = null;
+        }, 6000);
     };
 
     render() {
         const { ...props } = this.props;
+        const  { isCopied } = this.state;
+
         return (
             <Wrapper {...props}>
-                <AffiliateInput readOnly={true} innerRef={this.setAffiliateRef} value="demo.bct.trade/shaunmacdonald" />
-                <div className="imgWrapper" onClick={() => this.copyToClipboard()}>
+                {isCopied || <div className="copy-affiliate-link" onClick={() => this.copyToClipboard()}>
                     <img src={IconCopy} alt=""/>
-                </div>
+                </div>}
+                {isCopied && <span><b>Affiliate Link has been copied.</b></span>}
             </Wrapper>
         );
     }

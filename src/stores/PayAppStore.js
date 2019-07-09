@@ -1,6 +1,8 @@
 import { observable, action } from 'mobx';
+import axios from 'axios';
 
 import { GetClaimedTransferNotification } from '../lib/bct-ws';
+import { REACT_APP_PUBLIC_QR_CODE_URL, REACT_APP_PRIVATE_QR_CODE_URL } from '../config/constants';
 
 const throttleMs = 100;
 
@@ -25,9 +27,13 @@ class PayAppStore {
     @observable claimNotify = null;
     @observable payAmount = 0;
     @observable backMode = false;
+    @observable uniqueId = '';
+    @observable payRepeatCount = 0;
 
     GetClaimedTransferNotification$ = null;
     __subscriptionInited = false;
+
+    handleIncomingClaimedNotificationTimeout = null;
 
     constructor() {
         this.payViewMode = payViewModeKeys.payChooseModeKey;
@@ -67,6 +73,38 @@ class PayAppStore {
     @action.bound setPayAmount(amt, backMode) {
         this.payAmount = amt;
         this.backMode = backMode;
+    }
+
+    @action.bound setUniqueId(id) {
+        this.uniqueId = id;
+        localStorage.setItem('uniqueId', id);
+    }
+
+    @action.bound getUniqueId() {
+        return localStorage.getItem('uniqueId');
+    }
+
+    @action.bound removeUniqueId() {
+        localStorage.removeItem('uniqueId');
+        localStorage.removeItem('payRepeatCount');
+    }
+
+    @action.bound setPayRepeatCount(count) {
+        localStorage.setItem('payRepeatCount', count);
+    }
+
+    @action.bound getPayRepeatCount() {
+        const count = localStorage.getItem('payRepeatCount');
+        return (count ? Number(count) : 0);
+    }
+
+    @action.bound loadQRCodeUrl(content, isPublic = true) {
+        return axios.get(
+            `${isPublic ? REACT_APP_PUBLIC_QR_CODE_URL : REACT_APP_PRIVATE_QR_CODE_URL}${encodeURIComponent(content)}`,
+            { 'Access-Control-Allow-Origin': '*' }
+        ).then(res => {
+            return res.data;
+        });
     }
 }
 

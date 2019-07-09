@@ -115,7 +115,7 @@ class ExchangeList extends Component {
                         return (
                             <StyleWrapper width={width} height={height} length={data.length}>
                                 <PerfectScrollbar
-                                    option={{
+                                    options={{
                                         suppressScrollX: true,
                                         minScrollbarLength: 50,
                                     }}

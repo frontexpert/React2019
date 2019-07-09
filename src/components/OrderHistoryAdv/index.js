@@ -1,56 +1,65 @@
-import React, { Component } from 'react';
-import {
-    Wrapper,
-    InnerWrapper
-} from './Components';
+import React, { PureComponent, Fragment } from 'react';
+
+import { Wrapper, InnerWrapper } from './Components';
 import HeaderMenuItems from './HeaderMenuItems';
 import ActiveTable from './ActiveTable';
 import FilledTable from './FilledTable';
 import MyTradesTable from './MyTradesTable';
+import ColdStorage from '../ColdStorage';
+import DepthChart from '../DepthChart';
+import TradingViewAdv from '@/components/GraphTool/TradingViewAdv';
+import Report from '@/components/Report';
+import { MODE_KEYS } from './Constants';
+import ActiveStatusCircle from "components/ArbitrageHistory/ActiveStatusCircle";
 
-export const activeSetStateKeys = {
-    activeModeKey: 'active',
-    filledModeKey: 'filled',
-    myTradesModeKey: 'trades',
-};
-
-class OrderHistoryAdv extends Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            activeSet: activeSetStateKeys.activeModeKey,
-        };
-    }
-
-    setMenuItem = (mode) => {
-        this.setState({
-            activeSet: mode,
-        });
+class OrderHistoryAdv extends PureComponent {
+    getContent = () => {
+        const { rightBottomSectionOpenMode, arbMode } = this.props;
+        switch (rightBottomSectionOpenMode) {
+            case MODE_KEYS.depthChartKey:
+                return (
+                    <Fragment>
+                        <DepthChart />
+                        {arbMode && <ActiveStatusCircle/>}
+                    </Fragment>
+                );
+            case MODE_KEYS.activeModeKey:
+                return <ActiveTable />;
+            case MODE_KEYS.filledModeKey:
+                return <FilledTable />;
+            case MODE_KEYS.myTradesModeKey:
+                return <MyTradesTable />;
+            case MODE_KEYS.reportsModeKey:
+                return <Report />;
+            case MODE_KEYS.accountsModeKey:
+                return <TradingViewAdv />;
+            case MODE_KEYS.coldStorageModeKey:
+                return <ColdStorage />;
+            case MODE_KEYS.tradingViewModeKey:
+                return null;
+            case MODE_KEYS.arbitrageModeKey:
+                return null;
+            default:
+                return null;
+        }
     };
 
     render() {
-        const { activeSet } = this.state;
+        const {
+            rightBottomSectionOpenMode,
+            setRightBottomSectionOpenMode,
+            rightBottomSectionFullScreenMode,
+            setRightBottomSectionFullScreenMode
+        } = this.props;
         return (
             <Wrapper>
                 <HeaderMenuItems
-                    activeSet={activeSet}
-                    setMenuItem={this.setMenuItem}
+                    rightBottomSectionOpenMode={rightBottomSectionOpenMode}
+                    setRightBottomSectionOpenMode={setRightBottomSectionOpenMode}
+                    rightBottomSectionFullScreenMode={rightBottomSectionFullScreenMode}
+                    setRightBottomSectionFullScreenMode={setRightBottomSectionFullScreenMode}
                 />
-                <InnerWrapper>
-                    {
-                        activeSet === activeSetStateKeys.activeModeKey &&
-                        <ActiveTable/>
-                    }
-                    {
-                        activeSet === activeSetStateKeys.filledModeKey &&
-                        <FilledTable/>
-                    }
-                    {
-                        activeSet === activeSetStateKeys.myTradesModeKey &&
-                        <MyTradesTable/>
-                    }
-                </InnerWrapper>
+                <InnerWrapper>{this.getContent()}</InnerWrapper>
             </Wrapper>
         );
     }

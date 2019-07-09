@@ -1,11 +1,12 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import { FormattedMessage } from 'react-intl';
 import { Tooltip } from 'react-tippy';
 
 import { StopOrderRows } from './StopOrderRows';
 import OrderButton from '../OrderButton';
 import SliderInput from '../SliderInputWithColor';
+import { customDigitFormat } from '../../../utils';
 
 const Wrapper = styled.div`
     display: flex;
@@ -13,6 +14,8 @@ const Wrapper = styled.div`
     align-items: stretch;
     justify-content: flex-start;
     padding: 14px;
+    padding-top: 5px;
+    padding-bottom: 5px;
     width: 100%;
 
     &:last-of-type {
@@ -29,6 +32,7 @@ const StopOrderContainer = ({
     priceCoin,
     total,
     totalCoin,
+    sliderCurrency,
     isBuy,
     orderButtonText,
     handleOrder,
@@ -37,6 +41,8 @@ const StopOrderContainer = ({
     handleStopPriceChange,
     orderButtonDisabled,
 }) => {
+    let currentBalance = isBuy ? total : amount;
+
     return (
         <Wrapper>
             <StopOrderRows
@@ -51,7 +57,13 @@ const StopOrderContainer = ({
                 total={total}
                 totalCoin={totalCoin}
             />
-            <SliderInput value={amount} max={sliderMax} onChange={handleAmountChange}/>
+            <SliderInput
+                value={amount}
+                max={sliderMax}
+                showTooltip={true}
+                tooltipValue={`${customDigitFormat(currentBalance)} ${sliderCurrency}`}
+                onChange={handleAmountChange}
+            />
             <FormattedMessage
                 id="order_entry.tooltip_access_restricted"
                 defaultMessage="Your Access is Restricted to Level 1"

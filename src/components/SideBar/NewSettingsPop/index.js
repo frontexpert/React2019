@@ -92,7 +92,6 @@ class NewSettingsPop extends Component {
     handleResetBalance = () => {
         this.props[STORE_KEYS.YOURACCOUNTSTORE].resetDemoBalances();
         this.props[STORE_KEYS.YOURACCOUNTSTORE].resetWalletTableState();
-        this.props[STORE_KEYS.PORTFOLIODATASTORE].resetPortfolioData();
         // this.props[STORE_KEYS.SETTINGSSTORE].setShortSellWith(false);
         this.props[STORE_KEYS.CONVERTSTORE].gotoFirstState();
         this.props[STORE_KEYS.INSTRUMENTS].setBase('BTC');
@@ -207,7 +206,7 @@ class NewSettingsPop extends Component {
 
         return (
             <Modal
-                innerRef={ref => {
+                ref={ref => {
                     this.modalRef = ref;
                 }}
             >
@@ -895,7 +894,6 @@ class NewSettingsPop extends Component {
 export default inject(
     STORE_KEYS.TELEGRAMSTORE,
     STORE_KEYS.YOURACCOUNTSTORE,
-    STORE_KEYS.PORTFOLIODATASTORE,
     STORE_KEYS.SETTINGSSTORE,
     STORE_KEYS.INSTRUMENTS,
     STORE_KEYS.CONVERTSTORE,

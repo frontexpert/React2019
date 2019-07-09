@@ -1,9 +1,10 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 
 import { MarketOrderRows } from './MarketOrderRows';
 import OrderButton from '../OrderButton';
 import SliderInput from '../SliderInputWithColor';
+import { customDigitFormat } from '../../../utils';
 
 const Wrapper = styled.div`
     display: flex;
@@ -27,6 +28,7 @@ export const MarketOrderContainer = ({
     amountCoin,
     baseSymbol,
     quoteSymbol,
+    sliderCurrency,
     estimatedAmountReceived,
     total,
     totalCoin,
@@ -35,6 +37,8 @@ export const MarketOrderContainer = ({
     orderButtonDisabled,
     priceLabel,
 }) => {
+    let currentBalance = isBuy ? total : amount;
+
     return (
         <Wrapper>
             <MarketOrderRows
@@ -47,7 +51,13 @@ export const MarketOrderContainer = ({
                 quoteSymbol={quoteSymbol}
                 estimatedAmountReceived={estimatedAmountReceived}
             />
-            <SliderInput value={amount} max={sliderMax} onChange={handleAmountChange}/>
+            <SliderInput
+                value={amount}
+                max={sliderMax}
+                showTooltip={true}
+                tooltipValue={`${customDigitFormat(currentBalance)} ${sliderCurrency}`}
+                onChange={handleAmountChange}
+            />
             {/* <SliderSlick/> */}
             <OrderButton
                 isBuy={isBuy}

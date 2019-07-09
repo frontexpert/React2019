@@ -185,7 +185,8 @@ export const tradeHistoryColumns = [
 
 export const gbxUtilizationDropdowns = [
     'account',
-    'direction'
+    'direction',
+    'currency'
 ];
 
 export const gbxUtilizationColumns = [

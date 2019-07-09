@@ -1,28 +1,154 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 
 import DatePicker from 'react-datepicker';
 
 import DropMenu from '../DropMenu';
-import DownloadIcon from './download.svg';
 
 import 'react-datepicker/dist/react-datepicker.css';
 
-import { timePeriodList, fileFormatList } from '../constants';
+import { timePeriodList, instrumentList, accountList, orderTypeList, timeInForceList, sideList, sourceList, hasTradesList, orderStateList, makerTakerList, directionList, statusList, typeList, reportTypeList, outputTypeList, currencyList } from '../constants';
 
 const Wrapper = styled.div`
     display: flex;
-    border-bottom: 1px solid #dedede;
     position: relative;
     padding: 10px 0;
     justify-content: space-between;
-    z-index: 1000;
+    border-bottom: 1px solid #454c73;
+    background-color: ${props => props.theme.palette.clrMainWindow};
+    .react-datepicker-popper {
+        z-index: 1000;
+    }
+    .react-datepicker__header{
+        background-color: ${props => props.theme.palette.clrBackground};
+        border-bottom: 1px solid #454c73;
+    }
+    .react-datepicker__input-container input{
+        background-color: ${props => props.theme.palette.clrDarkPurple};
+        border: 1px solid #454c73;
+        outline-color: white;
+        color: ${props => props.theme.palette.clrPurple};
+        padding: 5px;
+    }
+    .day--keyboard-selected{
+        color: white;
+    }
+    .react-datepicker{
+        background: ${props => props.theme.palette.clrBackground};
+        border: 1px solid #454c73;
+    }
+    .react-datepicker__day-name, .react-datepicker-time__caption{
+        color:${props => props.theme.palette.clrPurple};
+    }
+    .react-datepicker__current-month{
+        color:${props => props.theme.palette.clrPurple};
+    }
+    .react-datepicker__day{
+        color:${props => props.theme.palette.clrPurple};
+    }
+    .react-datepicker__month-container{
+        background-color: ${props => props.theme.palette.clrMainWindow};
+        padding: 0.4em;
+        margin: 0;
+        border-bottom: 1px solid #454c73;
+    }
+    input.react-datepicker-time__input{
+        background-color: ${props => props.theme.palette.clrMainWindow};
+        border: 1px solid #454c73;
+        margin-left: 0;
+        text-align: center;
+        color: ${props => props.theme.palette.clrPurple};
+    }
+    .react-datepicker-popper[data-placement^="bottom"] {
+        margin-top: 20px;
+    }
+    .react-datepicker-popper[data-placement^="top"] {
+        margin-bottom: 0;
+    }
 `;
 
-const RightWrapper = styled.div`
+const DropdownGroup = styled.div`
     display: flex;
-    margin-right: 10px;
 `;
+
+
+const dropdownMenus = {
+    instrument: <DropMenu
+        label="Instrument"
+        data={instrumentList}
+        key="Instrument"
+    />,
+    account: <DropMenu
+        label="Account"
+        data={accountList}
+        key="Account"
+    />,
+    orderType: <DropMenu
+        label="Order type"
+        data={orderTypeList}
+        key="Order type"
+    />,
+    timeInForce: <DropMenu
+        label="Time in force"
+        data={timeInForceList}
+        key="Time in force"
+    />,
+    side: <DropMenu
+        label="Side"
+        data={sideList}
+        key="Side"
+    />,
+    source: <DropMenu
+        label="Source"
+        data={sourceList}
+        key="Source"
+    />,
+    hasTrades: <DropMenu
+        label="Has trades"
+        data={hasTradesList}
+        key="Has trades"
+    />,
+    orderState: <DropMenu
+        label="Order state"
+        data={orderStateList}
+        key="Order state"
+    />,
+    makerTaker: <DropMenu
+        label="Maker/Taker"
+        data={makerTakerList}
+        key="Maker/Taker"
+    />,
+    direction: <DropMenu
+        label="Direction"
+        data={directionList}
+        key="Direction"
+    />,
+    status: <DropMenu
+        label="Status"
+        data={directionList}
+        key="Status"
+    />,
+    type: <DropMenu
+        label="Type"
+        data={typeList}
+        key="Type"
+    />,
+    reportType: <DropMenu
+        label="Report type"
+        data={reportTypeList}
+        key="Report type"
+    />,
+    outputType: <DropMenu
+        label="Output type"
+        data={outputTypeList}
+        key="Output type"
+    />,
+    currency: <DropMenu
+        label="Currency"
+        data={currencyList}
+        key="Currency"
+    />,
+};
 
 const LeftWrapper = styled.div`
     display: flex;
@@ -41,7 +167,7 @@ const Separator = styled.div`
         display: block;
         width: 9px;
         height: 1px;
-        border-bottom: 1px solid black;
+        border-bottom: 1px solid #454c73;
         position: absolute;
         margin: auto;
         top: 0;
@@ -65,15 +191,19 @@ class TabHeader extends React.Component {
         this.setState({
             startDate: date,
         });
+        this.props.changeStartDate(date);
     };
 
     handleChangeEndDate = (date) => {
         this.setState({
             endDate: date,
         });
+        this.props.changeEndDate(date);
     };
 
     render() {
+        const { dropdowns } = this.props;
+
         return (
             <Wrapper>
                 <LeftWrapper>
@@ -97,12 +227,14 @@ class TabHeader extends React.Component {
                         showTimeInput
                     />
                 </LeftWrapper>
-                <RightWrapper>
-                    <DropMenu
-                        data={fileFormatList}
-                    />
-                    <img src={DownloadIcon} alt="Download"/>
-                </RightWrapper>
+
+                <div>
+                    <DropdownGroup>
+                        {
+                            dropdowns.map((dropdown) => dropdownMenus[dropdown])
+                        }
+                    </DropdownGroup>
+                </div>
             </Wrapper>
         );
     }

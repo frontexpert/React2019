@@ -1,13 +1,14 @@
+import React from 'react';
 import {
     observable, action, reaction, toJS
 } from 'mobx';
 import uuidv4 from 'uuid/v4';
-import React from 'react';
+
 import {
     OrderExecutionPlanRequest, OrderStopExecutionPlan, GetExecPlans, orderEventsObservable, orderConfirmationObservable, OrderEvents
 } from '../lib/bct-ws';
 
-const throttleMs = 100;
+const throttleMs = 2000;
 
 export const donutChartModeStateKeys = {
     defaultModeKey: 'default',
@@ -41,10 +42,14 @@ class LowestExchangeStore {
     endPacketTime = 0;
     incomingCount = 0;
     execPlanIntId = null;
+    isArbDetailMode = false;
 
-    constructor(orderForm, orderBookStore, snackbar, telegramStore) {
+    startExecPlanTimeout = null;
+
+    constructor(orderForm, orderBookStore, snackbar, telegramStore, convertStore, viewModeStore) {
         const isLoggedIn = localStorage.getItem('authToken');
         this.snackbar = snackbar;
+        this.convertStore = convertStore;
         this.exchangeIndex = -1;
 
         reaction(
@@ -61,6 +66,17 @@ class LowestExchangeStore {
             }) => {
                 this.symbol = baseSymbol + '-' + quoteSymbol;
                 this.amount = amount;
+            }
+        );
+
+        reaction(
+            () => {
+                return {
+                    isArbDetailMode: viewModeStore.isArbDetailMode,
+                };
+            },
+            ({ isArbDetailMode }) => {
+                this.isArbDetailMode = isArbDetailMode;
             }
         );
 
@@ -81,12 +97,10 @@ class LowestExchangeStore {
         reaction(
             () => {
                 return {
-                    PricesByExchangeCCASorted: orderBookStore.PricesByExchangeCCASorted,
                     isPricesByExchangeCCASorted: orderBookStore.isPricesByExchangeCCASorted,
                 };
             },
             ({
-                PricesByExchangeCCASorted,
                 isPricesByExchangeCCASorted,
             }) => {
                 if (isPricesByExchangeCCASorted === 1) {
@@ -130,15 +144,16 @@ class LowestExchangeStore {
                             let planTemp = [];
                             for (let i = 0; i < plans.length; i++) {
                                 const obj = {};
-                                obj.Amount = Math.random();
+                                obj.Amount = StartCoin === 'USDT' ? plans[i].SpendAmount / plans[i].Price : plans[i].SpendAmount;
                                 obj.Ask = StartCoin;
                                 obj.Bid = EndCoin;
                                 obj.Exchange = plans[i].Exchange;
                                 obj.Price = plans[i].Price;
-                                obj.Side = 'sell';
+                                obj.Side = StartCoin === 'USDT' ? 'buy' : 'sell';
                                 obj.Symbol = plans[i].Symbol;
-                                obj.spentAmount = plans[i].SpendAmount;
+                                obj.spentAmount = StartCoin === 'USDT' ? plans[i].SpendAmount : plans[i].SpendAmount * plans[i].Price;
                                 obj.progress = 0;
+                                obj.Percentage = plans[i].Percentage;
                                 planTemp.push(obj);
                             }
                             // console.log("[planTemp]", planTemp);
@@ -175,6 +190,7 @@ class LowestExchangeStore {
                                 this.PlanForExchangesBar[i].spentAmount = event.SpentAmount || 0;
                                 this.PlanForExchangesBar[i].Amount = this.PlanForExchangesBar[i].spentAmount * this.PlanForExchangesBar[i].Price;
                                 this.PlanForExchangesBar[i].progress = FillPercentage;
+                                if (event.Percentage !== undefined && event.Percentage !== 0) this.PlanForExchangesBar[i].Percentage = event.Percentage || 0;
                                 break;
                             }
                         }
@@ -211,7 +227,9 @@ class LowestExchangeStore {
 
     waitFor = () => {
         return new Promise(resolve => {
-            setTimeout(() => { resolve(); }, 1000);
+            setTimeout(() => {
+                resolve();
+            }, 1000);
         });
     };
 
@@ -222,16 +240,22 @@ class LowestExchangeStore {
         if (this.isAutoTradingLoading) {
             return;
         }
-        if (!this.confirmed && Number(this.amount) !== 0 && !this.hoverExchangeFromDonut) {
+        if (this.convertStore.forceStopArbitrageExchange) {
+            return;
+        }
+
+        // if (!this.confirmed && Number(this.amount) !== 0 && !this.hoverExchangeFromDonut) {
+        if (!this.isArbDetailMode)
+        {
             if (this.isDonutChartLoading === donutChartModeStateKeys.loadingModeKey) {
                 this.isDonutChartLoading = donutChartModeStateKeys.doneModeKey;
             }
             this.incomingCount++;
 
             let details = data.Details;
-            this.averagePrice = details ? details.ConversionCoef : 0; // details ? details.AveragePrice : 0;
-            this.totalPrice = details ? details.Total : 0;
-
+            this.averagePrice = details ? details.ConversionCoef : this.averagePrice; // details ? details.AveragePrice : 0;
+            this.totalPrice = details ? details.Total : this.totalPrice;
+            this.amount = this.totalPrice / this.averagePrice;
             data = data.Plan;
 
             if (data && data.length > 0) {
@@ -241,6 +265,8 @@ class LowestExchangeStore {
                     data[i].Price = (data[i].Amount / data[i].spentAmount) || 0;
                     if (!isSideBuy && data[i].Side === 'buy') {
                         isSideBuy = true;
+                        data[i].Amount = data[i].spentAmount;
+                        data[i].spentAmount = data[i].Amount / data[i].Price;
                     }
                 }
 
@@ -341,7 +367,8 @@ class LowestExchangeStore {
         this.isDonutChartLoading = donutChartModeStateKeys.loadingModeKey;
         this.isDonutModeFinishedForLabel = false;
 
-        setTimeout(() => {
+        clearTimeout(this.startExecPlanTimeout);
+        this.startExecPlanTimeout = setTimeout(() => {
             if (this.isDonutChartLoading === donutChartModeStateKeys.loadingModeKey) {
                 this.isDonutChartLoading = donutChartModeStateKeys.doneModeKey;
             }
@@ -379,7 +406,8 @@ class LowestExchangeStore {
         localStorage.setItem('ExecPlanId', uuid);
         OrderExecutionPlanRequest({
             ExecPlanId: uuid,
-            Symbol: this.symbol,
+            // Symbol: this.symbol,
+            Symbol: 'BTC-USDT',
             Side: 'Sell',
             Size: this.amount,
         });
@@ -396,7 +424,7 @@ class LowestExchangeStore {
     }
 }
 
-export default (orderForm, orderBookStore, snackbar, telegramStore) => {
-    const store = new LowestExchangeStore(orderForm, orderBookStore, snackbar, telegramStore);
+export default (orderForm, orderBookStore, snackbar, telegramStore, convertStore, viewModeStore) => {
+    const store = new LowestExchangeStore(orderForm, orderBookStore, snackbar, telegramStore, convertStore, viewModeStore);
     return store;
 };

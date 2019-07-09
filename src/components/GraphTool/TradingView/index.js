@@ -1,24 +1,22 @@
 import React from 'react';
 import { inject, observer } from 'mobx-react';
-import styled, { keyframes } from 'styled-components';
-
-import { STORE_KEYS } from '../../../stores';
-import { TV_CONFIG } from '../../../config/constants';
-import ChartAPI, { apiDataLoadObservable } from './ChartApi';
-import DataLoader from '../../../components-generic/DataLoader';
+import styled, { keyframes } from 'styled-components/macro';
+import { compose } from 'recompose';
+import { withSafeTimeout } from '@hocs/safe-timers';
+import { STORE_KEYS } from '@/stores';
+import { TV_CONFIG } from '@/config/constants';
+// import ChartAPI, { apiDataLoadObservable } from './ChartApi';
+import DataFeed, { apiDataLoadObservable } from './Api'
+import { customIndicatorsGetter } from './utils';
+// import TradingView from '@/lib/chartModules/tradingView/charting_library/charting_library.min'
+import DataLoader from '@/components-generic/DataLoader';
 import TradingViewPriceLabel from './TradingViewPriceLabel';
-import { getDecimalPlaces } from '../../../utils';
-import WalletPopup from '../WalletPopup';
-
-const fadeOut = keyframes`
-    0%   { transform: translate(0%, 0); }
-    80%  { transform: translate(0%, 0); }
-    100% { transform: translate(103%, 0); }
-`;
+import { getDecimalPlaces } from '@/utils';
+import PriceChartToolbar from '../PriceChartCanvas/PriceChartToolbar';
 
 const Wrapper = styled.div.attrs({ className: 'wrapper-tradingview' })`
     // display: grid;
-    // grid-template-areas: 
+    // grid-template-areas:
     //     'tradingview'
     //     'rightlowersection';
     // grid-template-columns: 100%;
@@ -30,12 +28,28 @@ const Wrapper = styled.div.attrs({ className: 'wrapper-tradingview' })`
     height: 100%;
     display: flex;
     flex-direction: column;
-    transform: translate(${props => !props.isVisible ? '103%' : '0'}, 0);
-    // animation: ${props => (props.disableAnimation || props.isVisible) ? 'none' : fadeOut + ' 2s linear'};
     pointer-events: ${props => props.isCoinListOpen ? 'none' : 'all'};
     z-index: 2;
+    .settings-tooltip {
+        position: absolute;
+        z-index: 10;
+        width: 38px;
+        height: 38px;
+        top: 12px;
+        left: 12px;
+        
+        .settings-icon {
+            width: 38px;
+            height: 38px;
+        }
+    }
 `;
-
+const TooltipContent = styled.div`
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+`;
 const DataLoaderWrapper = styled.div`
     position: absolute;
     width: ${props => props.width}px;
@@ -55,48 +69,37 @@ const ChartContainer = styled.div`
 const ApTradingViewChart = styled.div.attrs({ className: 'apTradingViewChart' })`
     position: relative;
     width: ${props => props.width ? `${props.width}px` : '100%'};
-    height: ${props => props.height}px;
+    height: 100%;
     // height: calc(100% - 15px);
-    
+
     iframe {
         height: 100% !important;
     }
 `;
 
-const CoverBox = styled.div`
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 275px;
-    z-index: 5;
-`;
-
 class BCTChart extends React.Component {
-    constructor(props) {
-        super(props);
-        this.symbol = '';
+    symbols = [];
 
-        this.disableAnimation = true;
-        this.isSubscribed = false;
+    disableAnimation = true;
+    isSubscribed = false;
 
-        this.state = {
-            isLoading: false,
-        };
-    }
+    state = {
+        isLoading: false,
+    };
 
     componentDidMount() {
         const {
             [STORE_KEYS.LOWESTEXCHANGESTORE]: { lowestExchange },
-            [STORE_KEYS.EXCHANGESSTORE]: { selectedExchange },
+            [STORE_KEYS.EXCHANGESSTORE]: { selectedExchange, exchanges },
             coinPair,
         } = this.props;
 
-        let exchange = !lowestExchange ? selectedExchange.name : lowestExchange;
-        if (!exchange || exchange === 'Global') exchange = 'CCCAVG';
-        this.symbol = exchange + ':' + coinPair;
+        // let exchange = !lowestExchange ? selectedExchange.name : lowestExchange;
+        // if (!exchange || exchange === 'Global') exchange = 'ZB';
+        const symbols = Object.keys(exchanges).filter(name => exchanges[name].active).map(exchange => `${exchange === 'Global' ? 'CCCAGG': exchange}:${coinPair}`);
+        this.symbols = symbols;
 
-        this.createChart(this.symbol, TV_CONFIG);
+        this.createChart(this.symbols, TV_CONFIG);
 
         if (!this.isSubscribed) {
             apiDataLoadObservable
@@ -126,36 +129,43 @@ class BCTChart extends React.Component {
                     baseCoinPrice, quoteCoinPrice,
                 },
                 [STORE_KEYS.LOWESTEXCHANGESTORE]: { lowestExchange },
-                [STORE_KEYS.EXCHANGESSTORE]: { selectedExchange },
+                [STORE_KEYS.EXCHANGESSTORE]: { selectedExchange, exchanges },
                 coinPair,
             } = this.props;
 
-            let exchange = (!lowestExchange) ? selectedExchange.name : lowestExchange;
-            if (!exchange || exchange === 'Global') exchange = 'CCCAVG';
-            const symbol = exchange + ':' + coinPair;
+            const symbols = Object.keys(exchanges).filter(name => exchanges[name].active).map(exchange => `${exchange === 'Global' ? 'CCCAGG': exchange}:${coinPair}`);
 
-            if (this.tv && this.tv._ready && this.tv._options) {
+            // if (this.tv && this.tv._ready && this.tv._options) {
 
-                const currentDecimalPlaces = this.tv._options.overrides['mainSeriesProperties.minTick'];
-                const incomingDecimalPlaces = (baseCoinPrice > 0 && quoteCoinPrice > 0) ? getDecimalPlaces(baseCoinPrice / quoteCoinPrice).toString() : currentDecimalPlaces;
+            //     const currentDecimalPlaces = this.tv._options.overrides['mainSeriesProperties.minTick'];
+            //     const incomingDecimalPlaces = (baseCoinPrice > 0 && quoteCoinPrice > 0) ? getDecimalPlaces(baseCoinPrice / quoteCoinPrice).toString() : currentDecimalPlaces;
 
-                if (currentDecimalPlaces !== incomingDecimalPlaces) {
-                    let tvConfig = TV_CONFIG;
-                    tvConfig.overrides['mainSeriesProperties.minTick'] = incomingDecimalPlaces;
-                    // this.tv.applyOverrides(tvConfig); // this function sometimes doesn't work.
-                    this.tv.remove();
-                    this.createChart(symbol, tvConfig);
-                    this.symbol = symbol;
-                }
-            }
+            //     if (currentDecimalPlaces !== incomingDecimalPlaces) {
+            //         let tvConfig = TV_CONFIG;
+            //         // tvConfig.overrides['mainSeriesProperties.minTick'] = incomingDecimalPlaces;
+            //         // // this.tv.applyOverrides(tvConfig); // this function sometimes doesn't work.
+            //         this.tv.remove();
+            //         this.createChart(symbols, tvConfig);
+            //         this.symbols = symbols;
+            //     }
+            // }
 
-            if (this.symbol !== symbol) {
+            if (this.symbols.length !== symbols.length) {
                 if (!this.tv) {
-                    this.createChart(symbol, TV_CONFIG);
-                } else if (this.tv.activeChart) {
-                    this.tv.activeChart().setSymbol(symbol);
+                    this.createChart(symbols, TV_CONFIG);
+                } else {
+                    this.tv.chart().removeAllStudies();
+                    symbols.map((symbol, idx)  => {
+                        if (idx !== 0) {
+                            this.tv.chart().createStudy('Overlay', true, false, [symbol], null, {
+                                style: 2,
+                                'lineStyle.color': `#${Math.floor(Math.random()*16777215).toString(16)}`,
+                                width: 2
+                            });
+                        }
+                    })
                 }
-                this.symbol = symbol;
+                this.symbols = symbols;
             }
         } catch (err) {
             console.log(err.message);
@@ -180,79 +190,76 @@ class BCTChart extends React.Component {
         this.props[STORE_KEYS.VIEWMODESTORE].toggleFullmode();
     };
 
-    createChart = (symbol, overrides) => {
+    createChart = (symbols, overrides) => {
         try {
             const chartOptions = {
-                symbol,
-                datafeed: new ChartAPI.UDFCompatibleDatafeed(),
-                library_path: 'libs/charting_library_new/',
-                autosize: true,
+                symbol: symbols[0],
                 interval: '1',
-                container_id: 'graph-chart',
-                locale: 'en',
-                ...overrides,
-            };
+                container_id: 'tv_chart_container',
+                datafeed: DataFeed,
+                library_path: 'trading_view/',
+                charts_storage_url: 'https://saveload.tradingview.com',
+                charts_storage_api_version: '1.1',
+                client_id: 'tradingview.com',
+                user_id: 'public_user_id',
+                fullscreen: false,
+                autosize: true,
+                debug: true,
+                custom_indicators_getter: customIndicatorsGetter,
+                ...overrides
+            }
 
             this.tv = new TradingView.widget(chartOptions);
-
+            
             this.tv.onChartReady(() => {
-                setTimeout(() => {
-                    try {
-                        let fullScreenBtn = document.querySelector('#graph-chart iframe').contentWindow.document.body.querySelector('span.button.fullscreen.iconed.apply-common-tooltip');
-                        if (fullScreenBtn) {
-                            fullScreenBtn.style.visibility = 'visible';
-                            let fullScreenBtn2 = fullScreenBtn.cloneNode(true);
-                            fullScreenBtn.parentNode.replaceChild(fullScreenBtn2, fullScreenBtn);
-                            fullScreenBtn2.addEventListener('click', this.onFullScreen);
-                        }
-                    } catch (e) {
-                        console.log('');
+                symbols.map((symbol, idx) => {
+                    if (idx !== 0) {
+                        this.tv.chart().createStudy('Overlay', true, false, [symbol], null, {
+                            style: 2,
+                            'lineStyle.color': `#${Math.floor(Math.random()*16777215).toString(16)}`,
+                            width: 2
+                        });
                     }
-                }, 0);
-            });
+                })
+            })
         } catch (err) {
-            console.log();
+            console.log(err);
         }
     };
 
     render() {
         const {
-            isVisible, width, height,
+            width, height,
             [STORE_KEYS.TRADINGVIEWSTORE]: tradingViewStore,
             [STORE_KEYS.LOWESTEXCHANGESTORE]: { lowestExchange },
-            [STORE_KEYS.EXCHANGESSTORE]: { selectedExchange },
+            [STORE_KEYS.EXCHANGESSTORE]: { selectedExchange, exchanges },
         } = this.props;
         const {
             isLoading,
         } = this.state;
-        let exchange = (!lowestExchange) ? selectedExchange.name : lowestExchange;
+        const exchange = (!lowestExchange) ? selectedExchange.name : lowestExchange;
 
         const {
             isCoinListOpen,
         } = tradingViewStore;
 
-        if (isVisible) this.disableAnimation = false;
+        this.disableAnimation = false;
 
         return (
             <Wrapper
-                isVisible={isVisible}
                 disableAnimation={this.disableAnimation}
                 isCoinListOpen={isCoinListOpen}
                 width={width}
             >
                 <ChartContainer width={width}>
                     <ApTradingViewChart
-                        id="graph-chart"
+                        id="tv_chart_container"
                         width={width - 2}
                         height={height - 2}
                     />
 
                     <TradingViewPriceLabel isToggleBtn exchange={exchange}/>
                 </ChartContainer>
-
-                {(!exchange || exchange === 'Global') && (
-                    <WalletPopup isGlobal={false} maxHeight={height} />
-                )}
 
                 {isLoading && (
                     <DataLoaderWrapper width={width}>
@@ -264,10 +271,14 @@ class BCTChart extends React.Component {
     }
 }
 
-export default inject(
-    STORE_KEYS.VIEWMODESTORE,
-    STORE_KEYS.TRADINGVIEWSTORE,
-    STORE_KEYS.YOURACCOUNTSTORE,
-    STORE_KEYS.LOWESTEXCHANGESTORE,
-    STORE_KEYS.EXCHANGESSTORE,
-)(observer(BCTChart));
+export default compose(
+    withSafeTimeout,
+    inject(
+        STORE_KEYS.VIEWMODESTORE,
+        STORE_KEYS.TRADINGVIEWSTORE,
+        STORE_KEYS.YOURACCOUNTSTORE,
+        STORE_KEYS.LOWESTEXCHANGESTORE,
+        STORE_KEYS.EXCHANGESSTORE,
+    ),
+    observer
+)(BCTChart);

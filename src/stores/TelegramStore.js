@@ -66,6 +66,9 @@ class TelegramStore {
     updatesStatePts = null;
     updatesStateDate = null;
     intervalId = null;
+    startGetStatesRunnerTimeout = null;
+    sendCodeTimeout = null;
+    retryTimeout = null;
 
     // Channel, chat to lastMessage hash
     lastMessages = {};
@@ -1331,6 +1334,7 @@ class TelegramStore {
         this.isGetStatesRunning = true;
         // this.getStatesRunner();
 
+        clearInterval(this.intervalId);
         this.intervalId = setInterval(this.getStatesRunner, 4000);
     };
 

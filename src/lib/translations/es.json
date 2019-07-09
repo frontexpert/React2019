@@ -9,6 +9,7 @@
   "settings.label_access_level": "Nivel de acceso",
   "settings.label_balance_includes_credit": "Saldo incluye credito",
   "settings.label_google_2fa": "Google 2FA",
+  "settings.label_email_2fa": "Correo electrónico 2FA",
   "settings.label_arbitrage_mode": "Modo de arbitraje",
   "settings.label_private_vpn": "VPN privado",
   "settings.label_store_credit": "Crédito de la tienda",
@@ -25,7 +26,7 @@
   "settings.preferences": "Preferencias",
   "settings.privacy": "Intimidad",
   "settings.history": "Historia",
-  "settings.affiliate": "afiliado",
+  "settings.affiliate": "Afiliado",
   "settings.advanced": "Avanzado",
   "settings.search_placeholder": "Buscar...",
 
@@ -187,7 +188,6 @@
   "data_loader_done.label_done": "HECHO",
   "sms_verification.label_enter_mobile_number": "Ingrese el número de teléfono móvil",
   "sms_verification.label_what_code": "¿Cual es el codigo?",
-  "switch_custom.label_off": "APAGADO",
 
   "button.save": "Salvar",
   "button.confirm": "Confirmar",
@@ -216,5 +216,6 @@
   "order_book.buy_book.label_max_order_size": "TAMAÑO MAXIMO DEL PEDIDO: ",
   "settings.label_auto_flip": "Auto Flip",
   "settings.label_swaps": "Intercambiar",
-  "settings.label_is_auto_convert": "Conversión automática"
+  "settings.label_is_auto_convert": "Conversión automática",
+  "settings.label_support_center": "Centro de soporte de plataforma"
 }

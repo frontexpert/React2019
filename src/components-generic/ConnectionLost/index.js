@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { inject, observer } from 'mobx-react';
-import styled, { keyframes } from 'styled-components';
+import styled, { keyframes } from 'styled-components/macro';
 import { STORE_KEYS } from '../../stores';
 
 const Wrapper = styled.div`
@@ -15,7 +15,6 @@ const Wrapper = styled.div`
     display: flex;
     justify-content: center;
     align-items: center;
-    visibility: ${props => !props.visible ? 'visible' : 'hidden'};
 `;
 
 const Label = styled.div`
@@ -36,11 +35,23 @@ class ConnectionLost extends Component {
         const {
             [STORE_KEYS.NETWORKSTORE]: { isPrivateConnected, isPublicConnected },
             [STORE_KEYS.TELEGRAMSTORE]: { isLoggedIn },
+            isMobileDevice,
         } = this.props;
         const isConnected = isLoggedIn ? (isPrivateConnected && isPublicConnected) : isPublicConnected;
+        const isVisible = !(isMobileDevice || isConnected);
+
+        if (!isConnected) {
+            let err = {
+                isPrivateConnected,
+                isPublicConnected,
+                isLoggedIn,
+                date: new Date(),
+            };
+            console.log('connection issue', err);
+        }
 
         return (
-            <Wrapper visible={isConnected}>
+            isVisible && <Wrapper>
                 <Label>Connection Lost...</Label>
             </Wrapper>
         );
@@ -51,4 +62,3 @@ export default inject(
     STORE_KEYS.NETWORKSTORE,
     STORE_KEYS.TELEGRAMSTORE,
 )(observer(ConnectionLost));
-

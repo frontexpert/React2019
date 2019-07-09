@@ -1,7 +1,9 @@
 import React from 'react';
-import styled from 'styled-components';
-import x from '../../components-generic/Modal/x.svg';
+import styled from 'styled-components/macro';
+
 import Content from './Content';
+
+import x from '../../components-generic/Modal/x.svg';
 
 const Wrapper = styled.div`
     display: flex;
@@ -12,7 +14,7 @@ const Wrapper = styled.div`
     right: 0;
     bottom: 0;
     left: 0;
-    z-index: 4000 !important;
+    z-index: 1000001 !important;
     background: rgba(0,0,0,0.435);
     border-radius: ${props => props.theme.palette.borderRadius};
 `;
@@ -60,17 +62,17 @@ const Modal = ({ toggleModal, noCloseBtn }) => (
                 e.stopPropagation();
             }}
         >
-            {!noCloseBtn &&
-            <Close
-                onClick={e => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    toggleModal();
-                }}
-            >
-                <Icon src={x} />
-            </Close>
-            }
+            {!noCloseBtn && (
+                <Close
+                    onClick={e => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleModal();
+                    }}
+                >
+                    <Icon src={x} />
+                </Close>
+            )}
             <Content toggleModal={toggleModal} />
         </InnerWrapper>
     </Wrapper>

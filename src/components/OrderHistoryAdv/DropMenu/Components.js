@@ -1,5 +1,5 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 
 export const Wrapper = styled.div.attrs({ className: 'dropmenu-wrapper' })`
     box-sizing: border-box;
@@ -52,7 +52,7 @@ export const Label = styled.div`
     
     .value {
         box-sizing: border-box;
-        color: ${props => props.theme.palette.clrHighContrast};
+        color: ${props => props.theme.palette.clrPurple};
         cursor: pointer;
         display: inline;
         margin-left: 6px;
@@ -67,7 +67,6 @@ export const DropdownList = styled.div`
     border-top-right-radius: 3px;
     box-sizing: border-box;
     color: rgb(255, 255, 255);
-    display: ${props => props.opened ? 'block' : 'none'};
     position: absolute;
     right: 0px;
     top: 30px;

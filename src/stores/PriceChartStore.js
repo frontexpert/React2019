@@ -1,4 +1,4 @@
-import { observable, action, reaction } from 'mobx';
+import { observable, reaction, runInAction } from 'mobx';
 
 export const INITIAL_PRICES_LENGTH = 91;
 export const MAX_PRICES_LENGTH = 500;
@@ -7,6 +7,7 @@ class PriceChartStore {
     @observable priceData = [];
     @observable price = 0;
     @observable isFetchingPrice = false;
+    @observable rates = {};
 
     interval = null;
     noiseInterval = null;
@@ -18,62 +19,64 @@ class PriceChartStore {
     fiatMode = true;
     incomingDataStack = [];
     bufferData = [];
-
     constructor(instrumentStore, settingsStore, marketsStore) {
         if (settingsStore && settingsStore.price) {
             this.fiatPrice = settingsStore.price;
         }
 
-        instrumentStore.instrumentsReaction(
-            async (base, quote) => {
-                try {
-                    const newPair = marketsStore.markets[`${base}-${quote}`];
-                    const pair = newPair.split('-');
-                    if (pair.length === 2) {
-                        this.base = pair[0];
-                        this.quote = pair[1];
-                    } else {
-                        this.base = base;
-                        this.quote = quote;
-                    }
-                } catch (e) {
+        instrumentStore.instrumentsReaction(async (base, quote) => {
+            try {
+                const newPair = marketsStore.markets[`${base}-${quote}`];
+                const pair = newPair.split('-');
+                if (pair.length === 2) {
+                    this.base = pair[0];
+                    this.quote = pair[1];
+                } else {
                     this.base = base;
                     this.quote = quote;
                 }
+            } catch (e) {
+                this.base = base;
+                this.quote = quote;
+            }
 
-                this.fiatMode = quote === 'USDT';
-                this.price = 0;
-                this.rateData = [];
-                this.priceData = [];
-                this.incomingDataStack = [];
-                this.bufferData = [];
+            this.fiatMode = quote === 'USDT';
+            this.price = 0;
+            this.rateData = [];
+            this.priceData = [];
+            this.incomingDataStack = [];
+            this.bufferData = [];
 
-                clearInterval(this.noiseInterval);
-                clearInterval(this.interval);
-                this.fetchPrice(this.base, this.quote);
-                this.setPriceFetchInterval();
-            },
-            true
-        );
+            clearInterval(this.noiseInterval);
+            clearInterval(this.interval);
+            this.fetchPrice(this.base, this.quote);
+            this.setPriceFetchInterval();
+        }, true);
 
         reaction(
             () => ({
                 price: settingsStore.price,
             }),
-            (settings) => {
+            settings => {
                 this.fiatPrice = settings.price;
 
                 if (this.fiatMode) {
-                    this.priceData = this.rateData.map(
-                        ([time, rate]) => [
-                            time,
-                            rate * this.fiatPrice
-                        ]
-                    );
+                    this.priceData = this.rateData.map(([time, rate]) => [time, rate * this.fiatPrice]);
                 }
             }
         );
+        if (this.base && this.quote) this.fetchPrice(this.base, this.quote);
     }
+
+    priceChartReaction = (reactionHandler, fireImmediately = false) => {
+        return reaction(
+            () => this.rates,
+            async rates => {
+                reactionHandler(this.base, this.quote, rates);
+            },
+            { fireImmediately }
+        );
+    };
 
     setPriceFetchInterval() {
         if (this.base && this.quote) {
@@ -87,7 +90,7 @@ class PriceChartStore {
         }
     }
 
-    getRandomData = (pointY) => {
+    getRandomData = pointY => {
         let y = 0;
         if (Math.random() > 0.03) {
             y = pointY + Math.random() * 0.00005 * pointY * Math.pow(-1, Math.round(Math.random() * 10));
@@ -96,7 +99,7 @@ class PriceChartStore {
         }
 
         return y;
-    }
+    };
 
     pushToPriceData(price) {
         const size = this.rateData.length;
@@ -113,12 +116,7 @@ class PriceChartStore {
             this.rateData.reverse();
 
             if (this.fiatMode) {
-                this.priceData = this.rateData.map(
-                    ([time, rate]) => [
-                        time,
-                        rate * this.fiatPrice
-                    ]
-                );
+                this.priceData = this.rateData.map(([time, rate]) => [time, rate * this.fiatPrice]);
             } else {
                 this.priceData = this.rateData;
             }
@@ -129,58 +127,43 @@ class PriceChartStore {
     }
 
     serveNoiseData(currntPointY) {
-        let cnt = 0;
-
         if (this.noiseInterval) {
             clearInterval(this.noiseInterval);
         }
 
         this.noiseInterval = setInterval(() => {
-            const stackSize = this.incomingDataStack.length;
-            const bufferSize = this.bufferData.length;
-            const x = new Date().getTime();
+            runInAction(() => {
+                const stackSize = this.incomingDataStack.length;
+                const bufferSize = this.bufferData.length;
+                const x = new Date().getTime();
 
-            let y;
-            if (bufferSize > 0) {
-                y = bufferSize === 1 ? this.bufferData[0] : this.getRandomData(this.bufferData[0]);
-                this.bufferData.shift();
-            } else if (stackSize > 0) {
-                const diff = this.incomingDataStack[stackSize - 1] - currntPointY;
-                y = currntPointY + diff / 6;
-                this.bufferData = [
-                    currntPointY + diff / 2,
-                    currntPointY + 5 * diff / 6,
-                    currntPointY + diff
-                ];
-                this.incomingDataStack = [];
-            } else {
-                y = this.getRandomData(currntPointY);
-            }
+                let y;
+                if (bufferSize > 0) {
+                    y = bufferSize === 1 ? this.bufferData[0] : this.getRandomData(this.bufferData[0]);
+                    this.bufferData.shift();
+                } else if (stackSize > 0) {
+                    const diff = this.incomingDataStack[stackSize - 1] - currntPointY;
+                    y = currntPointY + diff / 6;
+                    this.bufferData = [currntPointY + diff / 2, currntPointY + (5 * diff) / 6, currntPointY + diff];
+                    this.incomingDataStack = [];
+                } else {
+                    y = this.getRandomData(currntPointY);
+                }
 
-            cnt++;
-            currntPointY = y;
-            if (cnt === 1) {
+                currntPointY = y;
                 this.rateData.push([x, y]);
                 if (this.rateData.length > MAX_PRICES_LENGTH) {
                     this.rateData = this.rateData.slice(this.rateData.length - INITIAL_PRICES_LENGTH);
                 }
 
                 if (this.fiatMode) {
-                    this.priceData = this.rateData.map(
-                        ([time, rate]) => [
-                            time,
-                            rate * this.fiatPrice
-                        ]
-                    );
+                    this.priceData = this.rateData.map(([time, rate]) => [time, rate * this.fiatPrice]);
                 } else {
                     this.priceData = this.rateData;
                 }
 
                 this.price = y;
-                cnt = 0;
-            } else {
-                this.rateData.push([x, y]);
-            }
+            });
         }, 2000);
     }
 
@@ -194,6 +177,7 @@ class PriceChartStore {
         fetch(url)
             .then(response => response.json())
             .then(Data => {
+                this.rates = Data;
                 this.isFetchingPrice = false;
 
                 try {
@@ -204,7 +188,7 @@ class PriceChartStore {
                         this.price = rate;
                         this.pushToPriceData(rate);
                     }
-                } catch(err) {
+                } catch (err) {
                     this.price = 0;
                 }
             })
@@ -215,4 +199,5 @@ class PriceChartStore {
     }
 }
 
-export default (instrumentStore, settingsStore, marketsStore) => new PriceChartStore(instrumentStore, settingsStore, marketsStore);
+export default (instrumentStore, settingsStore, marketsStore) =>
+    new PriceChartStore(instrumentStore, settingsStore, marketsStore);

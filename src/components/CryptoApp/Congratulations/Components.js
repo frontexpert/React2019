@@ -1,5 +1,5 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import { darkTheme } from '../../../theme/core';
 
 const { palette } = darkTheme;
@@ -20,7 +20,7 @@ export const Wrapper = styled.div.attrs({ className: 'congrats-wrapper' })`
   width: 100%;
   height: 100%;
   background: #000;
-  z-index: 100;
+  z-index: 1110;
 `;
 
 export const CongratsIcon = styled.img.attrs({ className: 'congrats-icon' })`

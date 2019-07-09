@@ -1,5 +1,5 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 
 export const SideBarWrapper = styled.div.attrs({ className: 'sidebar-wrapper' })`
     position: fixed;
@@ -131,7 +131,7 @@ export const TopBarItemPopup = styled.div`
     left: calc(100% + 7px);
     top: 0;
     height: 40px;
-    display: ${props => props.opened ? 'flex' : 'none'};
+    display: flex;
     padding: 2px;
     background: ${props => props.theme.palette.sidebarBackground};
     width: 1000px;

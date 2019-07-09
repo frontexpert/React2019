@@ -39,7 +39,7 @@ export const getClientLive = () => {
         const socket = socketCluster.create({
             port: WS.PUBLIC.PORT,
             hostname: WS.PUBLIC.HOST,
-            autoReconnect: true,
+            autoReconnect: true
         });
         socket.on('connect', () => {
             publicNetworkObservable.next({ publicSocket: true });
@@ -59,48 +59,14 @@ export const getClientLive = () => {
 };
 
 /**
- *  Public Websocket2 creation
- */
-export const getClientMarket = () => {
-    return new Promise((resolve, reject) => {
-        if (clientMarket) {
-            return resolve(clientMarket);
-        }
-        const socket = socketCluster.create({
-            port: WS.MARKET.PORT,
-            hostname: WS.MARKET.HOST,
-            autoReconnect: true,
-        });
-        socket.on('connect', () => {
-            // console.log('[market socket connected/reconnected]');
-            clientMarket = socket;
-            resolve(clientMarket);
-        });
-        socket.on('disconnect', () => {
-            // console.log('[market socket disconnect]');
-        });
-        socket.on('connectAbort', () => {
-            // console.log('[market socket connectAbort]');
-        });
-        socket.on('error', () => {
-            // console.log('[market socket connectError]');
-        });
-    });
-};
-
-/**
  *  Private Websocket creation
  */
 export const getClientTrade = () => {
     return new Promise((resolve, reject) => {
         const authToken = localStorage.getItem('authToken');
         if (!authToken) {
-            return null;
-        }
-        if (isTokenExpired(authToken)) {
-            clientTrade = null;
-            refreshToken();
-            return null;
+            return resolve(null);
+            // return reject(new Error('unauth'));
         }
         if (clientTrade) {
             return resolve(clientTrade);
@@ -126,7 +92,7 @@ export const getClientTrade = () => {
             privateNetworkObservable.next({ privateSocket: false });
         });
         socket.on('error', err => {
-            if (!!err && err.code === 4008) { // Server rejected handshake from client
+            if (err && err.code === 4008) { // Server rejected handshake from client
                 clientTrade = null;
                 refreshToken().then(() => {
                     window.location.reload();
@@ -237,56 +203,6 @@ export const RecentTradesUpdate = ({
 };
 
 /**
- *  AggregatedSummaryBooks Request/Response
- */
-// export const AggregatedSummaryBooks = ({
-//     Symbols,
-//     throttleMs = 50,
-// }) => {
-//     getClientMarket()
-//         .then(cli => {
-//             const publishOnSubscription = publisher(throttleMs, data => {
-//                 data = {
-//                     body: {
-//                         messages: [data],
-//                     },
-//                 };
-//                 aggregatedSummaryBooksObservable.next(data);
-//             });
-
-//             cli.on('orderBook', publishOnSubscription);
-//         })
-//         .catch(e => console.log(e.message || 'getClientMarket connection lost'));
-
-//     return aggregatedSummaryBooksObservable;
-// };
-
-/**
- *  AggregatedSummaryBooks Request/Response
- */
-// export const OrderBooksResponse = ({
-//     Symbols,
-//     throttleMs = 2000,
-// }) => {
-//     getClientMarket()
-//         .then(cli => {
-//             const publishOnSubscription = publisher(throttleMs, data => {
-//                 data = {
-//                     body: {
-//                         messages: [data],
-//                     },
-//                 };
-//                 OrderBooksResponseObservable.next(data);
-//             });
-
-//             cli.on('breakdown', publishOnSubscription);
-//         })
-//         .catch(e => console.log(e.message || 'getClientMarket connection lost'));
-
-//     return OrderBooksResponseObservable;
-// };
-
-/**
  *  SetExchange Request/Response to get filtered OrderBook data.
  */
 export const SetOrderbookExchangeRequest = (exchange) => {
@@ -325,12 +241,6 @@ export const getMarketExchangesRequest = (coinPair) => {
             .catch(e => console.log(e.message || 'can not getClientMarket'));
     });
 };
-
-// export const AggregatedSummaryBooksUpdate = ({
-//     Symbols,
-//     throttleMs = 250,
-// }) => {
-// };
 
 /**
  *  Submit Exchange Order request
@@ -394,7 +304,10 @@ export const SendOrderTicket = (clientId, orderType, price, programId, route, si
                     resolve(data);
                 });
             })
-            .catch(e => console.log(e.message || 'can not getClientTrade'));
+            .catch(e => {
+                console.log(e.message || 'can not getClientTrade');
+                reject(e);
+            });
     });
 };
 
@@ -569,7 +482,10 @@ export const OrderStopExecutionPlan = (payload) => {
                 cli.emit('StopExecPlan', payload);
                 resolve(true);
             })
-            .catch(e => console.log(e.message || 'can not getClientLive'));
+            .catch(e => {
+                console.log(e.message || 'can not getClientLive');
+                reject(e);
+            });
     });
 };
 
@@ -583,7 +499,9 @@ export const CoinAddressRequest = (payload) => {
                 .then(cli => {
                     cli.emit('CoinAddressRequest', payload);
                     cli.on('CoinAddress', data => {
-                        resolve(data.Address);
+                        if (payload.Coin.toLowerCase() === data.Coin.toLowerCase()) {
+                            resolve(data.Address);
+                        }
                     });
                 })
                 .catch(e => console.log(e.message || 'can not getClientLive'));
@@ -594,7 +512,9 @@ export const CoinAddressRequest = (payload) => {
             .then(cli => {
                 cli.emit('CoinAddressRequest', payload);
                 cli.on('CoinAddress', data => {
-                    resolve(data.Address);
+                    if (payload.Coin.toLowerCase() === data.Coin.toLowerCase()) {
+                        resolve(data.Address);
+                    }
                 });
             })
             .catch(e => console.log(e.message || 'can not getClientTrade'));
@@ -687,23 +607,6 @@ export const PortfolioDataRequest = (payload) => {
         .catch(e => console.log(e.message || 'can not getClientTrade'));
 };
 
-/**
- *  Portfolio Data Response
- */
-export const PortfolioDataResponse = (throttleMs = 250) => {
-    getClientTrade()
-        .then(cli => {
-            const publishOnSubscription = publisher(throttleMs, data => {
-                portfolioDataObservable.next(data);
-            });
-
-            cli.on('PortfolioData', publishOnSubscription);
-        })
-        .catch(e => console.log(e.message || 'can not getClientTrade'));
-
-    return portfolioDataObservable;
-};
-
 export const GetSettingsRequest = (payload) => {
     return getClientTrade()
         .then(client => {
@@ -742,24 +645,26 @@ export const UpdateSettingsRequest = (payload) => {
 
 
 /**
- *  SaveMemberExchangesRequest  (Save User Exchanges settings)
+ * Register Exchange account of user.
+ * @param {string} exchangeName 
+ * @param {string} apiKey 
+ * @param {string} apiSecret 
  */
-export const SaveMemberExchangesRequest = (exchangeName, apiKey, apiSecret, options) => {
-
+export const AddExchangeAccount = (exchangeName, apiKey, apiSecret) => {
     const payload = {
-        Exchange: {
-            apiKey,
-            apiSecret,
-            options,
-            exchangeName,
-        },
+        exchange: exchangeName,
+        publicKey: apiKey,
+        privateKey: apiSecret,
     };
 
-    getClientTrade()
-        .then(cli => {
-            cli.emit('SaveMemberExchangesRequest', payload);
-        })
-        .catch(e => console.log(e.message || 'can not getClientTrade'));
+    return new Promise((resolve, reject) => {
+        getClientTrade()
+            .then(cli => {
+                cli.emit('addExchange', payload);
+                cli.on('exchangeAdded', res => resolve(res));
+                cli.on('invalidExchange ', err => reject(err));
+            });
+    });
 };
 
 
@@ -964,6 +869,7 @@ export const InitTransferRequest = (coin, amount, currency) => {
         Coin: coin,
         Amount: amount,
         DefaultCurrency: currency,
+        ExpireIn: '5m',
     };
 
     return new Promise((resolve, reject) => {
@@ -975,10 +881,27 @@ export const InitTransferRequest = (coin, amount, currency) => {
                     resolve(data);
                 });
             })
-            .catch(e => console.log(e.message || 'can not getClientTrade'));
+            .catch(e => {
+                console.log(e.message || 'can not getClientTrade');
+                reject(e);
+            });
     });
 };
 
+export const TransferNotification = () => {
+    return new Promise((resolve, reject) => {
+        getClientTrade()
+            .then(cli => {
+                cli.on('TransferNotification', data => {
+                    resolve(data);
+                });
+            })
+            .catch(e => {
+                console.log(e.message || 'can not getClientTrade');
+                reject(e);
+            });
+    });
+};
 
 export const TransferInfoDetailedRequest = (uniqueId) => {
     const payload = {
@@ -997,8 +920,6 @@ export const TransferInfoDetailedRequest = (uniqueId) => {
             .catch(e => console.log(e.message || 'can not getClientTrade'));
     });
 };
-
-
 
 export const TransferInfoRequest = (uniqueId) => {
     const payload = {
@@ -1030,11 +951,13 @@ export const ClaimTransfer = (uniqueId) => {
             .then(cli => {
                 cli.emit('ClaimTransferRequest', payload);
                 cli.on('ClaimTransferResponse', data => {
-                    // console.log('[ClaimTransferResponse]', data);
+                    console.log('[ClaimTransferResponse]', data);
                     resolve(data);
                 });
             })
-            .catch(e => console.log(e.message || 'can not getClientTrade'));
+            .catch(e => {
+                reject(e);
+            });
     });
 };
 
@@ -1044,7 +967,6 @@ export const TransferHistoryRequest = payload => getClientTrade()
             try {
                 client.emit('TransferHistoryRequest', payload);
                 client.off('TransferHistoryResponse').on('TransferHistoryResponse', data => {
-                    // console.log('[TransferHistoryResponse]', data);
                     resolve(data);
                 });
             } catch (e) {
@@ -1088,6 +1010,24 @@ export const CancelTransferRequest = (uniqueId) => {
     });
 };
 
+// RejectUserTransferRequest
+export const RejectUserTransferRequest = (uniqueId) => {
+    const payload = {
+        TrId: uniqueId,
+    };
+
+    return new Promise((resolve, reject) => {
+        getClientTrade()
+            .then(cli => {
+                cli.emit('RejectUserTransferRequest', payload);
+                cli.on('RejectUserTransferResponse', data => {
+                    resolve(data);
+                });
+            })
+            .catch(e => console.log(e.message || 'can not getClientTrade'));
+    });
+};
+
 /**
  *  Order History Request/Response
  */
@@ -1121,4 +1061,96 @@ export const OrderHistoryReply = ({ throttleMs = 250 }) => {
         .catch(e => console.log(e.message || 'can not getClientTrade'));
 
     return orderHistoryObservable;
+};
+
+/**
+ *  Bills API integration
+ */
+export const ListUserBillsRequest = (coin) => {
+    const payload = {
+        Coin: coin,
+    };
+
+    return new Promise((resolve, reject) => {
+        getClientTrade()
+            .then(cli => {
+                cli.emit('ListUserBillsRequest', payload);
+                cli.on('ListUserBillsResponse', data => {
+                    if (payload.Coin.toLowerCase() === data.Coin.toLowerCase()) {
+                        resolve(data);
+                    }
+                });
+            })
+            .catch(e => console.log(e.message || 'can not getClientTrade'));
+    });
+};
+
+export const BalanceRequest = (ClientId) => {
+    return new Promise((resolve, reject) => {
+        getClientTrade()
+            .then(cli => {
+                cli.emit('PositionRequest', { ClientId });
+                cli.on('PositionResponse', data => {
+                    resolve(data);
+                });
+            })
+            .catch(e => {
+                reject(e);
+            });
+    });
+};
+
+export const ExecPlanRequest = (payload) => {
+    return new Promise((resolve, reject) => {
+        getClientLive()
+            .then(cli => {
+                cli.emit('StartExecPlan', payload);
+                cli.on('ExecPlan', data => {
+                    resolve(data);
+                });
+            })
+            .catch(e => {
+                console.log(e.message || 'can not getClientLive');
+                reject(e);
+            });
+    });
+};
+
+export const HistoryRequest = (ClientId) => {
+    return new Promise((resolve, reject) => {
+        getClientTrade()
+            .then(cli => {
+                cli.emit('OrderHistoryRequest', { ClientId });
+                cli.on('OrderHistoryResponse', data => {
+                    resolve(data);
+                });
+            })
+            .catch(e => {
+                console.log(e.message || 'can not getClientTrade');
+                reject(e);
+            });
+    });
+};
+
+/**
+ * Buy Order Request with best price
+ * @param {Object} payload
+ * @property {string} side "Buy" or "Sell"
+ * @property {string} amount
+ */
+export const OrderRequestBestPrice = (payload)  => {
+    payload.market = 'BTC/USDT';
+    return new Promise((resolve, reject) => {
+        getClientTrade()
+        .then(cli => {
+            if (payload.side === 'buy') {
+                cli.emit('orderRequestBestPriceBuy', payload);
+            } else if (payload.side === 'sell') {
+                cli.emit('orderRequestBestPriceSell', payload);
+            }
+            cli.on('orderResponse', res => resolve(res));
+            cli.on('invalidOrder', err => reject(err));
+        })
+        .catch(err => console.log(err.message || 'can not getClientTrade'));
+    });
 };

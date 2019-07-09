@@ -1,6 +1,6 @@
 import React from 'react';
 import { FormattedMessage } from 'react-intl';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import Row from '../Row';
 
 const Wrapper = styled.div`
@@ -11,6 +11,7 @@ const Wrapper = styled.div`
     align-items: stretch;
     justify-content: space-between;
     width: 100%;
+    line-height: 14px;
 `;
 
 export const StopOrderRows = ({
@@ -37,7 +38,7 @@ export const StopOrderRows = ({
             </FormattedMessage>
             <FormattedMessage
                 id="order_entry.label_stop_price"
-                defaultMessage="Stop Price"
+                defaultMessage="Stop"
             >
                 {value =>
                     <Row header={value} amount={stopPrice} coin={priceCoin} onChange={handleStopPriceChange}/>
@@ -45,7 +46,7 @@ export const StopOrderRows = ({
             </FormattedMessage>
             <FormattedMessage
                 id="order_entry.label_price_limit"
-                defaultMessage="Price Limit"
+                defaultMessage="Price"
             >
                 {value =>
                     <Row header={value} amount={price} coin={priceCoin} onChange={handlePriceChange}/>

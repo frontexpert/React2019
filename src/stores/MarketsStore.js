@@ -1,5 +1,5 @@
 import { observable, action } from 'mobx';
-
+import { REST_MARKET } from '../config/constants';
 class MarketsStore {
     @observable markets = {};
 
@@ -9,7 +9,7 @@ class MarketsStore {
     }
 
     fetchMarkets() {
-        fetch('https://market-data.bct.trade/api/markets')
+        fetch(`${REST_MARKET}/api/markets`)
             .then(response => response.json())
             .then(res => {
                 this.markets = res;

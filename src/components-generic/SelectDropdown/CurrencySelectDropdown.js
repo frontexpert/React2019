@@ -2,9 +2,8 @@ import React from 'react';
 import { inject, observer } from 'mobx-react';
 
 import { STORE_KEYS } from '../../stores';
-import { DropdownWrapper, SelectedItemLabel } from './Components';
+import { DropdownWrapper, DropMenuIcon, SelectedItemLabel } from './Components';
 import CurrencyDropdown from '../CurrencyDropdown';
-import icon from './icon_drop.png';
 
 class CurrencySelectDropdown extends React.Component {
     state = {
@@ -38,7 +37,7 @@ class CurrencySelectDropdown extends React.Component {
     render() {
         const { isOpen } = this.state;
         const {
-            width, height, type, onClick, isFullScreen,
+            width, height, type, onClick, isFullScreen, disableCrypto,
         } = this.props;
         const {
             isDefaultCrypto, defaultFiat, defaultFiatSymbol, defaultCrypto, defaultCryptoSymbol,
@@ -50,7 +49,7 @@ class CurrencySelectDropdown extends React.Component {
         return (
             <DropdownWrapper
                 width={width}
-                innerRef={ref => this.wrapperRef = ref}
+                ref={ref => this.wrapperRef = ref}
                 isOpen={isOpen}
                 className={isOpen ? '' : 'close'}
             >
@@ -64,7 +63,7 @@ class CurrencySelectDropdown extends React.Component {
                     }}
                 >
                     <span>{isFiat ? defaultFiatSymbol : defaultCryptoSymbol} - {value}</span>
-                    <img src={icon} alt=""/>
+                    <DropMenuIcon/>
                 </SelectedItemLabel>
 
                 {isOpen && (
@@ -77,6 +76,7 @@ class CurrencySelectDropdown extends React.Component {
                         value={value}
                         isFullScreen={isFullScreen}
                         toggleDropDown={this.toggleDropDown}
+                        disableCrypto={disableCrypto}
                     />
                 )}
             </DropdownWrapper>

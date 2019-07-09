@@ -1,11 +1,9 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import { inject, observer } from 'mobx-react';
 
 import { getItemColor } from '../../utils';
 import { STORE_KEYS } from '../../stores';
-import { STATE_KEYS } from '../../stores/ConvertStore';
-import UserAvatarPopupMenu from './UserAvatarPopupMenu';
 import { AvatarWrapper, DefaultAvatar } from '../SideBar/NewSettingsPop/Components';
 import AvatarImage from './AvatarImage';
 
@@ -15,13 +13,13 @@ const Wrapper = styled.div.attrs({ className: 'user-avatar-wrapper' })`
     margin: 0;
     border: none;
     padding: 0;
-    width: 100%;
+    width: 60px;
     height: 100%;
     // border-right: 1px solid ${props => props.theme.palette.clrBorder};
 `;
 
 export const ImageWrapper = styled.div.attrs({ className: 'user-avatar-component' })`
-    width: 100%;
+    width: 60px;
     height: 100%;
     min-height: min-content;
     display: flex;
@@ -35,46 +33,41 @@ export const ImageWrapper = styled.div.attrs({ className: 'user-avatar-component
             height: 50px !important;
         }
     }
+    
+    .login-title {
+        position: absolute;
+        text-overflow: ellipsis;
+        left: 30px;
+        bottom: 3px;
+        z-index: 99;
+        padding: 2px;
+        background-color: ${props => props.isLoggedIn ? props.theme.palette.clrRed : '#444872'};
+        border: 1px solid ${props => props.isLoggedIn ? props.theme.palette.clrRed : '#444872'};
+        border-radius: ${props => props.theme.palette.borderRadius};
+        font-size: 10px;
+        line-height: 1;
+        letter-spacing: 0.2px;
+        color: ${props => props.theme.palette.clrHighContrast};
+        text-transform: uppercase;
+        text-align: center;
+        pointer-events: none;
+        overflow: hidden;
+        transform: translateX(calc(-50% + 2px));
+    }
 
     .user-avatar-component {
         position: absolute;
     }
 
     .login-title {
-        bottom: 3px;
+        bottom: 7px;
     }
 `;
 
 class UserAvatarComponent extends React.Component {
-    state = {};
+    componentDidMount() {
 
-    toggleDropDown = () => {
-        const {
-            /*
-            [STORE_KEYS.SETTINGSSTORE]: {
-                isArbitrageMode,
-            },
-            [STORE_KEYS.CONVERTSTORE]: {
-                convertState,
-            },
-            */
-            [STORE_KEYS.VIEWMODESTORE]: {
-                isUserDropDownOpen,
-                setUserDropDownOpen,
-            },
-        } = this.props;
-        /*
-        const { isArbOpen } = this.state;
-        if (isArbitrageMode && convertState !== STATE_KEYS.coinSearch) {
-            this.setState({
-                isArbOpen: !isArbOpen,
-            });
-        } else {
-            setUserDropDownOpen(!isUserDropDownOpen);
-        }
-        */
-        setUserDropDownOpen(!isUserDropDownOpen);
-    };
+    }
 
     render() {
         const {
@@ -83,21 +76,10 @@ class UserAvatarComponent extends React.Component {
                 loggedInUser,
                 logoURL,
                 isProfileLogoExists,
-                setLoginBtnLocation,
-            },
-            [STORE_KEYS.VIEWMODESTORE]: {
-                isUserDropDownOpen,
-            },
-            [STORE_KEYS.SETTINGSSTORE]: {
-                isArbitrageMode,
-            },
-            [STORE_KEYS.CONVERTSTORE]: {
-                convertState,
             },
             isMobile,
+            toggleDropDown,
         } = this.props;
-
-        // const { isArbOpen, isLogoutModalOpen } = this.state;
 
         let symbolName = '';
         let userName = '';
@@ -113,30 +95,27 @@ class UserAvatarComponent extends React.Component {
             userName = loggedInUser.username;
         }
 
-        // const isArbCondition = isArbitrageMode && convertState !== STATE_KEYS.coinSearch;
         return (
             <Wrapper>
-                {isLoggedIn
-                    ? (
-                        <ImageWrapper onClick={this.toggleDropDown} isMobile={isMobile}>
-                            <AvatarWrapper>
-                                <DefaultAvatar color={getItemColor(userName).hexColor}>
-                                    {symbolName.toUpperCase()}
-                                </DefaultAvatar>
+                {isLoggedIn ? (
+                    <ImageWrapper onClick={toggleDropDown} isMobile={isMobile}>
+                        <AvatarWrapper>
+                            <DefaultAvatar color={getItemColor(userName).hexColor}>
+                                {symbolName.toUpperCase()}
+                            </DefaultAvatar>
 
-                                {isProfileLogoExists && (
-                                    <img
-                                        alt=""
-                                        className="user-pic"
-                                        src={logoURL}
-                                    />
-                                )}
-                            </AvatarWrapper>
-                        </ImageWrapper>
-                    ) : (
-                        <AvatarImage />
-                    )
-                }
+                            {isProfileLogoExists && (
+                                <img
+                                    alt=""
+                                    className="user-pic"
+                                    src={logoURL}
+                                />
+                            )}
+                        </AvatarWrapper>
+                    </ImageWrapper>
+                ) : (
+                    <AvatarImage />
+                )}
             </Wrapper>
         );
     }
@@ -145,6 +124,4 @@ class UserAvatarComponent extends React.Component {
 export default inject(
     STORE_KEYS.TELEGRAMSTORE,
     STORE_KEYS.VIEWMODESTORE,
-    STORE_KEYS.SETTINGSSTORE,
-    STORE_KEYS.CONVERTSTORE,
 )(observer(UserAvatarComponent));

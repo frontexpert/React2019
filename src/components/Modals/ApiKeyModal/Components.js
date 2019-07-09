@@ -1,5 +1,5 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 
 export const Wrapper = styled.section.attrs({ className: 'api-key-modal' })`
     position: relative;

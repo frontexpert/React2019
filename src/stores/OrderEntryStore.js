@@ -1,8 +1,7 @@
 import {
-    observable, action, reaction, computed
+    observable, action, reaction, computed, autorun
 } from 'mobx';
 import partial from 'lodash.partial';
-import delay from 'lodash.delay';
 import BigNumber from 'bignumber.js';
 
 import { roundToFixedNum, invokeAll, withValueFromEvent } from '../utils';
@@ -42,17 +41,19 @@ class OrderTicketForm {
     accurateAmount = '';
     programId = '';
 
+    isUserEnteredPrice = false;
+
     constructor(side, setTargetTradeHistoryTicket, programId) {
         this.side = side;
         this.setTargetTradeHistoryTicket = setTargetTradeHistoryTicket;
         this.programId = programId;
     }
+
     @action.bound setSliderMax(amount = '') {
         this.sliderMax = amount;
     }
 
     @action.bound setAmount(amount = '') {
-        // this.Amount = valueNormalized(this.Amount, amount);
         this.Amount = amount;
     }
 
@@ -61,12 +62,19 @@ class OrderTicketForm {
     }
 
     @action.bound setPrice(price) {
-        // this.Price = valueNormalized(this.Price, price);
+        if (!this.isUserEnteredPrice) {
+            this.Price = price;
+        }
+    }
+
+    @action.bound setUserEnteredPrice(price) {
+        if (!this.isUserEnteredPrice) {
+            this.isUserEnteredPrice = true;
+        }
         this.Price = price;
     }
 
     @action.bound setStopPrice(price) {
-        // this.StopPrice = valueNormalized(this.StopPrice, price);
         this.StopPrice = price;
     }
 
@@ -74,6 +82,7 @@ class OrderTicketForm {
     reset() {
         this.Amount = '';
         this.Price = '';
+        this.isUserEnteredPrice = false;
     }
 
     @computed get amount() {
@@ -138,6 +147,7 @@ class OrderTicketForm {
     @action.bound
     __submitProgressStop() {
         this.submitInProgress = false;
+        this.isUserEnteredPrice = false;
     }
 
     @action.bound
@@ -320,9 +330,10 @@ class OrderEntryStore {
     @observable selectedAsk = null;
     @observable selectedBid = null;
 
+    updateFormAmountToAvailableMaxTimeout = null;
+
     constructor(
-        Asks$,
-        Bids$,
+        orderBookBreakDownStore,
         highestBidPrice,
         lowestAskPrice,
         instrumentsReaction,
@@ -331,8 +342,11 @@ class OrderEntryStore {
         coinPriceStore,
         yourAccountStore,
     ) {
-        this.Bids = Bids$;
-        this.Asks = Asks$;
+        autorun(() => {
+	        this.Bids = orderBookBreakDownStore.BidsForOrderBook;
+	        this.Asks = orderBookBreakDownStore.AsksForOrderBook;
+        });
+
 
         this.snackbar = snackbar;
 
@@ -390,7 +404,8 @@ class OrderEntryStore {
     }
 
     __updateFormAmountToAvailableMax(baseSymbol, yourAccountStore, isInitialization) {
-        setTimeout(() => {
+        clearTimeout(this.updateFormAmountToAvailableMaxTimeout);
+        this.updateFormAmountToAvailableMaxTimeout = setTimeout(() => {
             // Get available balance of baseSymbol from yourAccountStore
             for (let i = 0; i < yourAccountStore.portfolioData.length; i++) {
                 if (yourAccountStore.portfolioData[i] && yourAccountStore.portfolioData[i].Coin === baseSymbol) {
@@ -427,23 +442,23 @@ class OrderEntryStore {
     __initSelectedOrderItemReaction() {
         reaction(
             () => this.selectedAskOrderItem,
-            ([price, amount]) => {
+            ({ amount, price }) => {
                 this.LimitOrderFormSell.setAmount(amount);
-                this.LimitOrderFormSell.setPrice(price);
+                this.LimitOrderFormSell.setUserEnteredPrice(price);
 
                 this.StopOrderFormSell.setAmount(amount);
-                this.StopOrderFormSell.setPrice(price);
+                this.StopOrderFormSell.setUserEnteredPrice(price);
             }
         );
 
         reaction(
             () => this.selectedBidOrderItem,
-            ([price, amount]) => {
+            ({ price, amount }) => {
                 this.LimitOrderFormBuy.setAmount(amount);
-                this.LimitOrderFormBuy.setPrice(price);
+                this.LimitOrderFormBuy.setUserEnteredPrice(price);
 
                 this.StopOrderFormBuy.setAmount(amount);
-                this.StopOrderFormBuy.setPrice(price);
+                this.StopOrderFormBuy.setUserEnteredPrice(price);
             }
         );
     }
@@ -505,19 +520,30 @@ class OrderEntryStore {
     }
 
     @action.bound
-    selectAsk({ index }) {
-        if (this.Asks.has(index)) {
-            const ask = this.Asks.get(index);
-            this.selectAsk = ask;
+    selectAsk(data) {
+        // `item` OR `{ index }` can be passed to this action
+        const { index } = data;
+        if (typeof index === 'undefined') {
+            this.selectedAskOrderItem = data;
+            return;
+        }
+
+        const ask = this.Asks[index];
+        if (ask) {
             this.selectedAskOrderItem = ask;
         }
     }
 
     @action.bound
-    selectBid({ index }) {
-        if (this.Bids.has(index)) {
-            const bid = this.Bids.get(index);
-            this.selectBid = bid;
+    selectBid(data) {
+        const { index } = data;
+        if (typeof index === 'undefined') {
+            this.selectedBidOrderItem = data;
+            return;
+        }
+
+        const bid = this.Bids[index];
+        if (bid) {
             this.selectedBidOrderItem = bid;
         }
     }

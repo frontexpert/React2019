@@ -1,5 +1,5 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import MuiTabs from '@material-ui/core/Tabs/Tabs';
 import MuiTab from '@material-ui/core/Tab/Tab';
 
@@ -13,7 +13,7 @@ export const ToggleBtn = styled.div`
     width: 100%;
     height: 15px;
     background-color: ${props => props.theme.palette.orderBookAddonBg};
-    
+
     svg {
         width: 10px;
         height: 6px;
@@ -22,10 +22,10 @@ export const ToggleBtn = styled.div`
             fill: ${props => props.theme.palette.orderBookAddonFill};
         }
     }
-    
+
     &:hover {
         cursor: pointer;
-        
+
         svg {
             &, & * {
                 fill: ${props => props.theme.palette.orderBookAddonHoverFill} !important;
@@ -45,17 +45,16 @@ export const FormHeader = styled.div`
     padding-left: 14px;
     padding-right: 6px;
     background: ${props => props.theme.palette.orderFormHeaderBg};
-    border-bottom: 1px solid ${props => props.theme.palette.orderFormBorder}7f;
+    border-bottom: 0;
 `;
 
 export const Label = styled.div`
     margin: 0;
     display: flex;
     align-items: center;
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: bold;
     color: ${props => props.theme.palette.clrPurple};
-    text-transform: uppercase;
 
     span {
         margin-left: 4px;
@@ -103,12 +102,12 @@ export const TabsWrapper = styled.div`
 export const Tabs = styled(MuiTabs)`
     display: inline-block;
     border: 0;
-    
+
     > div button {
         min-height: 42px !important;
         // width: 45px !important;
         min-width: 34px !important;
-        
+
         & > span > span {
             padding: 0 5px;
         }
@@ -123,7 +122,7 @@ export const Tab = styled(MuiTab)`
     &:hover {
         color: ${props => props.theme.palette.orderFormHeaderTabHoverText} !important;
     }
-    
+
     & span {
         text-transform: none;
         font-size: 12px;
@@ -141,7 +140,8 @@ export const Logo = styled.img`
 export const DropdownWrapper = styled.div`
     position: relative;
     height: 100%;
-    font-size: 16px;
+    margin-left: 10px;
+    font-size: 14px;
     color: ${props => props.theme.palette.orderFormHeaderTabText};
 `;
 
@@ -149,9 +149,12 @@ export const SelectedItem = styled.div`
     height: 100%;
     display: flex;
     align-items: center;
-    font-weight: 600;
+    font-weight: bold;
     color: ${props => props.theme.palette.clrPurple};
     cursor: pointer;
+    &:hover {
+        color: ${props => props.theme.palette.orderFormHeaderTabTextHover};
+    }
 `;
 
 const ArrowSvg = styled.svg`
@@ -189,7 +192,6 @@ export const Dropdown = styled.div`
     top: 100%;
     right: -7px;
     z-index: 100;
-    max-width: 130px;
     padding: 0 10px;
     background: ${props => props.theme.palette.clrMainWindow};
     border: 1px solid ${props => props.theme.palette.clrBorder};
@@ -201,7 +203,8 @@ export const Item = styled.div`
     color: ${props => props.active ? props.theme.palette.orderFormHeaderTabActiveText : props.theme.palette.orderFormHeaderTabText};
     text-align: center;
     cursor: pointer;
-    
+    white-space: nowrap;
+
     &:hover {
         color: ${props => props.theme.palette.orderFormHeaderTabActiveText};
     }

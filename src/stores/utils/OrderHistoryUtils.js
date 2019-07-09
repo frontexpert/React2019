@@ -13,6 +13,7 @@ import {
 import {
     sortObjectArray, formatOrderBookDigitString, customDigitFormat, getRandomInt
 } from '../../utils';
+import { currencies } from '../../components-generic/CurrencyDropdown/currencies';
 
 export const makeOrderHistoryRequest = (ClientId, ProgramId, Skip, Limit, SentTime, { SubmitOrderHistoryRequest }) => {
     SubmitOrderHistoryRequest({
@@ -123,10 +124,15 @@ export const createMetaDataForTradeHistoryTargetTicketId = (tradeHistory) => {
 };
 
 // Data used for both Open Orders and Order History OrderTabs
-export const formatOrderHistoryDataForDisplay = (Bases, Tickets) => {
-    return Tickets.map(({
-        Amount, AmountFilled, ConversionAmount, Exchange, Message, Price, SentTime, Side, Size, Status, Symbol, TicketId, Type,
+export const formatOrderHistoryDataForDisplay = (Bases, Tickets, countries) => {
+    return Tickets.filter(ticket => Number(ticket.Price) !== 0 && Number(ticket.ConversionAmount) !== 0).map(({
+        Amount, AmountFilled, ConversionAmount, Exchange, Message, Price, SentTime, Side, Size, Status, Symbol, TicketId, Type, UserSettings,
     }) => {
+        const userCurrency = countries.find(country => country.currencyCode === UserSettings.defaultFiat.toUpperCase());
+        const conversionRate = userCurrency ? userCurrency.price : 1;
+        const userCurrencyInfo = currencies.find(currency => (UserSettings.defaultFiat && currency.code === UserSettings.defaultFiat.toUpperCase()));
+        const userCurrencySymbol = userCurrencyInfo ? (userCurrencyInfo.symbol ? userCurrencyInfo.symbol : userCurrencyInfo.code) : '';
+
         try {
             const [Base, Quote] = Symbol.split('-');
             const c1Index = Bases.findIndex(c => c === Base);
@@ -135,9 +141,11 @@ export const formatOrderHistoryDataForDisplay = (Bases, Tickets) => {
             return {
                 // Displayed
                 advancedMode: isAdvanced,
-                filled: customDigitFormat(!isAdvanced ? Number(AmountFilled) : Number(ConversionAmount)), //
-                price: customDigitFormat((!isAdvanced || Price === 0) ? Price : 1 / Price), //
-                total: customDigitFormat(!isAdvanced ? Number(ConversionAmount) : Number(AmountFilled)), //
+                filled: !isAdvanced ? AmountFilled : ConversionAmount,
+                price: customDigitFormat((!isAdvanced || Price === 0) ? Price : 1 / Price, 9),
+                total: !isAdvanced ? Number(ConversionAmount * conversionRate) : Number(AmountFilled * conversionRate),
+                sourceTotal: !isAdvanced ? Number(ConversionAmount) : Number(AmountFilled),
+                sourceFilled: !isAdvanced ? Number(AmountFilled) : Number(ConversionAmount),
                 size: Size, //
                 time: `${getTimeFormatted(SentTime)} ago`,
                 date: `${getNewDateFormatted(SentTime)}`,
@@ -151,11 +159,13 @@ export const formatOrderHistoryDataForDisplay = (Bases, Tickets) => {
                 // Meta Data
                 exchange: Exchange,
                 timeUnFormatted: SentTime,
-                ticketId: getRandomInt(1, 10000),
-                orderId: getRandomInt(1, 10000),
+                orderId: TicketId,
                 amount: Amount,
                 message: Message,
                 isFailed: Number(Price) === 0 || Number(ConversionAmount) === 0,
+                symbol: Symbol,
+                userDefaultFiat: UserSettings.defaultFiat,
+                userCurrencySymbol,
             };
         } catch (e) {
             return {};

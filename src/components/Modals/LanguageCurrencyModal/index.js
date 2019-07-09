@@ -3,6 +3,8 @@ import { inject, observer } from 'mobx-react';
 import { FormattedMessage } from 'react-intl';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import uuidv4 from 'uuid/v4';
+import { withSafeTimeout } from '@hocs/safe-timers';
+import { compose } from 'recompose';
 
 import { STORE_KEYS } from '../../../stores';
 import { languages } from '../../../lib/translations/languages';
@@ -18,6 +20,8 @@ class LanguageCurrencyModal extends React.Component {
         language: 'English',
         currency: 'USD',
     };
+
+    clearHandleSubmitTimeout = null;
 
     // static getDerivedStateFromProps(props, state) {
     //     const { [STORE_KEYS.SETTINGSSTORE]: { defaultFiat, isDefaultCrypto, language } } = props;
@@ -47,6 +51,12 @@ class LanguageCurrencyModal extends React.Component {
         });
     }
 
+    componentWillUnmount() {
+        if (this.clearHandleSubmitTimeout) {
+            this.clearHandleSubmitTimeout();
+        }
+    }
+
     handleSubmit = () => {
         const {
             [STORE_KEYS.SETTINGSSTORE]: {
@@ -57,6 +67,7 @@ class LanguageCurrencyModal extends React.Component {
                 setQuote,
                 addRecentQuote,
             },
+            setSafeTimeout,
         } = this.props;
 
         const { language, currency } = this.state;
@@ -64,7 +75,10 @@ class LanguageCurrencyModal extends React.Component {
         setLanguage(language);
         setFiatCurrency(currency);
 
-        setTimeout(() => {
+        if (this.clearHandleSubmitTimeout) {
+            this.clearHandleSubmitTimeout();
+        }
+        this.clearHandleSubmitTimeout = setSafeTimeout(() => {
             setQuote('USDT');
             addRecentQuote('USDT');
         });
@@ -118,7 +132,7 @@ class LanguageCurrencyModal extends React.Component {
                         </div>
 
                         <PerfectScrollbar
-                            option={{
+                            options={{
                                 suppressScrollX: true,
                                 minScrollbarLength: 50,
                             }}
@@ -198,7 +212,13 @@ class LanguageCurrencyModal extends React.Component {
     }
 }
 
-export default inject(
-    STORE_KEYS.SETTINGSSTORE,
-    STORE_KEYS.INSTRUMENTS,
-)(observer(LanguageCurrencyModal));
+const enhanced = compose(
+    withSafeTimeout,
+    inject(
+        STORE_KEYS.SETTINGSSTORE,
+        STORE_KEYS.INSTRUMENTS,
+    ),
+    observer,
+);
+
+export default enhanced(LanguageCurrencyModal);

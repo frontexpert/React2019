@@ -45,6 +45,7 @@ class YourAccountStore {
     @observable storeCredit = 0;
     @observable PortfolioTotalValue = 0;
     @observable PortfolioTotalValueChange = 0;
+    @observable PortfolioUSDTValue = null;
     @observable PortfolioPieChartData = [];
     @observable OrderEventsData = new Map();
 
@@ -68,24 +69,27 @@ class YourAccountStore {
     baseCoins = [];
     coinsInterval = null;
     instrumentStoreRef = null;
+    arbMode = false;
 
     isRecentPositionPassed = true;
     timerHandleForRecentPositionCheck = null;
     MAX_LIMIT_RECENT_CHECK = 30;
 
-    constructor (instrumentStore) {
+    requestPositionTimeout = null;
+
+    constructor (instrumentStore, viewModeStore) {
         // Register to receive CoinsForWallet
         coinsForWalletReply({}).subscribe({
             next: this.updateCoinsForWallet,
             error: e => console.log(e)
         });
 
-        if (this.coinsInterval) {
-            clearInterval(this.coinsInterval);
-        }
-        this.coinsInterval = setInterval(() => {
-            coinsForWalletRequest();
-        }, 15000);
+        // if (this.coinsInterval) {
+        //     clearInterval(this.coinsInterval);
+        // }
+        // this.coinsInterval = setInterval(() => {
+        //     coinsForWalletRequest();
+        // }, 15000);
 
         registerForPositionReplies(
             PositionReply,
@@ -131,11 +135,27 @@ class YourAccountStore {
             () => this.CoinsForWallet,
             () => {
                 if (this.isCoinsForWalletLoaded) {
-                    setTimeout(PositionRequest(localStorage.getItem('authClientId') || ClientId), 500);
+                    setTimeout(
+                        () => PositionRequest(localStorage.getItem('authClientId') || ClientId),
+                        500
+                    );
                 }
             },
             {
                 fireImmediately: true,
+            }
+        );
+
+        reaction(
+            () => ({
+                arbMode: viewModeStore.arbMode,
+            }),
+            (arbObj) => {
+                this.arbMode = arbObj.arbMode;
+                if (this.arbMode) {
+                    this.instrumentStoreRef.setBase('BTC');
+                    this.instrumentStoreRef.setQuote('USDT');
+                }
             }
         );
 
@@ -151,6 +171,11 @@ class YourAccountStore {
     @computed.struct
     get portfolioPieChartData () {
         return toJS(this.PortfolioPieChartData);
+    }
+
+    @action.bound
+    requestCoinsForWallet () {
+        coinsForWalletRequest();
     }
 
     @action.bound
@@ -193,7 +218,8 @@ class YourAccountStore {
 
         if (YourAccountPositions.length > 0) {
             this.PortfolioData = YourAccountPositions;
-            this.OrderEventsData = new Map();
+            this.OrderEventsData.clear();
+            this.instrumentStoreRef.setActivePostions(Positions);
             convertArrToMapWithFilter(this.OrderEventsData, YourAccountPositions);
 
             /**
@@ -204,6 +230,18 @@ class YourAccountStore {
                 this.storeCredit = (this.PortfolioData[bctIndex] && this.PortfolioData[bctIndex].Amount) || 0;
             } else {
                 this.storeCredit = 0;
+            }
+
+            const isLoggedIn = localStorage.getItem('signedin');
+            if (!isLoggedIn) {
+                this.PortfolioUSDTValue = null;
+            } else {
+                const usdtIndex = findIndex(this.PortfolioData, { Coin: 'ETH' });
+                if (usdtIndex !== -1) {
+                    this.PortfolioUSDTValue = Math.floor(Number(this.PortfolioData[usdtIndex][PORTFOLIO_LABEL_POSITION]));
+                } else {
+                    this.PortfolioUSDTValue = 0;
+                }
             }
 
             /**
@@ -219,16 +257,18 @@ class YourAccountStore {
                 return acc + (position ? Number(position[PORTFOLIO_LABEL_AMOUNT]) : 0);
             }, 0);
             this.maxCoin = maxCoin;
-            if (this.instrumentStoreRef && this.isResetC1Mode && this.instrumentStoreRef.isLoaded && maxCoin !== '' && (maxCoin || '').toLowerCase() !== 'halal') {
-                this.instrumentStoreRef.setBase(maxCoin);
-                this.isResetC1Mode = false;
-            }
-            if (maxCoin !== '') { // (PositionData is exist from private socket)
-                this.isRecentPositionPassed = true;
-            }
+            // if (this.instrumentStoreRef && this.isResetC1Mode && this.instrumentStoreRef.isLoaded &&
+            //     !this.arbMode && maxCoin !== '' && (maxCoin || '').toLowerCase() !== 'halal')
+            // {
+            //     this.instrumentStoreRef.setBase(maxCoin);
+            //     this.isResetC1Mode = false;
+            // }
+            // if (maxCoin !== '') { // (PositionData is exist from private socket)
+            //     this.isRecentPositionPassed = true;
+            // }
 
             this.PortfolioTotalValueChange = this.PortfolioTotalValue === 0 ? 0 : totalAccountBalance - this.PortfolioTotalValue;
-            this.PortfolioTotalValue = totalAccountBalance;
+            this.PortfolioTotalValue = Math.floor(totalAccountBalance);
 
             this.setSelectedCoinData();
         }
@@ -316,7 +356,11 @@ class YourAccountStore {
 
     requestPosition () {
         // setTimeout(partial(initRequest, PositionRequest, throttleMs, partial(makePositionRequest, localStorage.getItem('authClientId') || ClientId, ProgramId)), 500);
-        setTimeout(PositionRequest(localStorage.getItem('authClientId') || ClientId), 500);
+
+        setTimeout(
+            PositionRequest(localStorage.getItem('authClientId') || ClientId),
+            500
+        );
     }
 
     requestPositionWithReply () {
@@ -328,7 +372,11 @@ class YourAccountStore {
         );
 
         this.baseCoinIndex = 0;
-        setTimeout(PositionRequest(localStorage.getItem('authClientId') || ClientId), 500);
+
+        setTimeout(
+            PositionRequest(localStorage.getItem('authClientId') || ClientId),
+            500
+        );
     }
 
     @action.bound getRecentPosition() {
@@ -350,8 +398,17 @@ class YourAccountStore {
             }, 1000);
         });
     }
+
+    @action.bound getPriceOf(coin) {
+        for (let i = 0; i < this.PortfolioData.length; i++) {
+            if (this.PortfolioData[i] && this.PortfolioData[i].Coin === coin) {
+                return this.PortfolioData[i].Price;
+            }
+        }
+        return 0;
+    }
 }
 
-export default (instrumentStore) => {
-    return new YourAccountStore(instrumentStore);
+export default (instrumentStore, viewModeStore) => {
+    return new YourAccountStore(instrumentStore, viewModeStore);
 };

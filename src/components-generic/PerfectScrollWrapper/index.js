@@ -1,6 +1,7 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import PerfectScrollbar from 'react-perfect-scrollbar';
+import { withSafeTimeout } from '@hocs/safe-timers';
 
 const StyleWrapper = styled.div`
     position: relative;
@@ -18,8 +19,8 @@ const StyleWrapper = styled.div`
     }
 
     .scroll__scrollup {
-        right: 14px;
-        bottom: 12px;
+        right: 0;
+        bottom: 0;
     }
 
     .ps__rail-y {
@@ -38,15 +39,17 @@ class PerfectScrollWrapper extends React.PureComponent {
         isScrollTopVisible: false,
     };
 
+    clearHandleScrollTopTimeout = null;
+
     handleScrollReachedStart = () => {
         this.setState({
             isScrollTopVisible: false,
         });
     };
 
-    handleScrollY = () => {
+    handleScrollY = ({ scrollTop }) => {
         this.setState({
-            isScrollTopVisible: !!this.perfectScrollRef.scrollTop,
+            isScrollTopVisible: !!scrollTop,
         });
     };
 
@@ -54,7 +57,10 @@ class PerfectScrollWrapper extends React.PureComponent {
         const difference = this.perfectScrollRef.scrollTop;
         const perTick = (difference / duration) * 10;
 
-        setTimeout(() => {
+        if (this.clearHandleScrollTopTimeout) {
+            this.clearHandleScrollTopTimeout();
+        }
+        this.clearHandleScrollTopTimeout = this.props.setSafeTimeout(() => {
             this.perfectScrollRef.scrollTop = this.perfectScrollRef.scrollTop - perTick;
             if (this.perfectScrollRef.scrollTop === 0) {
                 return;
@@ -86,7 +92,7 @@ class PerfectScrollWrapper extends React.PureComponent {
                         containerRef={element => { this.perfectScrollRef = element; }}
                         onYReachStart={this.handleScrollReachedStart}
                         onScrollY={this.handleScrollY}
-                        option={{ minScrollbarLength: 40, maxScrollbarLength: 60 }}
+                        options={{ minScrollbarLength: 40, maxScrollbarLength: 60 }}
                     >
                         {this.props.children}
                     </PerfectScrollbar>
@@ -96,4 +102,4 @@ class PerfectScrollWrapper extends React.PureComponent {
     }
 }
 
-export default PerfectScrollWrapper;
+export default withSafeTimeout(PerfectScrollWrapper);

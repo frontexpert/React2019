@@ -1,9 +1,10 @@
 import React from 'react';
 import { inject, observer } from 'mobx-react';
+import { withSafeTimeout } from '@hocs/safe-timers';
+import { compose } from 'recompose';
 
 import InitialLoader from '../../components-generic/InitialLoader';
 import { STORE_KEYS } from '../../stores';
-import ProgressRing from '../PayApp/ProgressRing';
 
 class InitialLoaderContainer extends React.Component {
     constructor(props) {
@@ -13,11 +14,7 @@ class InitialLoaderContainer extends React.Component {
             loadFailed: false,
             isLoaded: false,
         };
-        this.timer = setTimeout(this.updateLoadFailed, 30000);
-    }
-
-    componentWillUnmount() {
-        clearTimeout(this.timer);
+        this.props.setSafeTimeout(this.updateLoadFailed, 30000);
     }
 
     setLoaded = (isLoaded) => {
@@ -29,8 +26,8 @@ class InitialLoaderContainer extends React.Component {
     updateLoadFailed = () => {
         const {
             isTelegramLoaded,
-            isBaseQuotesLoaded,
             isAccountStoreLoaded,
+            setSafeTimeout,
         } = this.props;
 
         if (!isTelegramLoaded || !isAccountStoreLoaded) {
@@ -38,7 +35,7 @@ class InitialLoaderContainer extends React.Component {
                 loadFailed: true,
             });
 
-            setTimeout(() => {
+            setSafeTimeout(() => {
                 this.setState({
                     isLoaded: true,
                 });
@@ -56,30 +53,28 @@ class InitialLoaderContainer extends React.Component {
         const { isLoaded : isTelegramLoaded } = telegramStore;
         const { isLoaded : isBaseQuotesLoaded } = instrumentStore;
         const { isLoaded : isAccountStoreLoaded } = yourAccountStore;
-        const { loadFailed, isLoaded } = this.state;
+        const { loadFailed } = this.state;
 
         return (
             <React.Fragment>
-                {isMobileDevice ? (
-                    !isLoaded && (
-                        <ProgressRing
-                            radius={160}
-                            stroke={4}
-                            setLoaded={this.setLoaded}
-                        />
-                    )
-                ) : (
-                    !(loadFailed || (isTelegramLoaded && isBaseQuotesLoaded && isAccountStoreLoaded)) && (
+                {
+                    !isMobileDevice && !(loadFailed || (isTelegramLoaded && isBaseQuotesLoaded && isAccountStoreLoaded)) && (
                         <InitialLoader/>
                     )
-                )}
+                }
             </React.Fragment>
         );
     }
 }
 
-export default inject(
-    STORE_KEYS.TELEGRAMSTORE,
-    STORE_KEYS.YOURACCOUNTSTORE,
-    STORE_KEYS.INSTRUMENTS,
-)(observer(InitialLoaderContainer));
+const enhanced = compose(
+    withSafeTimeout,
+    inject(
+        STORE_KEYS.TELEGRAMSTORE,
+        STORE_KEYS.YOURACCOUNTSTORE,
+        STORE_KEYS.INSTRUMENTS,
+    ),
+    observer,
+);
+
+export default enhanced(InitialLoaderContainer);

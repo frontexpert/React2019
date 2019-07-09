@@ -2,10 +2,10 @@ import { observable, action } from 'mobx';
 import React from 'react';
 
 export const STATE_KEYS = {
-    coinSearch: Symbol(),
-    amtInput : Symbol(),
-    submitOrder: Symbol(),
-    orderDone: Symbol(),
+    coinSearch: 'COIN_SEARCH',
+    amtInput : 'AMOUNT_INPUT',
+    submitOrder: 'SUBMIT_ORDER',
+    orderDone: 'ORDER_DONE',
 };
 
 const StateSequence = new Set([
@@ -17,8 +17,10 @@ const StateSequence = new Set([
 
 class ConvertStore {
     @observable convertState;
-    @observable isDynamicCoinPair = true;
     @observable forceStopArbitrageExchange = false;
+    @observable forceStartArbitrageExchange = false;
+    @observable cancelOrder = false;
+    @observable currentProgress = 0;
     statesSequence = null;
 
     constructor(snackbar) {
@@ -26,12 +28,14 @@ class ConvertStore {
         this.snackbar = snackbar;
     }
 
-    @action.bound progressState() {
-        this.convertState = this.__nextState();
+    @action.bound setCurrentProgress(currentProgress) {
+        if (this.currentProgress !== currentProgress) {
+            this.currentProgress = currentProgress;
+        }
     }
 
-    @action.bound setDynamicCoinPair(mode) {
-        this.isDynamicCoinPair = mode;
+    @action.bound progressState() {
+        this.convertState = this.__nextState();
     }
 
     @action.bound showConvertState(msg) {
@@ -50,6 +54,14 @@ class ConvertStore {
 
     @action.bound setForceStopArbitrageExchange(mode) {
         this.forceStopArbitrageExchange = mode;
+    }
+
+    @action.bound setForceStartArbitrageExchange(mode) {
+        this.forceStartArbitrageExchange = mode;
+    }
+
+    @action.bound setCancelOrder(mode) {
+        this.cancelOrder = mode;
     }
 
     @action.bound gotoFirstState() {

@@ -1,9 +1,11 @@
 /* eslint-disable no-alert */
 import React, { Fragment } from 'react';
 import { inject, observer } from 'mobx-react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import TelegramLoginButton from 'react-telegram-login';
 import { FormattedMessage } from 'react-intl';
+import { withSafeTimeout } from '@hocs/safe-timers';
+import { compose } from 'recompose';
 
 import { login as telegramLogin } from '../../lib/tg-auth/index';
 import { TELEGRAM_AUTH_BOT } from '../../config/constants';
@@ -61,7 +63,7 @@ const Button = styled.div`
 
     &:hover + .telegram-login {
         color: ${props => props.theme.palette.telegramButtonHover};
-        
+
         svg {
             fill: ${props => props.theme.palette.telegramButtonHover};
         }
@@ -70,7 +72,7 @@ const Button = styled.div`
     &:active + .telegram-login {
         background-color: ${props => props.theme.palette.telegramButtonHover};
         color: ${props => props.theme.palette.telegramAppMessageJoin} !important;
-        
+
         svg {
             fill: ${props => props.theme.palette.telegramButtonHover};
         }
@@ -119,7 +121,7 @@ class TelegramLogin extends React.Component {
     };
 
     componentDidMount() {
-        setTimeout(() => {
+        this.props.setSafeTimeout(() => {
             this.setState({
                 isBtnLoaded: true,
             });
@@ -152,7 +154,6 @@ class TelegramLogin extends React.Component {
                     [STORE_KEYS.LOWESTEXCHANGESTORE]: lowestExchangeStore,
                     [STORE_KEYS.TELEGRAMSTORE]: telegramStore,
                     [STORE_KEYS.ORDERHISTORY]: orderHistoryStore,
-                    [STORE_KEYS.PORTFOLIODATASTORE]: portfolioDataStore,
                     [STORE_KEYS.MODALSTORE]: modalStore,
                     setLoading,
                 } = this.props;
@@ -168,7 +169,6 @@ class TelegramLogin extends React.Component {
                 telegramStore.initByTelegramLogin();
                 orderHistoryStore.requestOrderHistory();
                 yourAccountStore.requestPositionWithReply();
-                portfolioDataStore.initPortfolioDataStore();
                 lowestExchangeStore.requestOrderEvents();
                 telegramStore.loginFinishWith(user);
             })
@@ -228,11 +228,16 @@ class TelegramLogin extends React.Component {
     }
 }
 
-export default inject(
-    STORE_KEYS.TELEGRAMSTORE,
-    STORE_KEYS.ORDERHISTORY,
-    STORE_KEYS.YOURACCOUNTSTORE,
-    STORE_KEYS.PORTFOLIODATASTORE,
-    STORE_KEYS.MODALSTORE,
-    STORE_KEYS.LOWESTEXCHANGESTORE
-)(observer(TelegramLogin));
+const enhanced = compose(
+    withSafeTimeout,
+    inject(
+        STORE_KEYS.TELEGRAMSTORE,
+        STORE_KEYS.ORDERHISTORY,
+        STORE_KEYS.YOURACCOUNTSTORE,
+        STORE_KEYS.MODALSTORE,
+        STORE_KEYS.LOWESTEXCHANGESTORE
+    ),
+    observer
+);
+
+export default enhanced(TelegramLogin);

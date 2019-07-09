@@ -1,6 +1,6 @@
 import React from 'react';
 import { compose } from 'recompose';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import { withSnackBar } from '../../hocs/WithSnackBar';
 import OrderGradientButton from '../../components-generic/GradientButtonSquare';
 

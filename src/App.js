@@ -1,35 +1,36 @@
-/* eslint-disable */
 import React from 'react';
-import {
-    MuiThemeProvider, createMuiTheme, createGenerateClassName, jssPreset
-} from '@material-ui/core/styles';
+import { createMuiTheme } from '@material-ui/core/styles';
+import { ThemeProvider as MuiThemeProvider, StylesProvider, jssPreset } from '@material-ui/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import JssProvider from 'react-jss/lib/JssProvider';
 import { create } from 'jss';
-import { ThemeProvider } from 'styled-components';
+import { ThemeProvider } from 'styled-components/macro';
 import { Provider, inject, observer } from 'mobx-react';
 import { IntlProvider } from 'react-intl';
 
-import MainGrid from './grid/MainGrid';
-import Stores, { STORE_KEYS } from './stores';
-import SnackbarPortal from './components/SnackbarPortal';
-import ModalPortal from './components/ModalPortal';
-import { darkTheme } from './theme/core';
-import { languages } from './lib/translations/languages';
-import { messages } from "./lib/translations";
+import MainGrid from '@/grid/MainGrid';
+import Stores, { STORE_KEYS } from '@/stores';
+import SnackbarPortal from '@/components/SnackbarPortal';
+import ModalPortal from '@/components/ModalPortal';
+import { darkTheme } from '@/theme/core';
+import { languages } from '@/lib/translations/languages';
+import { messages } from '@/lib/translations';
+import createGlobalStyles from '@/globalStyles';
 
-const generateClassName = createGenerateClassName();
-const jss = create(jssPreset());
-
-// We define a custom insertion point that JSS will look for injecting the styles in the DOM.
-jss.options.insertionPoint = document.getElementById('jss-insertion-point');
-
-const muiTheme = (theme) => createMuiTheme({
-    palette: {
-        type: theme.muiTheme,
-    },
-    appTheme: theme,
+const jss = create({
+    ...jssPreset(),
+    // Define a custom insertion point that JSS will look for when injecting the styles into the DOM.
+    insertionPoint: 'jss-insertion-point'
 });
+
+const muiTheme = theme =>
+    createMuiTheme({
+        palette: {
+            type: theme.muiTheme
+        },
+        appTheme: theme
+    });
+
+const GlobalStyles = createGlobalStyles();
 
 class ThemedAppComponent extends React.Component {
     lastTouchEnd = 0;
@@ -52,7 +53,7 @@ class ThemedAppComponent extends React.Component {
     };
 
     handleTouchEnd = e => {
-        let now = (new Date()).getTime();
+        const now = new Date().getTime();
         if (now - this.lastTouchEnd <= 300) {
             e.preventDefault();
             e.stopPropagation();
@@ -68,28 +69,27 @@ class ThemedAppComponent extends React.Component {
         const activeMessages = messages[activeLocale];
         return (
             <IntlProvider locale={activeLocale} key={activeLocale} messages={activeMessages}>
-                <ThemeProvider theme={darkTheme}>
-                    <MuiThemeProvider theme={muiTheme(darkTheme)}>
-                        <CssBaseline/>
-                            <MainGrid/>
-                        <ModalPortal/>
-                        <SnackbarPortal/>
-                    </MuiThemeProvider>
-                </ThemeProvider>
+                <MainGrid />
             </IntlProvider>
         );
     }
 }
 
-const ThemedApp = inject(
-    STORE_KEYS.SETTINGSSTORE,
-)(observer(ThemedAppComponent));
+const ThemedApp = inject(STORE_KEYS.SETTINGSSTORE)(observer(ThemedAppComponent));
 
 const App = () => (
     <Provider {...Stores()}>
-        <JssProvider jss={jss} generateClassName={generateClassName}>
-            <ThemedApp/>
-        </JssProvider>
+        <StylesProvider jss={jss}>
+            <ThemeProvider theme={darkTheme}>
+                <MuiThemeProvider theme={muiTheme(darkTheme)}>
+                    <GlobalStyles />
+                    <CssBaseline />
+                    <ThemedApp />
+                    <ModalPortal />
+                    <SnackbarPortal />
+                </MuiThemeProvider>
+            </ThemeProvider>
+        </StylesProvider>
     </Provider>
 );
 

@@ -9,6 +9,7 @@
   "settings.label_access_level": "مستوى الوصول",
   "settings.label_balance_includes_credit": "الرصيد يشمل الائتمان",
   "settings.label_google_2fa": "Google 2FA",
+  "settings.label_email_2fa": "البريد الإلكتروني 2FA",
   "settings.label_arbitrage_mode": "وضع المراجحة",
   "settings.label_private_vpn": "VPN خاصة",
   "settings.label_store_credit": "مخزن اعتمادات",
@@ -187,7 +188,6 @@
   "data_loader_done.label_done": "فعله",
   "sms_verification.label_enter_mobile_number": "أدخل رقم الهاتف المحمول",
   "sms_verification.label_what_code": "ما هي الشيفرة؟",
-  "switch_custom.label_off": "إيقاف",
 
   "button.save": "حفظ",
   "button.confirm": "تؤكد",
@@ -216,5 +216,6 @@
   "order_book.buy_book.label_max_order_size": "الحد الأقصى لحجم الطلب: ",
   "settings.label_auto_flip": "قلب تلقائي",
   "settings.label_swaps": "مبادلة",
-  "settings.label_is_auto_convert": "تحويل السيارات"
+  "settings.label_is_auto_convert": "تحويل السيارات",
+  "settings.label_support_center": "مركز دعم المنصات"
 }

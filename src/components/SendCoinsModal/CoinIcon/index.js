@@ -1,5 +1,5 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import COIN_DATA_MAP from '../../../mock/coin-data-map';
 
 const StyleWrapper = styled.div`

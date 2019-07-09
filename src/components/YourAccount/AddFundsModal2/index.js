@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { compose, withProps } from 'recompose';
 import { inject, observer } from 'mobx-react';
 import { FormattedMessage } from 'react-intl';
+import { withSafeTimeout } from '@hocs/safe-timers';
 
 import { STORE_KEYS } from '../../../stores';
 
@@ -26,6 +27,7 @@ import DataLoader from '../../../components-generic/DataLoader';
 const enchanced = compose(
     inject(STORE_KEYS.MODALSTORE, STORE_KEYS.PAYMENTSTORE),
     observer,
+    withSafeTimeout,
     withProps(
         ({
             [STORE_KEYS.MODALSTORE]: {
@@ -65,6 +67,14 @@ class AddFundsModal extends Component {
         isInProgress: false,
     };
 
+    clearHandleConfirmBtnTimeout = null;
+
+    componentWillUnmount() {
+        if (this.clearHandleConfirmBtnTimeout) {
+            this.clearHandleConfirmBtnTimeout();
+        }
+    }
+
     changeValue = field => value => {
         this.setState({
             [field]: value,
@@ -82,6 +92,7 @@ class AddFundsModal extends Component {
             Modal,
             portal,
             sendPaymentRequest,
+            setSafeTimeout,
         } = this.props;
 
         // validation
@@ -136,7 +147,10 @@ class AddFundsModal extends Component {
             isInProgress: true,
         });
 
-        setTimeout(() => {
+        if (this.clearHandleConfirmBtnTimeout) {
+            this.clearHandleConfirmBtnTimeout();
+        }
+        this.clearHandleConfirmBtnTimeout = setSafeTimeout(() => {
             // connect mobx store to connect backend
             sendPaymentRequest('visa', name.trim(), number.trim(), expDate.trim(), cvc.trim());
             addFundsConfirmModal(Modal, portal || 'graph-chart-parent', true);

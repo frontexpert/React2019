@@ -1,5 +1,5 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 
 const Wrapper = styled.div.attrs({ className: 'add-funds2__select' })`
     display: inline-flex;

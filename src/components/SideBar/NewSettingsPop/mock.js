@@ -168,11 +168,15 @@ export const margins = [
 ];
 
 export const accessLevels = [
-    'Level 0',
     'Level 1',
     'Level 2',
     'Level 3',
     'Level 4'
+];
+
+export const defaultCurrencies = [
+    'Fiat',
+    'Crypto'
 ];
 
 export const swaps = [
@@ -186,7 +190,6 @@ export const c1s = [
 ];
 
 export const c2s = [
-    'Anycoin',
     'USDT'
 ];
 
@@ -201,7 +204,12 @@ export const sliders = [
 ];
 
 let timers = [];
-for(let i = 10; i <= 1000; i += 10) {
+for(let i = 0; i <= 1000; i += 10) {
     timers.push(i);
 }
 export const timerList = timers;
+
+export const timerAfterList = [
+    'After 2 transactions',
+    'After 1 transaction'
+];

@@ -1,22 +1,21 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 
 // import { AvatarIcon } from './icons';
 
 const ImageWrapper = styled.div.attrs({ className: 'user-avatar-component' })`
-    width: 60px;
-    height: 100%;
+    width: 68px;
+    height: inherit;
     display: flex;
     align-items: center;
     justify-content: center;
     border: none;
-    // border-right: 1px solid ${props => props.theme.palette.clrBorder};
     cursor: pointer;
 `;
 
 const AvatarSvg = styled.svg.attrs({ className: 'avatar-icon' })`
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     background-color: ${props => props.theme.palette.clrBorder};
     border-radius: 50%;
     
@@ -29,8 +28,8 @@ const AvatarSvg = styled.svg.attrs({ className: 'avatar-icon' })`
     }
     
     .cls-1 {
-        stroke: ${props => props.theme.palette.clrHighContrast};
-        fill: ${props => props.theme.palette.clrHighContrast};
+        stroke: #7881ae; // ${props => props.theme.palette.clrHighContrast};
+        fill: #888da4; // ${props => props.theme.palette.clrHighContrast};
     }
     
     .cls-2 {

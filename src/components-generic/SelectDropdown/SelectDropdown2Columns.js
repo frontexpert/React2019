@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import { FormattedMessage } from 'react-intl';
 import { AutoSizer, Table, Column } from 'react-virtualized';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import sortBy from 'lodash/sortBy';
+import { withSafeTimeout } from '@hocs/safe-timers';
 
-import { highlightSearchDom } from '../../utils';
+import { highlightSearchDom } from '@/utils';
 import {
     IconWrapper, ItemList, ListStyleWrapper, LanguageIcon,
     SearchIcon, SearchInput, SearchInputWrapper, ListItem2
@@ -72,40 +73,43 @@ const SelectedItem = styled.div`
     }
 `;
 
-const Dropdown = styled.div`
+const Dropdown = styled.div.attrs({ className: 'lang-dropdown' })`
     position: absolute;
+    display: none;
     top: 60px;
     left: 1px;
     right: 1px;
     z-index: 100000;
-    // width: 360px;
-    // height: 442px;
     height: calc(100% - 61px);
     margin: 0;
     padding: 0;
-    display: flex;
     flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
     background: ${props => props.theme.palette.clrBackground};
-    // border: 1px solid ${props => props.theme.palette.clrBorder};
-    // border-radius: ${props => `0 0 ${props.theme.palette.borderRadius} ${props.theme.palette.borderRadius}`};
     box-shadow: 2px 0 0 2px rgba(0, 0, 0, .2);
+
+    .ReactVirtualized__Table__row {
+        border: none;
+
+        &:hover {
+            background: none;
+        }
+    }
 `;
 
 class SelectDropdown2Columns extends Component {
     state = {
         searchValue: '',
-        isOpen: false,
         scrollTop: 0,
         tableItems: [],
     };
 
     wrapperRef = null;
     searchValueRef = null;
+    clearUpdateTableItemsTimeout = null;
 
     componentDidMount() {
-        document.addEventListener('mousedown', this.handleClickOutside);
         this.updateTableItems(this.props);
     }
 
@@ -114,35 +118,20 @@ class SelectDropdown2Columns extends Component {
     }
 
     componentWillUnmount() {
-        document.removeEventListener('mousedown', this.handleClickOutside);
-    }
-
-    handleClickOutside = (event) => {
-        if (this.state.isOpen && this.wrapperRef && this.wrapperRef.contains && !this.wrapperRef.contains(event.target)) {
-            this.setState({
-                isOpen: false,
-            });
+        if (this.clearUpdateTableItemsTimeout) {
+            this.clearUpdateTableItemsTimeout();
         }
-    };
+    }
 
     handleChangeSearchValue = e => {
         this.setState({
             searchValue: (e && e.target && e.target.value) || '',
         });
 
-        setTimeout(this.updateTableItems);
-    };
-
-    toggleDropDown = isOpen => {
-        this.setState(prevState => ({
-            isOpen: (typeof isOpen === 'boolean') ? isOpen : !prevState.isOpen,
-        }));
-
-        setTimeout(() => {
-            if (this.searchValueRef && this.state.isOpen) {
-                this.searchValueRef.focus();
-            }
-        });
+        if (this.clearUpdateTableItemsTimeout) {
+            this.clearUpdateTableItemsTimeout();
+        }
+        this.clearUpdateTableItemsTimeout = this.props.setSafeTimeout(this.updateTableItems);
     };
 
     handleScroll = ({ scrollTop }) => {
@@ -158,9 +147,10 @@ class SelectDropdown2Columns extends Component {
                 scrollTop: 0,
             });
 
-            this.toggleDropDown(false);
-
-            setTimeout(() => {
+            if (this.clearUpdateTableItemsTimeout) {
+                this.clearUpdateTableItemsTimeout();
+            }
+            this.clearUpdateTableItemsTimeout = this.props.setSafeTimeout(() => {
                 this.updateTableItems();
             });
         }
@@ -209,16 +199,19 @@ class SelectDropdown2Columns extends Component {
         });
     };
 
-    itemCellRenderer = ({ rowData }) => {
-        const isSelected = rowData.name === this.props.value;
+    itemCellRenderer = ({ cellData }) => {
+        if (!cellData || !cellData.name) {
+            return;
+        }
+
+        const isSelected = cellData.name === this.props.value;
 
         return (
             <ListItem2
                 className={isSelected ? 'active' : ''}
-                onClick={() => { this.handleSelectItem(rowData.name); }}
+                onClick={() => { this.handleSelectItem(cellData.name); }}
             >
-                <img src={`/img/flags/${rowData.flag}`} alt="" />
-                {highlightSearchDom(rowData.name, this.state.searchValue)}
+                {highlightSearchDom(cellData.name, this.state.searchValue)}
             </ListItem2>
         );
     };
@@ -232,20 +225,16 @@ class SelectDropdown2Columns extends Component {
 
         const {
             searchValue,
-            isOpen,
             scrollTop,
             tableItems,
         } = this.state;
 
         return (
             <IconWrapper
-                innerRef={ref => this.wrapperRef = ref}
-                className={isOpen ? '' : 'close'}
+                ref={ref => this.wrapperRef = ref}
             >
                 <SelectedItem
                     onClick={() => {
-                        this.toggleDropDown();
-
                         if (onClick) {
                             onClick();
                         }
@@ -254,89 +243,88 @@ class SelectDropdown2Columns extends Component {
                     <LanguageIcon/>
                 </SelectedItem>
 
-                {isOpen && (
-                    <Dropdown alignRight>
-                        {isSearchable && (
-                            <SearchInputWrapper>
-                                <SearchIcon/>
-                                <FormattedMessage
-                                    id="settings.search_placeholder"
-                                    defaultMessage="Search..."
+                <Dropdown alignRight>
+                    {isSearchable && (
+                        <SearchInputWrapper>
+                            <SearchIcon/>
+                            <FormattedMessage
+                                id="settings.search_placeholder"
+                                defaultMessage="Search..."
+                            >
+                                {placeholder =>
+                                    <SearchInput
+                                        value={searchValue}
+                                        onChange={this.handleChangeSearchValue}
+                                        placeholder={placeholder}
+                                        ref={ref => { this.searchValueRef = ref; }}
+                                    />
+                                }
+                            </FormattedMessage>
+                        </SearchInputWrapper>
+                    )}
+
+                    <ItemList>
+                        <AutoSizer>
+                            {({ width, height }) => (
+                                <ListStyleWrapper
+                                    width={width}
+                                    height={height}
+                                    length={tableItems.length}
                                 >
-                                    {placeholder =>
-                                        <SearchInput
-                                            value={searchValue}
-                                            onChange={this.handleChangeSearchValue}
-                                            placeholder={placeholder}
-                                            innerRef={ref => { this.searchValueRef = ref; }}
-                                        />
-                                    }
-                                </FormattedMessage>
-                            </SearchInputWrapper>
-                        )}
-
-                        <ItemList>
-                            <AutoSizer>
-                                {({ width, height }) => (
-                                    <ListStyleWrapper
-                                        width={width}
-                                        height={height}
-                                        length={tableItems.length}
+                                    <PerfectScrollbar
+                                        className="d-flex"
+                                        options={{
+                                            suppressScrollX: true,
+                                            minScrollbarLength: 50,
+                                        }}
+                                        onScrollY={this.handleScroll}
                                     >
-                                        <PerfectScrollbar
-                                            className="d-flex"
-                                            option={{
-                                                suppressScrollX: true,
-                                                minScrollbarLength: 50,
-                                            }}
-                                            onScrollY={this.handleScroll}
+                                        <Table
+                                            autoHeight
+                                            width={width}
+                                            height={height}
+                                            headerHeight={0}
+                                            disableHeader
+                                            rowCount={Math.ceil(tableItems.length / 4)}
+                                            rowGetter={({ index }) => [tableItems[index * 4], tableItems[index * 4 + 1], tableItems[index * 4 + 2], tableItems[index * 4 + 3]]}
+                                            rowHeight={60}
+                                            overscanRowCount={0}
+                                            scrollTop={scrollTop}
                                         >
-                                            {/*
-                                            {tableItems.map((item, index) => {
-                                                if (index % 2 === 1) {
-                                                    return null;
-                                                }
-
-                                                return this.itemCellRenderer({ rowData: item });
-                                            })}
-
-                                            {tableItems.map((item, index) => {
-                                                if (index % 2 === 0) {
-                                                    return null;
-                                                }
-
-                                                return this.itemCellRenderer({ rowData: item });
-                                            })}
-                                            */}
-
-                                            <Table
-                                                autoHeight
+                                            <Column
                                                 width={width}
-                                                height={height}
-                                                headerHeight={0}
-                                                disableHeader
-                                                rowCount={tableItems.length}
-                                                rowGetter={({ index }) => tableItems[index]}
-                                                rowHeight={60}
-                                                overscanRowCount={0}
-                                                scrollTop={scrollTop}
-                                            >
-                                                <Column
-                                                    width={width}
-                                                    dataKey="Dropdown"
-                                                    cellRenderer={this.itemCellRenderer}
-                                                />
-                                            </Table>
-                                        </PerfectScrollbar>
-                                    </ListStyleWrapper>
-                                )}
-                            </AutoSizer>
-                        </ItemList>
-                    </Dropdown>
-                )}
+                                                dataKey="Dropdown"
+                                                cellDataGetter={({ rowData }) => rowData[0]}
+                                                cellRenderer={this.itemCellRenderer}
+                                            />
+                                            <Column
+                                                width={width}
+                                                dataKey="Dropdown"
+                                                cellDataGetter={({ rowData }) => rowData[1]}
+                                                cellRenderer={this.itemCellRenderer}
+                                            />
+                                            <Column
+                                                width={width}
+                                                dataKey="Dropdown"
+                                                cellDataGetter={({ rowData }) => rowData[2]}
+                                                cellRenderer={this.itemCellRenderer}
+                                            />
+                                            <Column
+                                                width={width}
+                                                dataKey="Dropdown"
+                                                cellDataGetter={({ rowData }) => rowData[3]}
+                                                cellRenderer={this.itemCellRenderer}
+                                            />
+                                        </Table>
+                                    </PerfectScrollbar>
+                                </ListStyleWrapper>
+                            )}
+                        </AutoSizer>
+                    </ItemList>
+                </Dropdown>
             </IconWrapper>
         );
     }
 }
 
-export default SelectDropdown2Columns;
+export default withSafeTimeout(SelectDropdown2Columns);

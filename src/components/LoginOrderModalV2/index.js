@@ -1,7 +1,7 @@
 import React, { Component, Fragment } from 'react';
 import { inject, observer } from 'mobx-react';
 import { FormattedMessage } from 'react-intl';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import { Tooltip } from 'react-tippy';
 // import isMobile from 'is-mobile';
 
@@ -21,7 +21,6 @@ const LoginWrapper = styled.div`
     left: 0;
     background: rgba(0, 0, 0, .435);
     z-index: 1000000; // made higher than wallet table
-    visibility: ${props => props.isVisible ? 'visible' : 'hidden'};
 `;
 
 const Wrapper = styled.div`
@@ -148,6 +147,8 @@ class LoginOrderModalV2 extends Component {
             loginBtnLocation,
         } = telegramStore;
 
+        const isVisible = !isLoggedIn && loginBtnLocation;
+
         // const screenWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
         // const screenHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
 
@@ -155,7 +156,7 @@ class LoginOrderModalV2 extends Component {
         // const isMobileBrowser = isMobile({ tablet: true }) ? screenWidth < screenHeight : false;
 
         return (
-            <LoginWrapper isVisible={!isLoggedIn && loginBtnLocation}>
+            isVisible && <LoginWrapper>
                 <Wrapper>
                     <ExclamationMark/>
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 
 export const InnerWrapper = styled.div`
     width: 100%;
@@ -64,6 +64,7 @@ export const StyleWrapper = styled.div`
 `;
 
 const CheckWrapper = styled.button`
+    z-index: 10;
     position: relative;
     width: 20px;
     height: 20px;

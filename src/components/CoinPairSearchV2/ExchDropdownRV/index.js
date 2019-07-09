@@ -4,29 +4,36 @@ import sortBy from 'lodash/sortBy';
 import uuidv4 from 'uuid/v4';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import { Tooltip } from 'react-tippy';
+import { compose, withProps } from 'recompose';
+import { inject, observer } from 'mobx-react';
+import { withSafeTimeout } from '@hocs/safe-timers';
 
 import CoinIcon from './CoinIcon';
-// import CoinName from './CoinName';
 import CoinNameSmall from './CoinName/CoinNameSmall';
-import CoinIconDropdown from './CoinIcon/CoinIconDropdown';
-// import RatioInput from './RatioInput';
-import ExchDeposit from './ExchDeposit';
+import CoinWrapper from './CoinIcon/CoinWrapper';
+import ExchangeRate from './ExchangeRate';
 import {
     ExchDropdownList,
     StyleWrapper,
     AddonWrapper,
     ItemButtonWrapper,
-    ItemButton
+    ItemButton,
+    CoinItemWrapper,
+    CoinAmountInput
 } from './Components';
 import {
     WalletButton,
     WalletSideIcon,
-    WalletTopIcon
-} from '../Components';
-import { customDigitFormat, highlightSearchDom } from '../../../utils';
-import DataLoader from '../../../components-generic/DataLoader';
-import SMSVerification from '../../../components-generic/SMSVerification2';
-import COIN_DATA_MAP from '../../../mock/coin-data-map';
+} from '@/components/CoinPairSearchV2/Components';
+import {
+    customDigitFormat, convertToFloat
+} from '@/utils';
+import DataLoader from '@/components-generic/DataLoader';
+import SMSVerification from '@/components-generic/SMSVerification2';
+import COIN_DATA_MAP from '@/mock/coin-data-map';
+import { STORE_KEYS } from '@/stores';
+import {valueNormalized} from "@/stores/utils/OrderEntryUtils";
+import { MODE_KEYS } from '@/components/OrderHistoryAdv/Constants';
 
 class ExchDropdown extends React.PureComponent {
     constructor(props) {
@@ -46,11 +53,17 @@ class ExchDropdown extends React.PureComponent {
             tooltipShow: false,
             isEmpty: true,
             isLoginBtnShow: false,
-            isLeft: props.isLeft,
+            isLeft: true,
+
+            isAmtInputFocused: false,
+            isAmtChangedAfterFocus: false,
+            amount: 1,
         };
 
         this.currentIndex = -1;
         this.scrollHeight = 0;
+
+        this.width = 0;
     }
 
     componentDidMount() {
@@ -60,23 +73,6 @@ class ExchDropdown extends React.PureComponent {
 
     componentWillReceiveProps(nextProps, nextContext) {
         this.updateTableItems(nextProps);
-        let i;
-        for (i = 0; i < this.props.topGroupItems.length; i++) {
-            if (this.props.topGroupItems[i].type !== 'label' && this.props.topGroupItems[i].symbol === this.props.value) {
-                this.setState({ selectedValue: this.props.topGroupItems[i].symbol });
-                this.currentIndex = i;
-                let scrollTop = i * this.getRowHeight(i);
-                if (scrollTop < this.scrollHeight) {
-                    scrollTop = 0;
-                }
-
-                if (i < this.state.tableItems.length) {
-                    this.scrollRef.scrollTop = scrollTop;
-                }
-                this.setState({ scrollTop });
-                break;
-            }
-        }
     }
 
     componentDidUpdate() {
@@ -85,6 +81,21 @@ class ExchDropdown extends React.PureComponent {
 
     componentWillUnmount() {
         document.removeEventListener('mousedown', this.handleClickOutside);
+        if (this.clearOnChangeSearchInputValueTimeout) {
+            this.clearOnChangeSearchInputValueTimeout();
+        }
+        if (this.clearScrollTopTimeout) {
+            this.clearScrollTopTimeout();
+        }
+        if (this.clearToggleDropdownTimeout) {
+            this.clearToggleDropdownTimeout();
+        }
+        if (this.clearChangeDepositViewTimeout) {
+            this.clearChangeDepositViewTimeout();
+        }
+        if (this.clearChangeDepositViewInnerTimeout) {
+            this.clearChangeDepositViewInnerTimeout();
+        }
     }
 
     onChangeSearchInputValue = (e) => {
@@ -101,12 +112,21 @@ class ExchDropdown extends React.PureComponent {
         if (this.scrollRef) {
             this.scrollRef.scrollTop = 0;
         }
-        setTimeout(this.updateTableItems, 0);
+
+        if (this.clearOnChangeSearchInputValueTimeout) {
+            this.clearOnChangeSearchInputValueTimeout();
+        }
+        this.clearOnChangeSearchInputValueTimeout = this.props.setSafeTimeout(this.updateTableItems, 0);
         window.dropDownFocusIndex = 0;
         this.currentIndex = -1;
     };
 
     onSelectItem = (value, rowIndex) => {
+        if (value && value.fiat) {
+            this.props.setFiatCurrency(value.symbol.substring(2, value.symbol.length - 1));
+            this.toggleDropdown();
+            return;
+        }
         this.toggleDropdown();
         this.props.onChange(value);
         this.setState({ selectedValue: value });
@@ -135,6 +155,8 @@ class ExchDropdown extends React.PureComponent {
             }
 
             this.toggleDropdown();
+            this.scrollRef.scrollTop = 0;
+            this.setState({ scrollTop: 0 });
         }
     };
 
@@ -143,7 +165,10 @@ class ExchDropdown extends React.PureComponent {
             const difference = this.state.scrollTop;
             const perTick = (difference / duration) * 50;
 
-            setTimeout(() => {
+            if (this.clearScrollTopTimeout) {
+                this.clearScrollTopTimeout();
+            }
+            this.clearScrollTopTimeout = this.props.setSafeTimeout(() => {
                 const scrollTop = this.state.scrollTop - perTick;
                 this.setState({ scrollTop });
                 if (this.scrollRef) {
@@ -165,7 +190,10 @@ class ExchDropdown extends React.PureComponent {
         toggleDroplist();
 
         if (!isOpen) {
-            setTimeout(() => {
+            if (this.clearToggleDropdownTimeout) {
+                this.clearToggleDropdownTimeout();
+            }
+            this.clearToggleDropdownTimeout = this.props.setSafeTimeout(() => {
                 this.updateTableItems();
                 if (this.inputRef) {
                     this.inputRef.focus();
@@ -203,7 +231,7 @@ class ExchDropdown extends React.PureComponent {
         if (props && props.topGroupEnabled && props.topGroupItems && props.topGroupItems.length) {
             for (let i = 0; i < props.topGroupItems.length; i++) {
                 const weight = this.isSearched(props.topGroupItems[i], this.state.searchInputValue);
-                if (weight >= 0) {
+                if (weight >= 0 && props.topGroupItems[i].file) {
                     searchedTopGroupItemsWeights.push({
                         weight,
                         item: props.topGroupItems[i],
@@ -232,7 +260,7 @@ class ExchDropdown extends React.PureComponent {
         if (props && props.mainItems && props.mainItems.length) {
             for (let i = 0; i < props.mainItems.length; i++) {
                 const weight = this.isSearched(props.mainItems[i], this.state.searchInputValue);
-                if (weight >= 0) {
+                if (weight >= 0 && props.mainItems[i].file) {
                     searchedMainItemsWeights.push({
                         weight,
                         item: props.mainItems[i],
@@ -258,7 +286,68 @@ class ExchDropdown extends React.PureComponent {
             }
         }
 
+        let searchedCurrencyItems = [];
+        let searchedCurrencyItemsWeights = [];
 
+        if (COIN_DATA_MAP && this.state.searchInputValue) {
+            const keys = Object.keys(COIN_DATA_MAP);
+            for (let i = 0; i < keys.length; i++) {
+                const coinRaw = COIN_DATA_MAP[keys[i]];
+                const coin = { ...coinRaw, symbol: coinRaw.symbol + 't' };
+                if (coin.fiat) {
+                    const weight = this.isSearched(coin, this.state.searchInputValue);
+                    if (weight >= 0) {
+                        searchedCurrencyItemsWeights.push({
+                            weight,
+                            item: coin,
+                        });
+                    }
+                }
+            }
+
+            if (searchedCurrencyItemsWeights.length) {
+                // Add `All coins` label separator only when top group items are enabled.
+                if (props.topGroupEnabled) {
+                    tableItems.push({
+                        type: 'label',
+                        name: '',
+                        value: 'Currency',
+                    });
+                }
+
+                searchedCurrencyItemsWeights = sortBy(searchedCurrencyItemsWeights, item => item.weight);
+                // searchedCurrencyItemsWeights.reverse();
+                searchedCurrencyItems = searchedCurrencyItemsWeights.map(val => val.item);
+
+                tableItems = tableItems.concat(searchedCurrencyItems);
+            }
+        }
+        const { searchInputValue } = this.state;
+        if (searchInputValue) {
+            tableItems.sort((x, y) => x.symbol < y.symbol || (x.symbol && x.symbol.toLowerCase() === searchInputValue.toLowerCase()) ? -1 : 1);
+        }
+
+        if (props.isLeft) {
+            tableItems = tableItems.filter(item => {
+                if (props.accessLevel === 'Level 1') {
+                    return item.symbol === 'BTC';
+                }
+                if (props.accessLevel === 'Level 2') {
+                    return item.symbol === 'BTC' || item.symbol === 'ETH';
+                }
+                return true;
+            });
+        } else {
+            tableItems = tableItems.filter(item => {
+                if (props.accessLevel === 'Level 1') {
+                    return item.symbol === 'USDT';
+                }
+                if (props.accessLevel === 'Level 2') {
+                    return item.symbol === 'USDT' || item.symbol === 'BTC';
+                }
+                return true;
+            });
+        }
         const { selectedValue } = this.state;
         tableItems.sort((x, y) => x.symbol === selectedValue ? -1 : y === selectedValue ? 1 : 0);
 
@@ -327,7 +416,6 @@ class ExchDropdown extends React.PureComponent {
             //     this.onSelectItem(value, i);
             // }
         } else if (key === 0) {
-            let prevSymbol = '';
             let itemValue = '';
             if (!this.state.selectedValue || this.state.selectedValue === '') {
                 itemValue = this.props.value;
@@ -345,7 +433,7 @@ class ExchDropdown extends React.PureComponent {
                 i--;
             }
 
-            prevSymbol = this.state.tableItems[i].symbol;
+            const prevSymbol = this.state.tableItems[i].symbol;
             this.setState({ selectedValue: prevSymbol });
             if (this.props.topGroupLabel === 'Recent') {
                 blankHeight = 5;
@@ -366,7 +454,6 @@ class ExchDropdown extends React.PureComponent {
             this.scrollRef.scrollTop = scrollTop;
             this.setState({ scrollTop });
         } else if (key === 2) {
-            let prevSymbol = '';
             let itemValue = '';
             if (!this.state.selectedValue || this.state.selectedValue === '') {
                 itemValue = this.props.value;
@@ -384,7 +471,7 @@ class ExchDropdown extends React.PureComponent {
                 i++;
             }
 
-            prevSymbol = this.state.tableItems[i].symbol;
+            const prevSymbol = this.state.tableItems[i].symbol;
             this.setState({ selectedValue: prevSymbol });
             if (this.props.topGroupLabel === 'Recent') {
                 blankHeight = 5;
@@ -407,66 +494,59 @@ class ExchDropdown extends React.PureComponent {
         }
     };
 
-    closeDepositView = () => {
+    handleAmtInputFocus = () => {
         this.setState({
-            selectedIndex: -1,
+            amount: '',
+            isAmtInputFocused: true,
+            isAmtChangedAfterFocus: false,
         });
     };
 
-    changeDepositView = (symbol) => {
-        const { isLeft } = this.state;
-        const { createDepositAddress, notifyMsg } = this.props;
+    handleAmtInputBlur = () => {
+        this.setState({
+            isAmtInputFocused: false,
+        });
+    };
 
-        if (!isLeft) {
-            this.setState({
-                isRequestLoading: true,
-            });
-            createDepositAddress(symbol).then(address => {
-                if (address !== '') {
-                    this.setState({
-                        isLeft: !this.state.isLeft,
-                        isRequestLoading: false,
-                        tooltipShow: false,
-                    });
-                }
-            });
-            setTimeout(() => {
-                if (this.props.coinDepositAddress === '') {
-                    notifyMsg('No deposit address from backend');
-                    this.setState({
-                        isRequestLoading: false,
-                        tooltipShow: true,
-                    });
-                    setTimeout(() => {
-                        this.setState({
-                            selectedIndex: -1,
-                            tooltipShow: false,
-                        });
-                    }, 3000);
-                }
-            }, 20000);
+    handleAmountChange = (event) => {
+        const value = event.target.value;
+
+        let oldValue = String(this.state.amount);
+        let newValue = valueNormalized(oldValue, value);
+
+        this.props.onChangeAmount(newValue || 0);
+        this.setState({
+            amount: newValue,
+            isAmtChangedAfterFocus: true,
+        });
+    };
+
+    handleOpenWallet = (symbol, rowIndex) => () => {
+        const { isLoggedIn, setRightBottomSectionOpenMode } = this.props;
+        const { isRequestLoading } = this.state;
+
+        if (isLoggedIn) {
+            if (!isRequestLoading) {
+                setRightBottomSectionOpenMode(MODE_KEYS.coldStorageModeKey);
+            }
         } else {
             this.setState({
-                isLeft: !this.state.isLeft,
+                selectedIndex: rowIndex,
+                isLoginBtnShow: true,
             });
         }
-    };
+
+    }
 
     cellRenderer = ({ rowIndex }) => {
         let itemValue = '';
         const data = this.state.tableItems[rowIndex];
         const {
-            addon,
             isArbitrageMode,
             isShortSell,
             defaultFiat,
-            openDepositView,
             isLoggedIn,
-            setLoginBtnLocation,
-            createDepositAddress,
-            coinDepositAddress,
             isMobile,
-            notifyMsg,
         } = this.props;
 
         const {
@@ -483,7 +563,7 @@ class ExchDropdown extends React.PureComponent {
 
         if (data.type && data.type === 'label') {
             // return <div className="exch-dropdown__list-title" key={rowIndex}>{data.value || ''}</div>;
-            return <div className="exch-dropdown__list-title" key={rowIndex}/>;
+            return <div className="exch-dropdown__list-title" key={rowIndex} />;
         }
 
         if (!this.state.selectedValue || this.state.selectedValue === '') {
@@ -500,30 +580,24 @@ class ExchDropdown extends React.PureComponent {
 
         const isActive = data.position > 0.0001;
         const balance = data.position !== 1 ? ((data.position && data.position >= 0.00001) ? customDigitFormat(data.position) : '0.00') : '1.00';
+        const isDemo = convertToFloat(balance) > 0;
 
         return (
             <ItemButtonWrapper>
-                { (!isLoggedIn && isLoginBtnShow && rowIndex === selectedIndex) ? (
-                    <SMSVerification handleBack={this.handleLogin}/>
+                {(!isLoggedIn && isLoginBtnShow && rowIndex === selectedIndex) ? (
+                    <SMSVerification handleBack={this.handleLogin} />
                 ) : (
                     <Fragment>
                         <ItemButton
                             className={className}
                             key={rowIndex}
-                            onClick={() => this.onSelectItem(data.symbol, rowIndex)}
+                            onClick={() => this.onSelectItem(data.fiat ? data : data.symbol, rowIndex)}
                             id={`dropdown-btn-${data.symbol}`}
                             isActive={isLeft ? !isShortSell : isArbitrageMode}
                         >
-                            {/* <div className="overlay"/> */}
-                            <CoinIcon value={data} defaultFiat={defaultFiat}/> <CoinNameSmall value={data} search={this.state.searchInputValue} isMobile={isMobile}/>
+                            <CoinIcon value={data} defaultFiat={defaultFiat} />
+                            <CoinNameSmall value={data} search={this.state.searchInputValue} defaultFiat={defaultFiat} isMobile={isMobile} />
                         </ItemButton>
-                        {/*
-                        {data.position === 'USDT' && (
-                            <AddonWrapper isSelected={data.symbol === this.props.value}>
-                                {addon}
-                            </AddonWrapper>
-                        )}
-                        */}
 
                         <AddonWrapper isSelected={data.symbol === itemValue}>
                             <Tooltip
@@ -540,79 +614,22 @@ class ExchDropdown extends React.PureComponent {
                                     isActive={isActive}
                                     isCurrent={data.symbol === itemValue}
                                     isLoggedIn={isLoggedIn}
-                                    onClick={() => {
-                                        if (isLoggedIn) {
-                                            if (!isRequestLoading && isLeft) {
-                                                this.setState({
-                                                    selectedIndex: rowIndex,
-                                                    isRequestLoading: true,
-                                                });
-                                                createDepositAddress(data.symbol).then(address => {
-                                                    if (address !== '') {
-                                                        this.setState({
-                                                            isRequestLoading: false,
-                                                            tooltipShow: false,
-                                                        });
-                                                    }
-                                                });
-                                                setTimeout(() => {
-                                                    if (this.props.coinDepositAddress === '') {
-                                                        notifyMsg('No deposit address from backend');
-                                                        this.setState({
-                                                            isRequestLoading: false,
-                                                            tooltipShow: true,
-                                                        });
-                                                        setTimeout(() => {
-                                                            this.setState({
-                                                                selectedIndex: -1,
-                                                                tooltipShow: false,
-                                                            });
-                                                        }, 3000);
-                                                    }
-                                                }, 20000);
-                                            }
-                                            if (!isLeft) {
-                                                this.setState({
-                                                    selectedIndex: rowIndex,
-                                                    isRequestLoading: false,
-                                                    tooltipShow: false,
-                                                });
-                                            }
-                                        } else {
-                                            this.setState({
-                                                selectedIndex: rowIndex,
-                                                isLoginBtnShow: true,
-                                            });
-                                        }
-                                    }}
+                                    onClick={this.handleOpenWallet(itemValue, rowIndex)}
                                 >
                                     {(isRequestLoading && selectedIndex === rowIndex) ? (
                                         <DataLoader width={35} height={35} />
                                     ) : (
                                         <Fragment>
-                                            <div className="DemoLabel">DEMO</div>
+                                            {isDemo && <div className="DemoLabel">DEMO</div>}
                                             <span className="value">{balance}</span>
                                         </Fragment>
                                     )}
 
-                                    <WalletTopIcon />
+                                    {/* <WalletTopIcon /> */}
                                     <WalletSideIcon />
                                 </WalletButton>
                             </Tooltip>
                         </AddonWrapper>
-
-                        {!isRequestLoading && (selectedIndex === rowIndex) && (coinDepositAddress !== '' || !isLeft) && (
-                            <ExchDeposit
-                                isLeft={isLeft}
-                                symbol={data.symbol}
-                                balance={balance}
-                                position={data.position}
-                                depositAddress={coinDepositAddress}
-                                onCloseHandler={this.closeDepositView}
-                                defaultFiat={defaultFiat}
-                                onChangeDeposit={() => this.changeDepositView(data.symbol)}
-                            />
-                        )}
                     </Fragment>
                 )}
             </ItemButtonWrapper>
@@ -621,30 +638,48 @@ class ExchDropdown extends React.PureComponent {
 
     render() {
         const {
-            isSelected,
             searchInputValue,
             tableItems,
             scrollTop,
             id,
-            selectedValue,
-            isEmpty,
+            isAmtInputFocused,
+            isAmtChangedAfterFocus,
+            amount: amountFromState,
         } = this.state;
 
         const {
             value,
-            resetWalletTable,
-            addon,
-            isArbitrageMode,
             selectedBase,
             selectedQuote,
             isLeft,
-            mainItems,
-            topGroupItems,
+            isCoinPairInversed,
             isOpen,
             defaultFiat,
+            toggleDroplist,
+            amount,
+            isSwapped,
         } = this.props;
 
-        const totalItemLength = mainItems.length + topGroupItems.length;
+        const isLeftDirection = (isLeft && !isCoinPairInversed) || (!isLeft && isCoinPairInversed);
+
+        const searchWrapper = (
+            <div className={`exch-search${isLeftDirection ? '' : ' right'}`}>
+                <svg className="exch-search__icon" xmlns="http://www.w3.org/2000/svg" data-name="Layer 1" viewBox="0 0 100 100" x="0px" y="0px">
+                    <path d="M38,76.45A38.22,38.22,0,1,1,76,38.22,38.15,38.15,0,0,1,38,76.45Zm0-66.3A28.08,28.08,0,1,0,65.84,38.22,28,28,0,0,0,38,10.15Z" />
+                    <rect x="73.84" y="54.26" width="10.15" height="49.42" transform="translate(-32.73 79.16) rotate(-45.12)" />
+                </svg>
+                <input
+                    className="exch-search__input"
+                    type="text"
+                    value={searchInputValue}
+                    onChange={this.onChangeSearchInputValue}
+                    onClick={toggleDroplist}
+                    ref={el => {
+                        this.inputRef = el;
+                    }}
+                />
+            </div>
+        );
 
         return (
             <div
@@ -660,108 +695,54 @@ class ExchDropdown extends React.PureComponent {
                     className="exch-dropdown__border"
                     onClick={this.props.onClick}
                 >
-                    <div className="exch-dropdown__current" onClick={this.toggleDropdown}>
-                        <div className="flex-1">
-                            {/* <CoinIcon value={value} defaultFiat={defaultFiat}/> */}
-                            {COIN_DATA_MAP[value] ?
-                                <Tooltip
-                                    arrow={true}
-                                    animation="shift"
-                                    position="bottom"
-                                    followCursor
-                                    theme="bct"
-                                    title={highlightSearchDom(COIN_DATA_MAP[value]).name}
-                                >
-                                    <CoinIconDropdown
-                                        isSearchOpen={isOpen}
-                                        isLeft={isLeft}
-                                        value={value}
-                                        defaultFiat={defaultFiat}
-                                    />
-                                </Tooltip> :
-                                <CoinIconDropdown
+                    <CoinItemWrapper>
+                        {isLeftDirection ? (
+                            <Fragment>
+                                <CoinWrapper
                                     isSearchOpen={isOpen}
                                     isLeft={isLeft}
+                                    isLeftDirection={isLeftDirection}
                                     value={value}
                                     defaultFiat={defaultFiat}
+                                    toggleDropdown={this.toggleDropdown}
                                 />
-                            }
-                            <CoinNameSmall value={value} isMobile={false}/>
-                            {/* <CoinName value={value} isArbitrageMode={isArbitrageMode} selectedBase={selectedBase} selectedQuote={selectedQuote} isLeft={isLeft} defaultFiat={defaultFiat}/> */}
-                        </div>
-
-                        {/*
-                        <div className="flex-1">
-                            {isSelected ? (
-                                <div className="exch-dropdown__handle" onClick={this.toggleDropdown}>
-                                    <svg
-                                        className="sprite-icon"
-                                        role="img"
-                                        aria-hidden="true"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="15px"
-                                        height="8.9px"
-                                        viewBox="0 0 15 8.9"
-                                    >
-                                        <path d="M7.5,8.9L0.3,1.7c-0.4-0.4-0.4-1,0-1.4s1-0.4,1.4,0l5.8,5.8l5.8-5.8c0.4-0.4,1-0.4,1.4,0s0.4,1,0,1.4L7.5,8.9z"/>
-                                    </svg>
+                                <div className="exch-dropdown__title__wrapper">
+                                    <div className="exch-dropdown__title">
+                                        <CoinAmountInput
+                                            type="text"
+                                            value={isAmtInputFocused ? (isAmtChangedAfterFocus ? amountFromState : '') : amount}
+                                            onFocus={this.handleAmtInputFocus}
+                                            onBlur={this.handleAmtInputBlur}
+                                            onChange={this.handleAmountChange}
+                                        />
+                                    </div>
                                 </div>
-                            ) : (
-                                <div>
-                                    <RatioInput className="ratio-input" isLeft={isLeft}/>
+                            </Fragment>
+                        ) : (
+                            <Fragment>
+                                <ExchangeRate
+                                    selectedBase={selectedBase}
+                                    selectedQuote={selectedQuote}
+                                    amount={amount}
+                                    toggleDropdown={this.toggleDropdown}
+                                    isCoinPairInversed={isCoinPairInversed}
+                                    isSwapped={isSwapped}
+                                />
+                                <div className="exch-dropdown__title__coin2" onClick={this.toggleDropdown}>
+                                    <CoinNameSmall value={value} isMobile={false} defaultFiat={defaultFiat} />
+                                    <CoinIcon value={value} defaultFiat={defaultFiat} />
                                 </div>
-                            )}
-                        </div>
-                        */}
-                    </div>
-
-                    <div className={`exch-search${isOpen ? '' : ' hidden'}`}>
-                        <input
-                            className="exch-search__input"
-                            type="text"
-                            // placeholder={totalItemLength < 6 ? 'Select a currency or ticker' : 'Type a currency or ticker'}
-                            placeholder="Search"
-                            value={searchInputValue}
-                            onChange={this.onChangeSearchInputValue}
-                            // disabled={totalItemLength < 6}
-                            ref={el => {
-                                this.inputRef = el;
-                            }}
-                        />
-
-                        <div className={`exch-dropdown__handle ${isEmpty ? 'hidden' : ''}`} onClick={this.toggleDropdown}>
-                            {/* <svg className="sprite-icon arrow" role="img" aria-hidden="true"> */}
-                            {/* <use xmlnsXlink="http://www.w3.org/1999/xlink" xlinkHref="img/sprite-basic.svg#arrow-drop-2"/> */}
-                            {/* </svg> */}
-                            <svg className="sprite-icon close" role="img" aria-hidden="true" style={{ width: 20, height: 20 }}>
-                                <use xmlnsXlink="http://www.w3.org/1999/xlink" xlinkHref="img/sprite-basic.svg#arrow-drop-close"/>
-                            </svg>
-                        </div>
-                        { !searchInputValue ?
-                            <Tooltip
-                                arrow={true}
-                                animation="shift"
-                                position="bottom"
-                                followCursor
-                                theme="bct"
-                                title="Type a currency or ticker"
-                            >
-                                <svg className="exch-search__icon" role="img" aria-hidden="true" viewBox="0 0 10.583 10.583" xmlns="http://www.w3.org/2000/svg">
-                                    <g transform="translate(0 -286.42)">
-                                        <path d="m10.144 295.34-2.3931-2.3786c-0.35646 0.55128-0.82824 1.0202-1.3829 1.3745l2.3931 2.3784c0.382 0.37989 1.0015 0.37989 1.3829 0 0.382-0.37885 0.382-0.99463 0-1.3743"/>
-                                        <path d="m3.9114 293.44c-1.618 0-2.9338-1.3079-2.9338-2.9157 0-1.608 1.3158-2.9157 2.9338-2.9157 1.6178 0 2.9336 1.3076 2.9336 2.9157 0 1.6078-1.3158 2.9157-2.9336 2.9157m3.9111-2.9157c0-2.1469-1.751-3.8877-3.9111-3.8877-2.1601 0-3.9114 1.7407-3.9114 3.8877 0 2.147 1.7513 3.8874 3.9114 3.8874 2.1601 0 3.9111-1.7404 3.9111-3.8874"/>
-                                        <path d="m1.6296 290.52h0.65211c0-0.89326 0.73083-1.6199 1.6296-1.6199v-0.6479c-1.2579 0-2.2817 1.0173-2.2817 2.2678"/>
-                                    </g>
-                                </svg>
-                            </Tooltip> : null}
-                    </div>
+                            </Fragment>
+                        )}
+                    </CoinItemWrapper>
+                    {isLeftDirection && isOpen && searchWrapper}
                 </div>
 
-                <ExchDropdownList itemCount={tableItems.length} className="exch-dropdown__list">
-                    <div className={`scroll__scrollup${scrollTop > 0 ? '' : ' hide'}`} onClick={() => this.scrollTop(300)}>
+                <ExchDropdownList itemCount={tableItems.length + (isLeftDirection ? 0 : 1)} isSearching={searchInputValue} className="exch-dropdown__list">
+                    <div className={`scroll__scrollup${scrollTop > 1 ? '' : ' hide'}`} onClick={() => this.scrollTop(300)}>
                         <button className="scroll-up-button">
                             <svg className="sprite-icon" role="img" aria-hidden="true">
-                                <use xmlnsXlink="http://www.w3.org/1999/xlink" xlinkHref="img/sprite-basic.svg#arrow-up"/>
+                                <use xmlnsXlink="http://www.w3.org/1999/xlink" xlinkHref="img/sprite-basic.svg#arrow-up" />
                             </svg>
                         </button>
                     </div>
@@ -770,18 +751,29 @@ class ExchDropdown extends React.PureComponent {
                         <AutoSizer>
                             {({ width, height }) => {
                                 this.scrollHeight = height;
+                                this.width = width;
                                 return (
                                     <StyleWrapper width={width} height={height}>
                                         <PerfectScrollbar
                                             containerRef={ref => {
                                                 this.scrollRef = ref;
                                             }}
-                                            option={{
+                                            options={{
                                                 suppressScrollX: true,
                                                 minScrollbarLength: 50,
                                             }}
                                             onScrollY={this.handleScroll}
                                         >
+
+                                            {!isLeftDirection && (
+                                                <div className="exch-search__wrapper">
+                                                    {searchWrapper}
+                                                </div>
+                                            )}
+                                            {tableItems.length === 0 &&
+                                                <span className="no-match">your search - {searchInputValue} - did not match any currencies</span>
+                                            }
+
                                             <Table
                                                 ref={el => {
                                                     this.tableRef = el;
@@ -804,12 +796,6 @@ class ExchDropdown extends React.PureComponent {
                                                     cellRenderer={this.cellRenderer}
                                                 />
                                             </Table>
-                                            {/*
-                                                addon &&
-                                                <div className="addon">
-                                                    {addon}
-                                                </div>
-                                            */}
                                         </PerfectScrollbar>
                                     </StyleWrapper>
                                 );
@@ -822,4 +808,30 @@ class ExchDropdown extends React.PureComponent {
     }
 }
 
-export default ExchDropdown;
+const enhanced = compose(
+    withSafeTimeout,
+    inject(
+        STORE_KEYS.SETTINGSSTORE,
+        STORE_KEYS.MARKETMODALSTORE,
+        STORE_KEYS.VIEWMODESTORE,
+    ),
+    observer,
+    withProps(
+        ({
+            [STORE_KEYS.SETTINGSSTORE]: {
+                setFiatCurrency,
+            },
+            [STORE_KEYS.MARKETMODALSTORE]: {
+                showModal,
+            },
+            [STORE_KEYS.VIEWMODESTORE]: {
+                setRightBottomSectionOpenMode,
+            },
+        }) => ({
+            setFiatCurrency,
+            showModal,
+            setRightBottomSectionOpenMode,
+        })
+    )
+);
+export default enhanced(ExchDropdown);

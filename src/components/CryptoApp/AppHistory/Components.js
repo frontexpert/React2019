@@ -1,5 +1,5 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 
 export const Wrapper = styled.div`
     position: absolute;
@@ -16,29 +16,29 @@ export const Wrapper = styled.div`
     flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
-    background: ${props => props.theme.palette.mobile2Bg};
-    // Set higher than glow
     z-index: 99999;
 `;
 
 export const HeaderWrapper = styled.div`
-    flex: 0 0 50px;
-    position: relative;
+    position: absolute;
+    width: calc(100% - 40px);
+    height: 74px;
+    top: calc(22.7% - 24px);
+    left: 20px;
+    margin: 0 auto;
+    border: 1.51px solid white;
+    border-radius: 37px;
+    box-shadow: 0 0 5.03px rgb(206, 206, 206);
+    background: black;
+    z-index: 100000;
     display: flex;
-    flex-direction: row;
     align-items: center;
-    justify-content: center;
-    margin: 0;
-    border: none;
-    padding: 0 25px 0 0;
-    width: 100%;
-    height: 50px;
-    // background: ${props => props.theme.palette.mobile2HeaderBgNormal};
-    background: transparent;
-    // transition: .3s;
-    
-    &.highlighted {
-        background: ${props => props.theme.palette.mobile2HeaderBgHighlight} !important;
+
+    img {
+        width: 74px;
+        height: auto;
+        padding: 18px;
+        cursor: pointer;
     }
 `;
 
@@ -54,7 +54,6 @@ export const ContentWrapper = styled.div`
     padding: 0;
     width: 100%;
     height: 100%;
-    background: ${props => props.theme.palette.mobile2ContentBg};
 `;
 
 export const ImageWrapper = styled.div.attrs({ className: 'avatar-image-wrapper' })`
@@ -109,8 +108,6 @@ export const List = styled.div`
     align-items: flex-start;
     justify-content: flex-start;
     width: 100%;
-    // height: 100%;
-    // border-radius: 0 0 ${props => props.theme.palette.borderRadius} ${props => props.theme.palette.borderRadius};
     overflow: hidden;
     
     .settings-pop-header {
@@ -158,10 +155,6 @@ export const TableWrapper = styled.div`
     .ReactVirtualized__Table__row {
         border-bottom: 1px solid ${props => props.theme.palette.mobile2HistoryItemBorder};
         overflow: visible !important;
-
-        &:last-child {
-            // border-bottom: none;
-        }
     }
     
     .ReactVirtualized__Table__Grid {
@@ -255,7 +248,6 @@ export const TransactionDate = styled.div`
         cursor: pointer;
         outline: none;
         padding: 0 0 1px 0;
-        // border-bottom: 1px solid ${props => props.theme.palette.clrBlue};
     }
     
     > .status {
@@ -303,6 +295,81 @@ export const InnerWrapper = styled.div`
     flex: 1;
     display: flex;
     flex-direction: column;
+    position: absolute;
+    width: 75%;
+    height: 54vh;
+    background-color: black;
+    border: solid 1.69px white;
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+    top: calc(22.7% + 45px);
+    left: 50%;
+    transform: translateX(-50%);
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+`;
+
+export const InfoItem = styled.div`
+    width: 100%;
+    height: 80px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 2px solid grey;
+    font-size: 24px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    ${props => props.isActive ? `
+        border-bottom: 1px solid ${props.theme.palette.clrBorder};
+    ` : ''};
+    .prefix{
+        display: inline-flex;
+    }
+    .circleText{
+        width: 40px;
+        height: 40px;
+        border-radius: 100%;
+        background-color: #4080FF;
+        color: white;
+        text-align: center;
+        margin-right: 10px;
+        display: flex;
+
+        &.transparent {
+            background-color: transparent;
+            img {
+                position: absolute;
+                width: 40px;
+                height: 40px;
+            }
+            canvas {
+                margin: auto;
+            }
+        }
+    }
+    .circleContent{
+        margin: auto;
+    }
+    .containerText{
+        justify-content: center;
+        display: flex;
+        flex-direction: column;
+    }
+    .titleText{
+        color: white;
+        font-size: 16px;
+    }
+    .descText{
+        color: grey;
+        font-size: 12px;
+        font-weight: 400;
+        text-align: right;
+    }
+    .grey {
+        color: grey !important;
+    }
 `;
 
 export const Item = styled.div`
@@ -311,12 +378,11 @@ export const Item = styled.div`
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-top: 1px solid ${props => props.theme.palette.clrBorder};
+    border-top: 2px solid grey;
     font-size: 24px;
     font-weight: 600;
-    color: ${props => props.isActive ? props.theme.palette.clrHighContrast : props.theme.palette.clrPurple};
+    color: white;
     cursor: pointer;
-    
     ${props => props.isActive ? `
         border-bottom: 1px solid ${props.theme.palette.clrBorder};
     ` : ''};
@@ -339,10 +405,12 @@ export const CloseIcon = props => (
 );
 
 const ArrowSvg = styled.svg`
+    position: absolute;
     width: 40px;
     height: 40px;
     padding: 10px;
-    fill: ${props => props.theme.palette.clrPurple};
+    margin-top: 15px;
+    fill: grey;
     pointer: cursor;
     transform: rotate(-90deg);
 `;
@@ -382,20 +450,40 @@ export const InnerList = styled.div`
     height: 100%;
     display: flex;
     flex-direction: column;
+
+    .ps__rail-y {
+        width: 0;
+    }
 `;
 
 export const BalanceRow = styled.div`
+    text-align: center;
     width: 100%;
-    height: 80px;
+    font-family: 'open-sans',sans-serif;
+    font-weight: 700;
+    font-size: ${props => props.isLogoutScreen ? '18px' : '40px' };
+    color: ${props => props.isLogoutScreen ? '#999' : 'white' };
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    font-size: 20px;
-    font-weight: 500;
-    color: ${props => props.theme.palette.clrPurple};
-    
-    span {
-        font-weight: 600;
-        color: ${props => props.theme.palette.clrHighContrast};
+    justify-content: center;
+    padding-left: ${props => props.isLogoutScreen ? '1rem' : '0' };
+    padding-right: ${props => props.isLogoutScreen ? '1rem' : '0' };
+
+    > div {
+        font-size: 24px;
+        color: rgb(50, 105, 207) !important;
+        display: flex;
+        align-items: center;
+        padding: 0 5px 5px 5px;
     }
+`;
+
+export const AmountRow = styled.div`
+    margin: 0 0 15px 0;
+    text-align: center;
+    width: 100%;
+    font-family: 'Exo 2', sans-serif;
+    font-size: 60px;
+    font-weight: 600;
+    color: white;
 `;

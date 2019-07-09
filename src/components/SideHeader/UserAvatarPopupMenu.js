@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import { inject, observer } from 'mobx-react';
 import { FormattedMessage } from 'react-intl';
 import { Tooltip } from 'react-tippy';
+import { parsePhoneNumberFromString } from 'libphonenumber-js';
 
 import { STORE_KEYS } from '../../stores';
 import { STATE_KEYS } from '../../stores/ConvertStore';
@@ -10,44 +11,46 @@ import { SETTING_TIPPY_INFO } from '../../config/constants';
 import {
     format7DigitString,
     formatNegativeNumber,
-    getItemColor,
     getScreenInfo
 } from '../../utils';
 import {
-    AvatarWrapper, DefaultAvatar, InputTextCustom,
-    Item, SettingsBtn
+    InputTextCustom,
+    Item,
+    SettingsBtn,
+    UserInfoWrapper
 } from '../SideBar/NewSettingsPop/Components';
 import {
     DropdownWrapper,
-    DropdownArrow,
     DropdownMenu,
     DropdownMenuItem,
     OrderHistoryWrapper,
-    Spacer,
-    DownArrow,
+    // Spacer,
+    GlobalIcon,
     OpenArrow,
     CloseIcon,
-    Tab
+    LanguageWrapper,
+    PageButtonsWrapper
 } from './Components';
+import DesktopHeader from '../../components/WalletHeader/DesktopHeader';
 import PerfectScrollWrapper from '../../components-generic/PerfectScrollWrapper';
 import {
     ActivityMenuIcon,
     AffiliateMenuIcon,
-    HistoryMenuIcon,
+    AppStoreMenuIcon,
     SettingsMenuIcon
 } from './icons';
-import {
-    ImageWrapper
-} from './UserAvatarComponent';
 import OrderHistoryTable from '../OrderHistory/OrderHistoryTable';
 import SelectDropdown from '../../components-generic/SelectDropdown';
+import { SearchInput } from '../../components-generic/SelectDropdown/Components';
 import {
     accessLevels,
+    defaultCurrencies,
     autoFlips,
     c1s,
     c2s,
     swaps,
-    timerList
+    timerList,
+    timerAfterList
 } from '../SideBar/NewSettingsPop/mock';
 import SwitchCustom from '../../components-generic/SwitchCustom';
 import { languages } from '../../lib/translations/languages';
@@ -55,21 +58,24 @@ import KeyModal from '../KeyModal';
 import LogoutModal from '../LogoutModal';
 import CurrencySelectDropdown from '../../components-generic/SelectDropdown/CurrencySelectDropdown';
 import LanguageSelectDropdown from '../../components-generic/SelectDropdown/LanguageSelectDropdown';
+import ForexDropdown from '../../components-generic/SelectDropdown/ForexDropdown';
 import InputCustom from '../../components-generic/InputCustom';
-import LanguageCurrencyModal from '../Modals/LanguageCurrencyModal';
-import SendCoinsModal from '../SendCoinsModal';
+import GradientButton from '@/components-generic/GradientButtonSquare';
+// import SendCoinsModal from '../SendCoinsModal';
 import SeedWordsModal from '../SeedWordsModal';
-
-const showLanguageCurrencyModal = (Modal, onClose, portal, additionalVerticalSpace) => () => {
-    return Modal({
-        portal,
-        additionalVerticalSpace,
-        ModalComponentFn: () => <LanguageCurrencyModal portal={portal} onClose={onClose} />,
-    });
-};
+import AvatarImage from './AvatarImage';
+import ExchangeListComponent from './ExchangeListComponent';
+import { viewModeKeys, appStoreModeKeys } from '@/stores/ViewModeStore';
+import PageModal from '../Modals/PageModal';
+import { ApiButton, ArbButton, PayButton } from '../WalletHeader/DesktopHeader/AppStoreControls/Components';
 
 class UserAvatarPopupMenu extends React.Component {
+    ref = React.createRef();
+
     state = {
+        isLogoutModalOpen: false,
+        isExchangeListOpen: false,
+        isChildOpen: false,
         isKeyModalOpen: false,
         isAdvancedListOpen: false,
         isPrivacyListOpen: false,
@@ -77,21 +83,103 @@ class UserAvatarPopupMenu extends React.Component {
         isPreferencesListOpen: false,
         isHelpDeskListOpen: false,
         tab: 'all',
+        searchValue: '',
+        tooltipWidth: window.innerWidth,
+        isAppStoreOpen: false,
+        page: null,
     };
 
     componentDidMount() {
         window.addEventListener('resize', this.handleResizeWindow);
+        document.addEventListener('mousedown', this.handleClickOutside);
         this.props[STORE_KEYS.ORDERHISTORY].requestOrderHistory();
         this.props[STORE_KEYS.SETTINGSSTORE].getOrderHistory();
         this.props[STORE_KEYS.VIEWMODESTORE].toggleOrderHistoryMode(false);
+        this.setState({
+            isExchangeListOpen: this.props[STORE_KEYS.VIEWMODESTORE].isSettingsExchangeViewMode,
+            isAppStoreOpen: this.props[STORE_KEYS.VIEWMODESTORE].isAppStoreDropDownOpen,
+        });
     }
 
     componentWillUnmount() {
         window.removeEventListener('resize', this.handleResizeWindow);
+        document.removeEventListener('mousedown', this.handleClickOutside);
     }
+
+    setChildOpen = value => {
+        this.setState({
+            isChildOpen: value,
+        });
+    };
 
     handleResizeWindow = () => {
         this.forceUpdate();
+    };
+
+    handleClickOutside = (event) => {
+        const { isLogoutModalOpen, page } = this.state;
+        const {
+            [STORE_KEYS.VIEWMODESTORE]: {
+                isUserDropDownOpen,
+            },
+            headerRef,
+        } = this.props;
+
+        if (
+            isUserDropDownOpen
+            && headerRef.current && !headerRef.current.contains(event.target)
+            && !isLogoutModalOpen
+            && !page
+        ) {
+            this.props.onClose(false);
+        }
+    };
+
+    handlePageOpen = (pageId = null) => () => this.handlePageToggle(pageId);
+
+    handlePageToggle = (pageId = null) => {
+        this.setState({
+            page: pageId,
+        });
+    }
+
+    openAPIApp = () => {
+        const {
+            [STORE_KEYS.CONVERTSTORE] : { setCancelOrder, setConvertState },
+            [STORE_KEYS.VIEWMODESTORE] : { setViewMode, setArbMode, showDepthChartMode },
+            [STORE_KEYS.EXCHANGESSTORE] : { clearExchanges },
+            onClose
+        } = this.props;
+        setViewMode(viewModeKeys.basicModeKey);
+        setArbMode(false);
+        setCancelOrder(true);
+        onClose();
+        setConvertState(STATE_KEYS.coinSearch);
+        showDepthChartMode(true);
+        clearExchanges();
+    };
+
+    openForexApp = () => {
+        const {
+            [STORE_KEYS.VIEWMODESTORE] : { setViewMode, showDepthChartMode, setArbMode },
+            [STORE_KEYS.CONVERTSTORE] : { setConvertState },
+            onClose,
+        } = this.props;
+        onClose();
+        setArbMode(false);
+        showDepthChartMode(false);
+        setViewMode(viewModeKeys.forexModeKey);
+        setConvertState(STATE_KEYS.coinSearch);
+    };
+
+    openArbApp = () => {
+        const {
+            [STORE_KEYS.VIEWMODESTORE] : { setViewMode, setArbMode },
+            onClose,
+        } = this.props;
+        onClose();
+        setViewMode(viewModeKeys.basicModeKey);
+        setArbMode(true);
     };
 
     toggleSettings = (mode) => {
@@ -111,33 +199,16 @@ class UserAvatarPopupMenu extends React.Component {
         this.props.onClose();
     };
 
-    showTradeHistory = e => {
-        e.preventDefault();
-
-        if (!this.props[STORE_KEYS.VIEWMODESTORE].orderHistoryMode) {
-            this.props[STORE_KEYS.ORDERHISTORY].requestOrderHistory();
-            this.props[STORE_KEYS.SETTINGSSTORE].getOrderHistory();
-            this.props[STORE_KEYS.VIEWMODESTORE].toggleOrderHistoryMode(true);
-        } else {
-            this.props[STORE_KEYS.VIEWMODESTORE].toggleOrderHistoryMode(false);
-        }
-
-        this.setState({
-            isKeyModalOpen: false,
-            isAdvancedListOpen: false,
-            isPrivacyListOpen: false,
-            isAffiliateListOpen: false,
-            isPreferencesListOpen: false,
-            isHelpDeskListOpen: false,
-        });
-        // this.props.onClose();
+    toggleLogoutModal = (isLogoutModalOpen) => {
+        this.setState(prevState => ({
+            isLogoutModalOpen: (typeof isLogoutModalOpen === 'boolean') ? isLogoutModalOpen : !prevState.isLogoutModalOpen,
+        }));
     };
 
     handleResetBalance = (e) => {
         e.stopPropagation();
         this.props[STORE_KEYS.YOURACCOUNTSTORE].resetDemoBalances();
         this.props[STORE_KEYS.YOURACCOUNTSTORE].resetWalletTableState();
-        this.props[STORE_KEYS.PORTFOLIODATASTORE].resetPortfolioData();
         // this.props[STORE_KEYS.SETTINGSSTORE].setShortSellWith(false);
         this.props[STORE_KEYS.CONVERTSTORE].gotoFirstState();
         this.props[STORE_KEYS.INSTRUMENTS].setBase('BTC');
@@ -145,10 +216,6 @@ class UserAvatarPopupMenu extends React.Component {
         this.props[STORE_KEYS.SETTINGSSTORE].resetBalance();
         this.props[STORE_KEYS.ORDERHISTORY].resetOrderHistory();
         this.props[STORE_KEYS.SETTINGSSTORE].resetHistory();
-        // this.props[STORE_KEYS.VIEWMODESTORE].toggleOrderHistoryMode(false);
-        if (this.props[STORE_KEYS.SETTINGSSTORE].isArbitrageMode) {
-            this.props[STORE_KEYS.SETTINGSSTORE].setArbitrageMode();
-        }
         this.props.onClose();
     };
 
@@ -173,6 +240,38 @@ class UserAvatarPopupMenu extends React.Component {
         }));
     };
 
+    toggleAppStore = () => {
+        this.setState(prevState => ({
+            isAppStoreOpen: !prevState.isAppStoreOpen,
+            isKeyModalOpen: false,
+            isAdvancedListOpen: false,
+            isAffiliateListOpen: false,
+            isPreferencesListOpen: false,
+            isHelpDeskListOpen: false,
+            isExchangeListOpen: false,
+            isPrivacyListOpen: false,
+        }));
+        this.props[STORE_KEYS.VIEWMODESTORE].toggleOrderHistoryMode(false);
+    };
+
+    toggleExchangeList = (isOpen) => {
+        this.setState(prevState => ({
+            isExchangeListOpen: (typeof isOpen === 'boolean') ? isOpen : !prevState.isExchangeListOpen,
+            isAdvancedListOpen: false,
+            isKeyModalOpen: false,
+            isPrivacyListOpen: false,
+            isAffiliateListOpen: false,
+            isPreferencesListOpen: false,
+            isHelpDeskListOpen: false,
+            isAppStoreOpen: false,
+        }), () => {
+            if (this.state.isExchangeListOpen) {
+                this.searchValueRef.focus();
+            }
+        });
+        this.props[STORE_KEYS.VIEWMODESTORE].toggleOrderHistoryMode(false);
+    };
+
     toggleAdvancedList = (isOpen) => {
         this.setState(prevState => ({
             isAdvancedListOpen: (typeof isOpen === 'boolean') ? isOpen : !prevState.isAdvancedListOpen,
@@ -181,6 +280,8 @@ class UserAvatarPopupMenu extends React.Component {
             isAffiliateListOpen: false,
             isPreferencesListOpen: false,
             isHelpDeskListOpen: false,
+            isExchangeListOpen: false,
+            isAppStoreOpen: false,
         }));
         this.props[STORE_KEYS.VIEWMODESTORE].toggleOrderHistoryMode(false);
     };
@@ -193,6 +294,8 @@ class UserAvatarPopupMenu extends React.Component {
             isAffiliateListOpen: false,
             isPreferencesListOpen: false,
             isHelpDeskListOpen: false,
+            isExchangeListOpen: false,
+            isAppStoreOpen: false,
         }));
         this.props[STORE_KEYS.VIEWMODESTORE].toggleOrderHistoryMode(false);
     };
@@ -205,9 +308,12 @@ class UserAvatarPopupMenu extends React.Component {
             isPrivacyListOpen: false,
             isPreferencesListOpen: false,
             isHelpDeskListOpen: false,
+            isExchangeListOpen: false,
+            isAppStoreOpen: false,
         }));
         this.props[STORE_KEYS.VIEWMODESTORE].toggleOrderHistoryMode(false);
     };
+
     toggleHelpDeskList = (isOpen) => {
         this.setState(prevState => ({
             isHelpDeskListOpen: (typeof isOpen === 'boolean') ? isOpen : !prevState.isHelpDeskListOpen,
@@ -216,6 +322,8 @@ class UserAvatarPopupMenu extends React.Component {
             isPrivacyListOpen: false,
             isPreferencesListOpen: false,
             isAffiliateListOpen: false,
+            isExchangeListOpen: false,
+            isAppStoreOpen: false,
         }));
         this.props[STORE_KEYS.VIEWMODESTORE].toggleOrderHistoryMode(false);
     };
@@ -228,43 +336,51 @@ class UserAvatarPopupMenu extends React.Component {
             isPrivacyListOpen: false,
             isAffiliateListOpen: false,
             isHelpDeskListOpen: false,
+            isExchangeListOpen: false,
+            isAppStoreOpen: false,
         }));
         this.props[STORE_KEYS.VIEWMODESTORE].toggleOrderHistoryMode(false);
     };
 
     handleLogoutBtn = () => {
-        this.props.toggleLogoutModal(true);
+        this.toggleLogoutModal(true);
     };
 
     setAccessLevel = (accessLevel) => {
         const { referredBy, setAccessLevel } = this.props[STORE_KEYS.SETTINGSSTORE];
         const { Modal } = this.props[STORE_KEYS.MODALSTORE];
 
-        if (accessLevel !== 'Level 1') {
-            Modal({
-                portal: 'graph-chart-parent',
-                ModalComponentFn: () => (
-                    <SendCoinsModal
-                        coin="USDT"
-                        name={referredBy}
-                        user={{
-                            name: referredBy,
-                        }}
-                        onFinish={() => {
-                            setAccessLevel(accessLevel);
-                        }}
-                    />
-                ),
-            });
-        } else {
-            setAccessLevel(accessLevel);
-        }
+        // if (accessLevel !== 'Level 1') {
+        //     Modal({
+        //         portal: 'graph-chart-parent',
+        //         ModalComponentFn: () => (
+        //             <SendCoinsModal
+        //                 coin="USDT"
+        //                 name={referredBy}
+        //                 user={{
+        //                     name: referredBy,
+        //                 }}
+        //                 onFinish={() => {
+        //                     setAccessLevel(accessLevel);
+        //                 }}
+        //             />
+        //         ),
+        //     });
+        // } else {
+        //     setAccessLevel(accessLevel);
+        // }
+        setAccessLevel(accessLevel);
     };
+
+    setDefaultCurrency = defaultCurrency => {
+        const { referredBy, setDefaultCurrencySetting } = this.props[STORE_KEYS.SETTINGSSTORE];
+        setDefaultCurrencySetting(defaultCurrency);
+    }
 
     handleViewSeedWords = () => {
         const { Modal } = this.props[STORE_KEYS.MODALSTORE];
         Modal({
-            portal: 'graph-chart-parent',
+            portal: 'graph',
             ModalComponentFn: () => (
                 <SeedWordsModal isShow={true} isBackUp={true} />
             ),
@@ -281,11 +397,11 @@ class UserAvatarPopupMenu extends React.Component {
         }
     };
 
-    changeTab = (tab, e) => {
+    handleChangeSearchValue = (e) => {
         e.stopPropagation();
-        if (this.state.tab !== tab) {
-            this.setState({ tab });
-        }
+        this.setState({
+            searchValue: e.target.value,
+        });
     };
 
     toggleDropDown = () => {
@@ -293,85 +409,117 @@ class UserAvatarPopupMenu extends React.Component {
             [STORE_KEYS.VIEWMODESTORE]: {
                 isUserDropDownOpen,
                 setUserDropDownOpen,
+                showDepthChartMode,
             },
         } = this.props;
         setUserDropDownOpen(!isUserDropDownOpen);
+        showDepthChartMode(true);
+    };
+
+    onShowTooltip = ({ target }) => {
+        const clientWidth = window.innerWidth;
+        if (clientWidth > 768) {
+            return;
+        }
+
+        const rect = target.getBoundingClientRect();
+        this.setState({
+            tooltipWidth: clientWidth - rect.right - 10,
+        });
+    };
+
+    getTooltip = (tooltipText, props = {}) => {
+        const { tooltipWidth } = this.state;
+
+        return (
+            <Tooltip
+                arrow={true}
+                animation="shift"
+                position="right"
+                theme="bct"
+                useContext
+                html={(
+                    <div style={{ maxWidth: tooltipWidth }}>
+                        {tooltipText}
+                    </div>
+                )}
+                popperOptions={{
+                    modifiers: {
+                        preventOverflow: { enabled: false },
+                        flip: { enabled: false },
+                        hide: { enabled: false },
+                    },
+                }}
+                {...props}
+            >
+                <span className="symbol_i" onClick={this.onShowTooltip}>i</span>
+            </Tooltip>
+        );
     };
 
     render() {
         const {
+            isAppStoreOpen,
+            isExchangeListOpen,
             isKeyModalOpen,
             isAdvancedListOpen,
             isPrivacyListOpen,
             isAffiliateListOpen,
             isPreferencesListOpen,
             isHelpDeskListOpen,
-            tab,
+            isLogoutModalOpen,
+            tooltipWidth,
         } = this.state;
 
         const {
             isLoggedIn,
             loggedInUser,
-            logoURL,
-            isProfileLogoExists,
         } = this.props[STORE_KEYS.TELEGRAMSTORE];
 
+        const { setExchangeActive } = this.props[STORE_KEYS.EXCHANGESSTORE];
+
         const {
-            isShortSell, isArbitrageMode, isRealTrading, defaultTelegram, isExporting, defaultURL, isGoogle2FA,
-            setRealTrading, setShortSell, setArbitrageMode, setArbitrageModeWith, setDefaultTelegram, setExportTrading, setDefaultURL, setGoogle2FA,
+            isShortSell, isRealTrading, defaultURL, isGoogle2FA, isEmail2FA,
+            setShortSell, setDefaultURL,
             setPortfolioIncludesBct, portfolioIncludesBct,
-            accessLevel,
+            accessLevel, isDefaultCrypto,
             privateVpn, setPrivateVpn,
             referredBy, setReferredBy,
+            referCount, setReferCount,
             language,
             isAutoConvert, setIsAutoConvert,
             swap, setSwap,
             c2, setC2,
             c1, setC1,
             autoFlip, setAutoFlip,
-            slider, setSlider,
             timer, setTimer,
+            timerAfter, setTimerAfter,
+            withdrawAddress,
+            defaultForex, setDefaultForex,
         } = this.props[STORE_KEYS.SETTINGSSTORE];
-
+        const defaultCurrency = isDefaultCrypto ? 'Crypto' : 'Fiat';
         const {
-            setViewMode,
-            setSettingsOpen,
-            settingsViewMode,
             orderHistoryMode,
+            isUserDropDownOpen,
         } = this.props[STORE_KEYS.VIEWMODESTORE];
 
         const {
             convertState,
         } = this.props[STORE_KEYS.CONVERTSTORE];
 
-        const {
-            isLogoutModalOpen,
-            toggleLogoutModal,
-            isArbitrageMonitorMode,
-        } = this.props;
+        const { isArbOpen } = this.props;
 
-        // -----
-        let symbolName = '';
-        let userName = '';
-        let fullName = '';
-        if (isLoggedIn && loggedInUser) {
-            const {
-                firstname,
-                lastname,
-            } = loggedInUser;
+        const authClientId = localStorage.getItem('authClientId');
 
-            if (firstname && firstname.length > 0) {
-                symbolName = firstname[0];
-            }
-            if (lastname && lastname.length > 0) {
-                symbolName += lastname[0];
-            }
+        const userId = (isLoggedIn && loggedInUser) ? authClientId : '';
 
-            userName = loggedInUser.username;
-            fullName = firstname + ' ' + lastname;
+        let phoneNumber;
+        try {
+            phoneNumber = parsePhoneNumberFromString(localStorage.getItem('phoneNumber'));
+            phoneNumber = phoneNumber.formatInternational();
+        } catch(e) {
+            phoneNumber = '';
         }
-
-        const phoneNumber = localStorage.getItem('phoneNumber');
 
         // -----
         const isBackendTelLogin = localStorage.getItem('authToken');
@@ -384,22 +532,22 @@ class UserAvatarPopupMenu extends React.Component {
         }
 
         // ------
-        const { storeCredit, setSelectedCoin } = this.props[STORE_KEYS.YOURACCOUNTSTORE];
-        const { Modal: ModalPopup, onClose } = this.props[STORE_KEYS.MODALSTORE];
+        const { storeCredit } = this.props[STORE_KEYS.YOURACCOUNTSTORE];
         const storeCreditStr = formatNegativeNumber(format7DigitString(storeCredit)).replace('+', '');
 
-        const {
-            gridHeight,
-            leftSidebarWidth,
-        } = getScreenInfo();
+        const { gridHeight, leftSidebarWidth, isMobileDevice } = getScreenInfo();
 
-        const advancedList = (
-            <React.Fragment>
-                <Item>
+        const appStoreList = (
+            <Fragment >
+                <Item btn appStoreButton onClick={this.openAPIApp}>
+                    <ApiButton
+                        appStoreMode={appStoreModeKeys.marketMakerModeKey}
+                        onClick={this.openAPIApp}
+                    />
                     <span>
                         <FormattedMessage
-                            id="settings.label_arbitrage_mode"
-                            defaultMessage="Arbitrage Mode"
+                            id="settings.market_maker_mode"
+                            defaultMessage="Market Maker Mode"
                         />
 
                         <Tooltip
@@ -407,7 +555,7 @@ class UserAvatarPopupMenu extends React.Component {
                             animation="shift"
                             position="right"
                             theme="bct"
-                            title={SETTING_TIPPY_INFO.ARBITRAGE_MODE}
+                            title={SETTING_TIPPY_INFO.MARKET_MAKER_MODE}
                             popperOptions={{
                                 modifiers: {
                                     preventOverflow: { enabled: false },
@@ -419,109 +567,73 @@ class UserAvatarPopupMenu extends React.Component {
                             <span className="symbol_i">i</span>
                         </Tooltip>
                     </span>
-
-                    <SwitchCustom
-                        checked={isArbitrageMode}
-                        onChange={setArbitrageMode}
-                    />
                 </Item>
 
-                {/*
-                <Item>
+                <Item btn appStoreButton onClick={this.openArbApp}>
+                    <ArbButton
+                        appStoreMode={appStoreModeKeys.hedgeFundModeKey}
+                        onClick={this.openArbApp}
+                    />
                     <span>
                         <FormattedMessage
-                            id="settings.label_slider"
-                            defaultMessage="Slider"
+                            id="settings.hedge_fund_mode"
+                            defaultMessage="Hedge Fund Mode"
                         />
-                        <span className="symbol_i">i</span>
-                    </span>
-                    <SelectDropdown
-                        width={180}
-                        value={slider}
-                        items={sliders}
-                        alignTop={false}
-                        isSearchable={false}
-                        onChange={setSlider}
-                    />
-                </Item>
-                */}
 
-                <Item>
+                        <Tooltip
+                            arrow={true}
+                            animation="shift"
+                            position="right"
+                            theme="bct"
+                            title={SETTING_TIPPY_INFO.HEDGE_FUND_MODE}
+                            popperOptions={{
+                                modifiers: {
+                                    preventOverflow: { enabled: false },
+                                    flip: { enabled: false },
+                                    hide: { enabled: false },
+                                },
+                            }}
+                        >
+                            <span className="symbol_i">i</span>
+                        </Tooltip>
+                    </span>
+                </Item>
+
+                <Item btn appStoreButton onClick={this.openForexApp}>
+                    <PayButton
+                        appStoreMode={appStoreModeKeys.forexTradeModeKey}
+                        onClick={this.openForexApp}
+                    />
                     <span>
                         <FormattedMessage
-                            id="settings.label_auto_flip"
-                            defaultMessage="Auto Flip"
+                            id="settings.forex_trader_mode"
+                            defaultMessage="Forex Trader Mode"
                         />
-                        <span className="symbol_i">i</span>
+
+                        <Tooltip
+                            arrow={true}
+                            animation="shift"
+                            position="right"
+                            theme="bct"
+                            title={SETTING_TIPPY_INFO.FOREX_TRADER_MODE}
+                            popperOptions={{
+                                modifiers: {
+                                    preventOverflow: { enabled: false },
+                                    flip: { enabled: false },
+                                    hide: { enabled: false },
+                                },
+                            }}
+                        >
+                            <span className="symbol_i">i</span>
+                        </Tooltip>
                     </span>
-                    <SelectDropdown
-                        width={180}
-                        value={autoFlip}
-                        items={autoFlips}
-                        isSearchable={false}
-                        onChange={setAutoFlip}
-                    />
                 </Item>
 
-                <Item>
-                    <span>
-                        C1
-                        <span className="symbol_i">i</span>
-                    </span>
-                    <SelectDropdown
-                        width={180}
-                        value={c1}
-                        items={c1s}
-                        isSearchable={false}
-                        onChange={setC1}
-                    />
-                </Item>
+            </Fragment>
+        );
 
-                <Item>
-                    <span>
-                        C2
-                        <span className="symbol_i">i</span>
-                    </span>
-                    <SelectDropdown
-                        width={180}
-                        value={c2}
-                        items={c2s}
-                        isSearchable={false}
-                        onChange={setC2}
-                    />
-                </Item>
-
-                <Item>
-                    <span>
-                        Convert
-                        <span className="symbol_i">i</span>
-                    </span>
-                    <SelectDropdown
-                        width={180}
-                        value={swap}
-                        items={swaps}
-                        isSearchable={false}
-                        onChange={setSwap}
-                    />
-                </Item>
-
-                <Item>
-                    <span>
-                        <FormattedMessage
-                            id="settings.label_is_auto_convert"
-                            defaultMessage="Auto Convert"
-                        />
-                        <span className="symbol_i">i</span>
-                    </span>
-                    <SelectDropdown
-                        width={180}
-                        value={isAutoConvert}
-                        items={Object.values(autoConvertOptions)}
-                        isSearchable={false}
-                        onChange={setIsAutoConvert}
-                    />
-                </Item>
-
+        const advancedList = (
+            <Fragment>
                 <Item>
                     <span>
                         <FormattedMessage
@@ -529,23 +641,7 @@ class UserAvatarPopupMenu extends React.Component {
                             defaultMessage="Store Credit"
                         />
 
-                        <Tooltip
-                            arrow={true}
-                            animation="shift"
-                            position="right"
-                            theme="bct"
-                            title={`Your Store Credit: ${storeCreditStr}`}
-                            // title={SETTING_TIPPY_INFO.STORE_CREDIT}
-                            popperOptions={{
-                                modifiers: {
-                                    preventOverflow: { enabled: false },
-                                    flip: { enabled: false },
-                                    hide: { enabled: false },
-                                },
-                            }}
-                        >
-                            <span className="symbol_i">i</span>
-                        </Tooltip>
+                        {this.getTooltip(`Your Store Credit: ${storeCreditStr}`)}
                     </span>
                     <SwitchCustom
                         checked={isShortSell}
@@ -563,22 +659,7 @@ class UserAvatarPopupMenu extends React.Component {
                             defaultMessage="Balance includes Credit"
                         />
 
-                        <Tooltip
-                            arrow={true}
-                            animation="shift"
-                            position="right"
-                            theme="bct"
-                            title={SETTING_TIPPY_INFO.BALANCE_CREDIT}
-                            popperOptions={{
-                                modifiers: {
-                                    preventOverflow: { enabled: false },
-                                    flip: { enabled: false },
-                                    hide: { enabled: false },
-                                },
-                            }}
-                        >
-                            <span className="symbol_i">i</span>
-                        </Tooltip>
+                        {this.getTooltip(SETTING_TIPPY_INFO.BALANCE_CREDIT)}
                     </span>
                     <SwitchCustom
                         checked={portfolioIncludesBct}
@@ -597,22 +678,7 @@ class UserAvatarPopupMenu extends React.Component {
                             defaultMessage="12-word phrase"
                         />
 
-                        <Tooltip
-                            arrow={true}
-                            animation="shift"
-                            position="right"
-                            theme="bct"
-                            title={SETTING_TIPPY_INFO.WORD12_PHRASE}
-                            popperOptions={{
-                                modifiers: {
-                                    preventOverflow: { enabled: false },
-                                    flip: { enabled: false },
-                                    hide: { enabled: false },
-                                },
-                            }}
-                        >
-                            <span className="symbol_i">i</span>
-                        </Tooltip>
+                        {this.getTooltip(SETTING_TIPPY_INFO.WORD12_PHRASE)}
                     </span>
                     <button
                         className="btn_normal"
@@ -647,22 +713,8 @@ class UserAvatarPopupMenu extends React.Component {
                             id="settings.label_private_vpn"
                             defaultMessage="Private VPN"
                         />
-                        <Tooltip
-                            arrow={true}
-                            animation="shift"
-                            position="right"
-                            theme="bct"
-                            title={SETTING_TIPPY_INFO.PRIVATE_VPN}
-                            popperOptions={{
-                                modifiers: {
-                                    preventOverflow: { enabled: false },
-                                    flip: { enabled: false },
-                                    hide: { enabled: false },
-                                },
-                            }}
-                        >
-                            <span className="symbol_i">i</span>
-                        </Tooltip>
+
+                        {this.getTooltip(SETTING_TIPPY_INFO.PRIVATE_VPN)}
                     </span>
                     <SwitchCustom
                         checked={privateVpn}
@@ -678,61 +730,110 @@ class UserAvatarPopupMenu extends React.Component {
                 <Item>
                     <span>
                         <FormattedMessage
-                            id="settings.timer"
-                            defaultMessage="Timer"
+                            id="settings.forex_profit_margin"
+                            defaultMessage="Forex Profit Margin"
                         />
-                        <Tooltip
-                            arrow={true}
-                            animation="shift"
-                            position="right"
-                            theme="bct"
-                            title={SETTING_TIPPY_INFO.TIMER}
-                            popperOptions={{
-                                modifiers: {
-                                    preventOverflow: { enabled: false },
-                                    flip: { enabled: false },
-                                    hide: { enabled: false },
-                                },
-                            }}
-                        >
-                            <span className="symbol_i">i</span>
-                        </Tooltip>
+
+                        {this.getTooltip(SETTING_TIPPY_INFO.FOREX_PROFIT_MARGIN)}
+                    </span>
+
+                    <ForexDropdown
+                        width={180}
+                        value={defaultForex}
+                        isSearchable={false}
+                        onChange={setDefaultForex}
+                    />
+                </Item>
+
+                <Item>
+                    <span>
+                        <FormattedMessage
+                            id="settings.timer"
+                            defaultMessage="Timer (seconds)"
+                        />
+
+                        {this.getTooltip(SETTING_TIPPY_INFO.TIMER)}
+                    </span>
+                    <Tooltip
+                        arrow={true}
+                        animation="shift"
+                        position="right"
+                        theme="bct"
+                        title="Your level is not allowed to change this"
+                        popperOptions={{
+                            modifiers: {
+                                preventOverflow: { enabled: false },
+                                flip: { enabled: false },
+                                hide: { enabled: false },
+                            },
+                        }}
+                    >
+                        <SelectDropdown
+                            width={180}
+                            value={timer}
+                            items={timerList}
+                            isSearchable={false}
+                            onChange={setTimer}
+                        />
+                    </Tooltip>
+                </Item>
+
+                <Item>
+                    <span>
+                        <FormattedMessage
+                            id="settings.timer"
+                            defaultMessage="Initiate Timer"
+                        />
+
+                        {this.getTooltip(SETTING_TIPPY_INFO.TIMER_AFTER)}
                     </span>
                     <SelectDropdown
                         width={180}
-                        value={timer}
-                        items={timerList}
+                        value={timerAfter}
+                        items={timerAfterList}
                         isSearchable={false}
-                        onChange={setTimer}
+                        onChange={setTimerAfter}
                     />
                 </Item>
-            </React.Fragment>
+
+                <Item>
+                    <span>
+                        User ID
+
+                        {this.getTooltip("User ID")}
+                    </span>
+                    <InputTextCustom
+                        width={180}
+                        value={userId}
+                        readOnly
+                    />
+                </Item>
+
+                <Item>
+                    <span>
+                        Withdraw Address
+
+                        {this.getTooltip("Withdraw Address")}
+                    </span>
+                    <InputTextCustom
+                        width={180}
+                        value={withdrawAddress}
+                        readOnly
+                    />
+                </Item>
+            </Fragment>
         );
 
         const privacyList = (
-            <React.Fragment>
+            <Fragment>
                 <Item>
                     <span>
                         <FormattedMessage
                             id="settings.label_google_2fa"
                             defaultMessage="Google 2FA"
                         />
-                        <Tooltip
-                            arrow={true}
-                            animation="shift"
-                            position="right"
-                            theme="bct"
-                            title={SETTING_TIPPY_INFO.GOOGLE_2FA}
-                            popperOptions={{
-                                modifiers: {
-                                    preventOverflow: { enabled: false },
-                                    flip: { enabled: false },
-                                    hide: { enabled: false },
-                                },
-                            }}
-                        >
-                            <span className="symbol_i">i</span>
-                        </Tooltip>
+
+                        {this.getTooltip(SETTING_TIPPY_INFO.GOOGLE_2FA)}
                     </span>
                     <SwitchCustom
                         checked={isGoogle2FA}
@@ -741,71 +842,32 @@ class UserAvatarPopupMenu extends React.Component {
                         // onMouseLeave={() => { this.toggleKeyModal(false); }}
                     />
                 </Item>
-            </React.Fragment>
-        );
-
-        const preferenceList = (
-            <React.Fragment >
-                {/*
                 <Item>
                     <span>
                         <FormattedMessage
-                            id="settings.label_demomode"
-                            defaultMessage="Demo Mode"
+                            id="settings.label_email_2fa"
+                            defaultMessage="Email 2FA"
                         />
 
-                        <Tooltip
-                            arrow={true}
-                            animation="shift"
-                            position="right"
-                            theme="bct"
-                            title={SETTING_TIPPY_INFO.DEMO_MODE}
-                            popperOptions={{
-                                modifiers: {
-                                    preventOverflow: { enabled: false },
-                                    flip: { enabled: false },
-                                    hide: { enabled: false },
-                                },
-                            }}
-                        >
-                            <span className="symbol_i">i</span>
-                        </Tooltip>
+                        {this.getTooltip(SETTING_TIPPY_INFO.EMAIL_2FA)}
                     </span>
-                    <button
-                        className="btn_reset"
-                        onClick={this.handleResetBalance}
-                    >
-                        <FormattedMessage
-                            id="settings.btn_reset"
-                            defaultMessage="Reset"
-                        />
-                    </button>
+                    <SwitchCustom
+                        checked={isEmail2FA}
+                    />
                 </Item>
-                */}
+            </Fragment>
+        );
 
-                <Item >
+        const preferenceList = (
+            <Fragment >
+                <Item>
                     <span>
                         <FormattedMessage
                             id="settings.label_real_trading"
                             defaultMessage="Real Trading (Level1 Access)"
                         />
 
-                        <Tooltip
-                            arrow={true}
-                            animation="shift"
-                            position="right"
-                            theme="bct"
-                            title={SETTING_TIPPY_INFO.REAL_TREADING}
-                            popperOptions={{
-                                modifiers: {
-                                    preventOverflow: { enabled: false },
-                                    flip: { enabled: false },
-                                    hide: { enabled: false },
-                                },
-                            }}
-                        >
-                            <span className="symbol_i">i</span>
-                        </Tooltip>
+                        {this.getTooltip(SETTING_TIPPY_INFO.REAL_TREADING)}
                     </span>
                     <SwitchCustom
                         checked={isRealTrading}
@@ -820,22 +882,7 @@ class UserAvatarPopupMenu extends React.Component {
                             defaultMessage="Access Level"
                         />
 
-                        <Tooltip
-                            arrow={true}
-                            animation="shift"
-                            position="right"
-                            theme="bct"
-                            title={SETTING_TIPPY_INFO.ACCESS_LEVEL}
-                            popperOptions={{
-                                modifiers: {
-                                    preventOverflow: { enabled: false },
-                                    flip: { enabled: false },
-                                    hide: { enabled: false },
-                                },
-                            }}
-                        >
-                            <span className="symbol_i">i</span>
-                        </Tooltip>
+                        {this.getTooltip(SETTING_TIPPY_INFO.ACCESS_LEVEL)}
                     </span>
 
                     <SelectDropdown
@@ -845,64 +892,7 @@ class UserAvatarPopupMenu extends React.Component {
                         isSearchable={false}
                         alignTop={false}
                         onChange={this.setAccessLevel}
-                        // onClick={showLanguageCurrencyModal(ModalPopup, onClose, 'graph-chart-parent', true)}
                     />
-                </Item>
-
-                <Item>
-                    <span>
-                        <FormattedMessage
-                            id="settings.label_language"
-                            defaultMessage="Language"
-                        />
-
-                        <Tooltip
-                            arrow={true}
-                            animation="shift"
-                            position="right"
-                            theme="bct"
-                            title={SETTING_TIPPY_INFO.LANGUAGE}
-                            popperOptions={{
-                                modifiers: {
-                                    preventOverflow: { enabled: false },
-                                    flip: { enabled: false },
-                                    hide: { enabled: false },
-                                },
-                            }}
-                        >
-                            <span className="symbol_i">i</span>
-                        </Tooltip>
-                    </span>
-
-                    <LanguageSelectDropdown
-                        width={180}
-                        height={200}
-                        isFullScreen
-                        value={language}
-                        items={languagesArray}
-                        onChange={this.handleLanguage}
-                        // onClick={showLanguageCurrencyModal(ModalPopup, onClose, 'graph-chart-parent', true)}
-                    />
-
-                    {/*
-                    <SelectDropdown
-                        width={180}
-                        value={language}
-                        items={languagesArray}
-                        alignTop={false}
-                        onChange={this.handleLanguage}
-                        // onClick={showLanguageCurrencyModal(ModalPopup, onClose, 'graph-chart-parent', true)}
-                    />
-                    */}
-                    {/*
-                    <InputTextCustom
-                        width={180}
-                        value={language}
-                        readOnly
-                        clickable
-                        onClick={showLanguageCurrencyModal(ModalPopup, onClose, 'graph-chart-parent', true)}
-                    />
-                    */}
                 </Item>
 
                 <Item>
@@ -912,22 +902,7 @@ class UserAvatarPopupMenu extends React.Component {
                             defaultMessage="Default Fiat"
                         />
 
-                        <Tooltip
-                            arrow={true}
-                            animation="shift"
-                            position="right"
-                            theme="bct"
-                            title={SETTING_TIPPY_INFO.DEFAULT_FIAT}
-                            popperOptions={{
-                                modifiers: {
-                                    preventOverflow: { enabled: false },
-                                    flip: { enabled: false },
-                                    hide: { enabled: false },
-                                },
-                            }}
-                        >
-                            <span className="symbol_i">i</span>
-                        </Tooltip>
+                        {this.getTooltip(SETTING_TIPPY_INFO.DEFAULT_FIAT)}
                     </span>
 
                     <CurrencySelectDropdown
@@ -946,12 +921,31 @@ class UserAvatarPopupMenu extends React.Component {
                             defaultMessage="Default Crypto"
                         />
 
+                        {this.getTooltip(SETTING_TIPPY_INFO.DEFAULT_CRYPTO)}
+                    </span>
+
+                    <CurrencySelectDropdown
+                        width={180}
+                        height={200}
+                        type="crypto"
+                        isFullScreen
+                        disableCrypto
+                    />
+                </Item>
+
+                <Item>
+                    <span>
+                        <FormattedMessage
+                            id="settings.label_default_currency"
+                            defaultMessage="Default Currency"
+                        />
+
                         <Tooltip
                             arrow={true}
                             animation="shift"
                             position="right"
                             theme="bct"
-                            title={SETTING_TIPPY_INFO.DEFAULT_CRYPTO}
+                            title={SETTING_TIPPY_INFO.DEFAULT_CURRENCY}
                             popperOptions={{
                                 modifiers: {
                                     preventOverflow: { enabled: false },
@@ -964,18 +958,20 @@ class UserAvatarPopupMenu extends React.Component {
                         </Tooltip>
                     </span>
 
-                    <CurrencySelectDropdown
+                    <SelectDropdown
                         width={180}
-                        height={200}
-                        type="crypto"
-                        isFullScreen
+                        value={defaultCurrency}
+                        items={defaultCurrencies}
+                        isSearchable={false}
+                        alignTop={false}
+                        onChange={this.setDefaultCurrency}
                     />
                 </Item>
-            </React.Fragment>
+            </Fragment>
         );
 
         const affiliateList = (
-            <React.Fragment>
+            <Fragment>
                 <Item>
                     <span className="affliate-label-wrapper">
                         <FormattedMessage
@@ -983,22 +979,7 @@ class UserAvatarPopupMenu extends React.Component {
                             defaultMessage="Default URL"
                         />
 
-                        <Tooltip
-                            arrow={true}
-                            animation="shift"
-                            position="right"
-                            theme="bct"
-                            title={SETTING_TIPPY_INFO.DEFAULT_URL}
-                            popperOptions={{
-                                modifiers: {
-                                    preventOverflow: { enabled: false },
-                                    flip: { enabled: false },
-                                    hide: { enabled: false },
-                                },
-                            }}
-                        >
-                            <span className="symbol_i">i</span>
-                        </Tooltip>
+                        {this.getTooltip(SETTING_TIPPY_INFO.DEFAULT_URL)}
                     </span>
                     <InputTextCustom
                         // readOnly
@@ -1016,22 +997,7 @@ class UserAvatarPopupMenu extends React.Component {
                             defaultMessage="Referred by"
                         />
 
-                        <Tooltip
-                            arrow={true}
-                            animation="shift"
-                            position="right"
-                            theme="bct"
-                            title={SETTING_TIPPY_INFO.REFERRED_BY}
-                            popperOptions={{
-                                modifiers: {
-                                    preventOverflow: { enabled: false },
-                                    flip: { enabled: false },
-                                    hide: { enabled: false },
-                                },
-                            }}
-                        >
-                            <span className="symbol_i">i</span>
-                        </Tooltip>
+                        {this.getTooltip(SETTING_TIPPY_INFO.REFERRED_BY)}
                     </span>
                     <InputTextCustom
                         width={280}
@@ -1040,386 +1006,135 @@ class UserAvatarPopupMenu extends React.Component {
                         readOnly
                     />
                 </Item>
-
                 <Item>
                     <span className="affliate-label-wrapper">
                         <FormattedMessage
-                            id="settings.label_affiliate_link"
-                            defaultMessage="Affiliate Link"
+                            id="settings.label_you_referred"
+                            defaultMessage="You referred"
                         />
 
-                        <Tooltip
-                            arrow={true}
-                            animation="shift"
-                            position="right"
-                            theme="bct"
-                            title={SETTING_TIPPY_INFO.AFFILIATE_LINK}
-                            popperOptions={{
-                                modifiers: {
-                                    preventOverflow: { enabled: false },
-                                    flip: { enabled: false },
-                                    hide: { enabled: false },
-                                },
-                            }}
-                        >
-                            <span className="symbol_i">i</span>
-                        </Tooltip>
+                        {this.getTooltip(SETTING_TIPPY_INFO.YOU_REFERRED)}
                     </span>
-                    <InputCustom
+                    <InputTextCustom
                         width={280}
+                        value={referCount}
+                        onChange={setReferCount}
+                        readOnly
                     />
                 </Item>
-            </React.Fragment>
+            </Fragment>
         );
+
+        const whitelabel = window.location.hostname;
 
         const helpdeskList = (
-            <React.Fragment>
+            <Fragment>
                 <Item>
                     <span>
                         <FormattedMessage
-                            id="setting.label_user_guide"
-                            defaultMessage="Blockchain Terminal Users Guide"
+                            id="settings.label_support_center"
+                            defaultMessage="Platform Support Center"
                         />
                     </span>
-                    <a href="http://nswebdev.us/helpdesk/category/blockchain-terminal-users-guide/">
+                    {/* eslint-disable-next-line react/jsx-no-target-blank */}
+                    <a href={`http://nswebdev.us/helpdesk/?${whitelabel}`} target="_blank">
                         <InputTextCustom
                             // readOnly
                             width={280}
-                            value="http://nswebdev.us/helpdesk/category/blockchain-terminal-users-guide/"
-                            // onChange={setDefaultURL}
-                            readOnly
-                        />
-                    </a>
-
-                </Item>
-
-                <Item>
-                    <span>
-                        <FormattedMessage
-                            id="setting.label_about_bct"
-                            defaultMessage="About the Blockchain Terminal"
-                        />
-                    </span>
-                    <a href="http://nswebdev.us/helpdesk/category/about-the-blockchain-terminal/">
-                        <InputTextCustom
-                            // readOnly
-                            width={280}
-                            value="http://nswebdev.us/helpdesk/category/about-the-blockchain-terminal/"
-                            onChange={setDefaultURL}
+                            value="http://nswebdev.us/helpdesk/"
                             readOnly
                         />
                     </a>
                 </Item>
-
-                <Item>
-                    <span>
-                        <FormattedMessage
-                            id="setting.label_account_management"
-                            defaultMessage="Account Management"
-                        />
-                    </span>
-                    <a href="https://nswebdev.us/helpdesk/category/account-management/">
-                        <InputTextCustom
-                            // readOnly
-                            width={280}
-                            value="http://nswebdev.us/helpdesk/category/account-management/"
-                            onChange={setDefaultURL}
-                            readOnly
-                        />
-                    </a>
-                </Item>
-
-                <Item>
-                    <span>
-                        <FormattedMessage
-                            id="setting.label_buy_sell"
-                            defaultMessage="Buy and Sell"
-                        />
-                    </span>
-                    <a href="http://nswebdev.us/helpdesk/category/buy-and-sell/">
-                        <InputTextCustom
-                        // readOnly
-                            width={280}
-                            value="http://nswebdev.us/helpdesk/category/buy-and-sell/"
-                            onChange={setDefaultURL}
-                            readOnly
-                        />
-                    </a>
-                </Item>
-
-                <Item>
-                    <span>
-                        <FormattedMessage
-                            id="setting.label_custodians_wallets"
-                            defaultMessage="Custodians / Wallets"
-                        />
-                    </span>
-                    <a href="http://nswebdev.us/helpdesk/category/custodians-wallets/">
-                        <InputTextCustom
-                            // readOnly
-                            width={280}
-                            value="http://nswebdev.us/helpdesk/category/custodians-wallets/"
-                            onChange={setDefaultURL}
-                            readOnly
-                        />
-                    </a>
-                </Item>
-
-                <Item>
-                    <span>
-                        <FormattedMessage
-                            id="setting.label_customer_support"
-                            defaultMessage="Customer Support"
-                        />
-                    </span>
-                    <a href="http://nswebdev.us/helpdesk/category/customer-support/">
-                        <InputTextCustom
-                            // readOnly
-                            width={280}
-                            value="http://nswebdev.us/helpdesk/category/customer-support/"
-                            onChange={setDefaultURL}
-                            readOnly
-                        />
-                    </a>
-                </Item>
-
-                <Item>
-                    <span>
-                        <FormattedMessage
-                            id="setting.label_digital_currency"
-                            defaultMessage="Digital Currency"
-                        />
-                    </span>
-                    <a href="http://nswebdev.us/helpdesk/category/digital-currency/">
-                        <InputTextCustom
-                            // readOnly
-                            width={280}
-                            value="http://nswebdev.us/helpdesk/category/digital-currency/"
-                            onChange={setDefaultURL}
-                            readOnly
-                        />
-                    </a>
-                </Item>
-
-                <Item>
-                    <span>
-                        <FormattedMessage
-                            id="setting.label_exchanges"
-                            defaultMessage="Exchanges"
-                        />
-                    </span>
-                    <a href="http://nswebdev.us/helpdesk/category/exchanges/">
-                        <InputTextCustom
-                            // readOnly
-                            width={280}
-                            value="http://nswebdev.us/helpdesk/category/exchanges/"
-                            onChange={setDefaultURL}
-                            readOnly
-                        />
-                    </a>
-                </Item>
-
-                <Item>
-                    <span>
-                        <FormattedMessage
-                            id="setting.label_privacy"
-                            defaultMessage="Privacy"
-                        />
-                    </span>
-                    <a href="http://nswebdev.us/helpdesk/category/privacy/">
-                        <InputTextCustom
-                            // readOnly
-                            width={280}
-                            value="http://nswebdev.us/helpdesk/category/privacy/"
-                            onChange={setDefaultURL}
-                            readOnly
-                        />
-                    </a>
-                </Item>
-
-                <Item>
-                    <span>
-                        <FormattedMessage
-                            id="setting.label_security"
-                            defaultMessage="Security"
-                        />
-                    </span>
-                    <a href="http://nswebdev.us/helpdesk/category/security/">
-                        <InputTextCustom
-                            // readOnly
-                            width={280}
-                            value="http://nswebdev.us/helpdesk/category/security/"
-                            onChange={setDefaultURL}
-                            readOnly
-                        />
-                    </a>
-                </Item>
-
-                <Item>
-                    <span>
-                        <FormattedMessage
-                            id="setting.label_what_blockchain"
-                            defaultMessage="What is Blockchain"
-                        />
-                    </span>
-                    <a href="http://nswebdev.us/helpdesk/category/what-is-blockchain/">
-                        <InputTextCustom
-                            // readOnly
-                            width={280}
-                            value="http://nswebdev.us/helpdesk/category/what-is-blockchain/"
-                            onChange={setDefaultURL}
-                            readOnly
-                        />
-                    </a>
-                </Item>
-
-            </React.Fragment>
+            </Fragment>
         );
 
-        // const isArbCondition = isArbitrageMode && convertState !== STATE_KEYS.coinSearch && isArbOpen;
+        const isArbCondition = !isUserDropDownOpen && (convertState !== STATE_KEYS.coinSearch) || isArbOpen;
+
         return (
             <DropdownWrapper
                 gridHeight={gridHeight}
                 leftSidebarWidth={leftSidebarWidth}
-                isArbCondition={isArbitrageMonitorMode}
+                isArbCondition={isArbCondition}
             >
-                <DropdownMenu isArbCondition={isArbitrageMonitorMode}>
+                {
+                    isArbCondition &&
+                    <DesktopHeader
+                        isLoggedIn={isLoggedIn}
+                        toggleDropDown={this.toggleDropDown}
+                        onLogin={this.handleLogin}
+                        width={leftSidebarWidth || 0}
+                        isMenuOpened={isUserDropDownOpen}
+                    />
+                }
+                <DropdownMenu isArbCondition={isArbCondition}>
                     <PerfectScrollWrapper
-                        scrollTop={false}
+                        scrollTop={true}
                     >
-                        {
-                            (isArbitrageMonitorMode) ? (
-                                <OrderHistoryWrapper>
-                                    <OrderHistoryTable />
-                                </OrderHistoryWrapper>
-                            ) : (
-                                <React.Fragment>
-                                    {isBackendTelLogin && (
-                                        <Item UserItem>
-                                            {/*
-                                            <ImageWrapper onClick={this.toggleDropDown}>
-                                                <AvatarWrapper>
-                                                    <DefaultAvatar color={getItemColor(userName).hexColor}>
-                                                        {symbolName.toUpperCase()}
-                                                    </DefaultAvatar>
+                        {isArbCondition && (
+                            <OrderHistoryWrapper>
+                                <OrderHistoryTable />
+                            </OrderHistoryWrapper>
+                        )}
 
-                                                    {isProfileLogoExists && (
-                                                        <img
-                                                            alt=""
-                                                            className="user-pic"
-                                                            src={logoURL}
-                                                        />
-                                                    )}
-                                                </AvatarWrapper>
-
-                                                <span className="login-title">
-                                                    {!isLoggedIn ? (
-                                                        <FormattedMessage
-                                                            id="pay_app.pay_window.label_login"
-                                                            defaultMessage="Login"
-                                                        />
-                                                    ) : (
-                                                        isRealTrading ? (
-                                                            <FormattedMessage
-                                                                id="pay_app.pay_window.label_real_trading"
-                                                                defaultMessage="Real"
-                                                            />
-                                                        ) : (
-                                                            isArbitrageMode ? (
-                                                                <FormattedMessage
-                                                                    id="pay_app.pay_window.label_arbitrage"
-                                                                    defaultMessage="Arbitrage"
-                                                                />
-                                                            ) : (
-                                                                <FormattedMessage
-                                                                    id="pay_app.pay_window.label_demo"
-                                                                    defaultMessage="Demo"
-                                                                />
-                                                            )
-                                                        )
-                                                    )}
-                                                </span>
-                                            </ImageWrapper>
-                                            */}
-
-                                            <span className="fullName">{phoneNumber}</span>
-
-                                            <SettingsBtn onClick={this.handleLogoutBtn}>
-                                                <FormattedMessage
-                                                    id="settings.btn_logout"
-                                                    defaultMessage="Logout"
-                                                />
-                                            </SettingsBtn>
-                                        </Item>
-                                    )}
-
-                                    {/*
-                                    <DropdownArrow />
-                                    */}
-
+                        {!isArbCondition && (
+                            <Fragment>
+                                {!orderHistoryMode &&
+                                <Fragment>
                                     <DropdownMenuItem
                                         isColumn
-                                        isFullHeight
-                                        opened={orderHistoryMode}
+                                        opened={isAppStoreOpen}
                                     >
                                         <div
                                             className="d-flex"
-                                            onClick={this.showTradeHistory}
+                                            onClick={this.toggleAppStore}
                                         >
                                             <div className="icon-wrapper">
-                                                <HistoryMenuIcon />
+                                                <AppStoreMenuIcon />
                                             </div>
-                                            <span
-                                                className="label-wrapper"
-                                            >
+                                            <span className="label-wrapper">
                                                 <FormattedMessage
-                                                    id="settings.history"
-                                                    defaultMessage="History"
+                                                    id="settings.app_store"
+                                                    defaultMessage="App Store"
                                                 />
                                             </span>
-
-                                            {orderHistoryMode && isLoggedIn && (
-                                                <button
-                                                    className="btn_reset"
-                                                    onClick={this.handleResetBalance}
-                                                >
-                                                    <FormattedMessage
-                                                        id="settings.btn_reset"
-                                                        defaultMessage="Reset"
-                                                    />
-                                                </button>
-                                            )}
-                                            {orderHistoryMode && (
-                                                <Tab active={tab === 'all'} onClick={(e) => this.changeTab('all', e)}>
-                                                    <FormattedMessage
-                                                        id="order_history.label_all"
-                                                        defaultMessage="All"
-                                                    />
-                                                </Tab>
-                                            )}
-                                            {orderHistoryMode && (
-                                                <Tab marginRight active={tab === 'open'} onClick={(e) => this.changeTab('open', e)}>
-                                                    <FormattedMessage
-                                                        id="order_history.label_open"
-                                                        defaultMessage="Open"
-                                                    />
-                                                </Tab>
-                                            )}
-                                            {orderHistoryMode ? <CloseIcon/> : <OpenArrow/>}
+                                            {isPreferencesListOpen ? <CloseIcon/> : <OpenArrow/>}
                                         </div>
 
-                                        {orderHistoryMode && (
-                                            <OrderHistoryWrapper>
-                                                <OrderHistoryTable
-                                                    tab={tab}
-                                                    gridHeight={gridHeight}
-                                                    isFromSettings
-                                                />
-                                            </OrderHistoryWrapper>
-                                        )}
+                                        {isAppStoreOpen && appStoreList}
                                     </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        isColumn
+                                        opened={isExchangeListOpen}
+                                        isChildOpen={this.state.isExchangeListOpen && !this.state.isChildOpen}
+                                    >
+                                        <div
+                                            className="d-flex"
+                                            onClick={this.toggleExchangeList}
+                                        >
+                                            <div className="icon-wrapper">
+                                                <GlobalIcon size={38} color="#fff"/>
+                                            </div>
+                                            {!isExchangeListOpen ?
+                                                <span className="label-wrapper">
+                                                    <FormattedMessage
+                                                        id="settings.exchanges"
+                                                        defaultMessage="Exchanges"
+                                                    />
+                                                </span> :
+                                                <SearchInput
+                                                    value={this.state.searchValue}
+                                                    onChange={this.handleChangeSearchValue}
+                                                    placeholder="Exchanges"
+                                                    isBigger
+                                                    ref={ref => { this.searchValueRef = ref; }}
+                                                />
+                                            }
+                                            {isExchangeListOpen ? <CloseIcon/> : <OpenArrow/>}
+                                        </div>
 
-                                    {/* <Spacer /> */}
+                                        {isExchangeListOpen && <ExchangeListComponent searchValue={this.state.searchValue} setExchangeActive={setExchangeActive} />}
+                                    </DropdownMenuItem>
 
                                     <DropdownMenuItem
                                         isColumn
@@ -1536,10 +1251,115 @@ class UserAvatarPopupMenu extends React.Component {
 
                                         {isHelpDeskListOpen && helpdeskList}
                                     </DropdownMenuItem>
-                                </React.Fragment>
-                            )
-                        }
+
+                                    {isBackendTelLogin && (
+                                        <Item UserItem isMobileDevice={false}>
+                                            <AvatarImage onClick={this.toggleDropDown}/>
+                                            <UserInfoWrapper isMobileDevice={isMobileDevice}>
+                                                <div className="user-info-top">
+                                                    <div className="userContainer">
+                                                        <span>{phoneNumber}</span>
+                                                        <span>
+                                                            {accessLevel}
+
+                                                            {this.getTooltip(SETTING_TIPPY_INFO.ACCESS_LEVEL, {
+                                                                className: "info-tooltip",
+                                                                style: {display: 'inline-flex'}
+                                                            })}
+                                                        </span>
+                                                    </div>
+                                                    <div className="btn-wrapper">
+                                                        <button
+                                                            className="btn_reset"
+                                                            onClick={this.handleResetBalance}
+                                                        >
+                                                            <FormattedMessage
+                                                                id="settings.btn_reset"
+                                                                defaultMessage="Reset"
+                                                            />
+                                                        </button>
+
+                                                        <SettingsBtn onClick={this.handleLogoutBtn}>
+                                                            <FormattedMessage
+                                                                id="settings.btn_logout"
+                                                                defaultMessage="Logout"
+                                                            />
+                                                        </SettingsBtn>
+                                                    </div>
+                                                </div>
+                                                <div className="affiliateContainer">
+                                                    <span className="affliate-label-wrapper">
+                                                        <FormattedMessage
+                                                            id="settings.label_affiliate_link"
+                                                            defaultMessage="Affiliate Link"
+                                                        />
+
+                                                        {this.getTooltip(SETTING_TIPPY_INFO.AFFILIATE_LINK, {
+                                                            className: "info-tooltip",
+                                                            style: {display: 'inline-flex'}
+                                                        })}
+                                                    </span>
+                                                    <InputCustom
+                                                        userId={userId}
+                                                        noContrast
+                                                    />
+                                                </div>
+                                            </UserInfoWrapper>
+                                        </Item>
+                                    )}
+                                </Fragment>
+                                }
+                            </Fragment>
+                        )}
                     </PerfectScrollWrapper>
+                    {!isArbCondition && (
+                        <LanguageWrapper>
+                            <LanguageSelectDropdown
+                                width={180}
+                                height={200}
+                                isFullScreen
+                                value={language}
+                                items={languagesArray}
+                                onChange={this.handleLanguage}
+                            />
+                        </LanguageWrapper>
+                    )}
+                    {!isArbCondition && (
+                        <PageButtonsWrapper>
+                            <GradientButton
+                                className="primary-solid"
+                                header={true}
+                                width={120}
+                                height={40}
+                                onClick={this.handlePageOpen('terms-of-use')}
+                            >
+                                <FormattedMessage
+                                    id="modal.logout.button_terms_of_use"
+                                    defaultMessage="Terms of Use"
+                                />
+                            </GradientButton>
+
+                            <GradientButton
+                                className="primary-solid"
+                                header={true}
+                                width={120}
+                                height={40}
+                                onClick={this.handlePageOpen('privacy-policy')}
+                            >
+                                <FormattedMessage
+                                    id="modal.page.button_privacy_policy"
+                                    defaultMessage="Privacy Policy"
+                                />
+                            </GradientButton>
+                        </PageButtonsWrapper>
+                    )}
+                    {!!this.state.page && (
+                        <PageModal
+                            backdropClose={true}
+                            pageId={this.state.page}
+                            toggleModal={this.handlePageToggle}
+                        />
+                    )}
                 </DropdownMenu>
 
                 <KeyModal
@@ -1550,7 +1370,7 @@ class UserAvatarPopupMenu extends React.Component {
                 />
 
                 <LogoutModal
-                    toggleModal={toggleLogoutModal}
+                    toggleModal={this.toggleLogoutModal}
                     inLineMode
                     backdropClose
                     isModalOpen={isLogoutModalOpen}
@@ -1564,10 +1384,11 @@ export default inject(
     STORE_KEYS.ORDERHISTORY,
     STORE_KEYS.TELEGRAMSTORE,
     STORE_KEYS.YOURACCOUNTSTORE,
-    STORE_KEYS.PORTFOLIODATASTORE,
     STORE_KEYS.SETTINGSSTORE,
     STORE_KEYS.INSTRUMENTS,
     STORE_KEYS.CONVERTSTORE,
     STORE_KEYS.MODALSTORE,
     STORE_KEYS.VIEWMODESTORE,
+    STORE_KEYS.EXCHANGESSTORE,
+    STORE_KEYS.SMSAUTHSTORE,
 )(observer(UserAvatarPopupMenu));

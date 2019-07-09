@@ -3,7 +3,8 @@ kind: Deployment
 metadata:
   name: terminal-ui-{{ .WHITELABEL_ID }}
   labels:
-    keel.sh/policy: minor
+    keel.sh/policy: '{{ default "force" .KEEL_POLICY }}'
+    keel.sh/match-tag: "true"
     keel.sh/trigger: poll
   annotations:
     keel.sh/pollSchedule: "@every 1m"
@@ -20,7 +21,7 @@ spec:
         whitelabel: "{{ .WHITELABEL_ID }}"
     spec:
       containers:
-        - image: 791495472660.dkr.ecr.us-west-2.amazonaws.com/trading/blockchain-terminal-ui:{{ default "0.2.0" .DOCKER_TAG }}
+        - image: 791495472660.dkr.ecr.us-west-2.amazonaws.com/trading/blockchain-terminal-ui:{{ default "develop" .DOCKER_TAG }}
           imagePullPolicy: Always
           livenessProbe:
             failureThreshold: 3

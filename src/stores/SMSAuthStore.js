@@ -13,11 +13,28 @@ import { isTokenExpired, refreshToken } from '../utils';
 class SMSAuthStore {
     @observable price = 0;
     @observable isLoggedIn = false;
+    @observable isVerified = false;
+    @observable loggedInUser = null;
     deviceToken = '';
 
     constructor(snackbar) {
         this.snackbar = snackbar;
         this.deviceToken = localStorage.getItem('deviceToken') || '';
+        const phoneNumber = localStorage.getItem('phoneNumber');
+        const authClientId = localStorage.getItem('authClientId');
+        const authToken = localStorage.getItem('authToken');
+
+        if (phoneNumber && authClientId && authToken) {
+            this.loggedInUser = {
+                phoneNumber,
+                authClientId,
+                authToken,
+            };
+            this.isLoggedIn = true;
+        } else {
+            this.loggedInUser = null;
+            this.isLoggedIn = false;
+        }
 
         if (this.deviceToken === '' || isTokenExpired(this.deviceToken)) {
             requestDeviceToken()
@@ -36,6 +53,7 @@ class SMSAuthStore {
 
 
     @action.bound requestAuthCode(phoneNumber) {
+        this.isVerified = false;
         return new Promise((resolve, reject) => {
             if (this.deviceToken === '') {
                 this.showSnackMsg('Device Token is invalid');
@@ -69,14 +87,32 @@ class SMSAuthStore {
                 confirmAuthenticationCode(this.deviceToken, securityCode)
                     .then(data => {
                         this.isLoggedIn = true;
+                        this.isVerified = true;
                         const token = data.ok.sessionToken;
                         const payload = decode(token);
 
+                        const phoneNumber = localStorage.getItem('phoneNumber');
+                        const authClientId = payload.sub;
+
                         localStorage.setItem('authClientId', payload.sub || '');
                         localStorage.setItem('authToken', token);
+                        localStorage.setItem('signedin', true);
                         const cookies = new Cookies();
                         cookies.set('phoneNumber', localStorage.getItem('phoneNumber'), { path: '/' });
                         this.showSnackMsg('Verification is success.');
+                        this.deviceToken = localStorage.getItem('deviceToken') || '';
+
+                        if (phoneNumber && authClientId && token) {
+                            this.loggedInUser = {
+                                phoneNumber,
+                                authClientId,
+                                token,
+                            };
+                            this.isLoggedIn = true;
+                        } else {
+                            this.loggedInUser = null;
+                            this.isLoggedIn = false;
+                        }
                         resolve(true);
                     })
                     .catch(err => {

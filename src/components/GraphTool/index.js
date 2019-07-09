@@ -1,19 +1,19 @@
-import React from 'react';
-import styled from 'styled-components';
+import React, { Component } from 'react';
+import styled from 'styled-components/macro';
 import { AutoSizer } from 'react-virtualized';
 import { inject, observer } from 'mobx-react';
 import { compose, withProps } from 'recompose';
 
-import { STORE_KEYS } from '../../stores';
-import { STATE_KEYS } from '../../stores/ConvertStore';
+import { STORE_KEYS } from '@/stores';
+import { viewModeKeys } from '@/stores/ViewModeStore';
+import { orderFormToggleKeys } from '@/stores/MarketMaker';
+import { STATE_KEYS } from '@/stores/ConvertStore';
+import { getScreenInfo } from '@/utils';
 import PriceChartCanvas from './PriceChartCanvas';
+import ForexChartCanvas from './ForexChartCanvas';
 import DonutChart from './DonutChart';
 import TradingView from './TradingView';
-import GraphPrices from './Styles/graphprices';
-import RightLowerSectionGrid from '../../grid/RightLowerSectionGrid';
-import { viewModeKeys } from '../../stores/ViewModeStore';
-import { orderFormToggleKeys } from '../../stores/OrderFormToggle';
-import ArrowUpIcon from './ArrowUpIcon';
+import RightLowerSectionGrid from '@/grid/RightLowerSectionGrid';
 import PortfolioChartCanvas from './PortfolioChartCanvas';
 
 /**
@@ -27,7 +27,6 @@ const BGraph = styled.div.attrs({ className: 'bgraph' })`
     display: flex;
     flex: 1 1;
     background: transparent;
-    overflow: hidden;
 
     position: ${props => (props.fullmode ? 'fixed' : 'relative')};
     top: 0;
@@ -45,143 +44,155 @@ const BGraphSection = styled.div`
     right: 0;
     width: 100%;
     height: 100%;
-    overflow: hidden;
     transition: width 0.25s linear;
 `;
 
 const BGraphControls = styled.div`
     position: absolute;
+    ${props => props.isBorderHidden && 'border: none !important;'}
     left: 0;
     top: 0;
     right: 0;
     width: 100%;
     height: ${props => props.height}px;
-    overflow: hidden;
     border-right: 1px solid ${props => props.theme.palette.clrBorder};
     border-bottom: ${props => (!props.isCoinSearch ? '1px solid ' + props.theme.palette.clrBorder : '')};
     border-radius: ${props => props.theme.palette.borderRadius};
 `;
 
-const GraphTool = ({
-    baseSymbol,
-    quoteSymbol,
-    isFullScreen,
-    depthChartMode,
-    isDGLoaded,
-    setViewMode,
-    showDepthChartMode,
-    tradingViewMode,
-    setTradingViewMode,
-    selectedCoin,
-    convertState,
-    updateExchange,
-    exchangeIndex,
-    isLoggedIn,
-    showOrderFormWith,
-    isArbitrageMode,
-}) => {
-    baseSymbol = (baseSymbol || '').replace('F:', '');
-    quoteSymbol = (quoteSymbol || '').replace('F:', '');
+const IS_MOBILE = getScreenInfo().isMobileDevice;
+const IS_MOBILE_PORTRAIT = getScreenInfo().isMobilePortrait;
+const IS_MOBILE_LANDSCAPE = getScreenInfo().isMobileLandscape;
 
-    let isPriceChart = convertState === STATE_KEYS.coinSearch;
-    let isTradingView = exchangeIndex > -1 && tradingViewMode;
-    if (convertState === STATE_KEYS.coinSearch && tradingViewMode) {
-        isTradingView = true;
-        isPriceChart = false;
-    }
-    let isDonutChart = !isPriceChart && !isTradingView;
-    const isLowerSectionOpened = depthChartMode && isDGLoaded;
-    const lowerSectionHeight = 275;
-    let isWalletPopup = selectedCoin !== '' && convertState === STATE_KEYS.coinSearch;
-    let isBestRateTradingView = false;
+class GraphTool extends Component {
+    componentDidMount() {}
 
-    if (convertState === STATE_KEYS.coinSearch && isTradingView) {
-        isPriceChart = false;
-        isWalletPopup = false;
-        isBestRateTradingView = true;
-    }
+    render() {
+        const {
+            baseSymbol : base,
+            quoteSymbol : quote,
+            isFullScreen,
+            depthChartMode,
+            isDGLoaded,
+            tradingViewMode,
+            selectedCoin,
+            convertState,
+            updateExchange,
+            isLoggedIn,
+            showOrderFormWith,
+            graphSwitchMode,
+            rightLowerDivision,
+            tradeColStatus,
+            sidebarStatus,
+            isFirstLoad,
+            setIsFirstLoad,
+            viewMode,
+            exchanges,
+        } = this.props;
+        const baseSymbol = (base || '').replace('F:', '');
+        const quoteSymbol = (quote || '').replace('F:', '');
+        let isTradingView = false;
+        let isPriceChart = convertState === STATE_KEYS.coinSearch;
+        const hasExchanges = Object.keys(exchanges).length > 1 && Object.keys(exchanges).filter(name => exchanges[name].active).length > 0;
+        if (hasExchanges || tradingViewMode) {
+            isTradingView = true;
+        } else {
+            isTradingView = false;
+        }
 
-    // // show depthChart & advanced Orderform by default when page is loaded
-    // if (!isLowerSectionOpened && isDGLoaded && (convertState === STATE_KEYS.coinSearch) && isFirstLoad) {
-    //     showDepthChartMode(true);
-    //     setViewMode(viewModeKeys.advancedModeKey);
-    //     showOrderFormWith(orderFormToggleKeys.onToggleKey);
-    //     setTradingViewMode(true);
-    //     updateExchange(0, '');
-    //     setIsFirstLoad(false);
-    // }
+        let isDonutChart = (!isPriceChart && !isTradingView) || graphSwitchMode;
+        const isLowerSectionOpened = depthChartMode;
 
-    return (
-        <AutoSizer>
-            {({ width, height }) => {
-                if (isFullScreen) {
-                    width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-                    height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
-                }
-                const chartHeight = convertState === STATE_KEYS.coinSearch ? height - 15 : height;
+        let isBestRateTradingView = false;
 
-                return (
-                    <BGraph width={width} height={height} fullmode={isFullScreen} id="graph-chart-parent">
-                        <BGraphSection>
-                            <BGraphControls
-                                height={isLowerSectionOpened ? height - lowerSectionHeight : height}
-                                isCoinSearch={convertState === STATE_KEYS.coinSearch}
-                            >
-                                {isPriceChart && isWalletPopup && !isBestRateTradingView && (
-                                    <PriceChartCanvas
-                                        isLowerSectionOpened={isLowerSectionOpened}
-                                        height={isLowerSectionOpened ? chartHeight - lowerSectionHeight : height}
+        if (convertState === STATE_KEYS.coinSearch && isTradingView) {
+            isPriceChart = false;
+            isBestRateTradingView = true;
+        }
+
+        // show depthChart & advanced Orderform by default when page is loaded
+        if (isDGLoaded && (convertState === STATE_KEYS.coinSearch) && isFirstLoad) {
+            if (!IS_MOBILE_PORTRAIT) {
+                showOrderFormWith(orderFormToggleKeys.onToggleKey);
+            }
+            updateExchange(0, '');
+            setIsFirstLoad(false);
+        }
+        if (IS_MOBILE_LANDSCAPE) {
+            showOrderFormWith(orderFormToggleKeys.onToggleKey);
+        }
+        const isBoderHidden = tradeColStatus === 'closed' || sidebarStatus === 'closed';
+
+        return (
+            <AutoSizer>
+                {({ width, height }) => {
+                    if (isFullScreen) {
+                        width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+                        height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+                    }
+                    const chartHeight = convertState === STATE_KEYS.coinSearch ? height - 15 : height;
+
+                    let lowerSectionHeight = 275;
+                    if (IS_MOBILE && rightLowerDivision) {
+                        lowerSectionHeight = Math.round(height / 3 * rightLowerDivision) + (rightLowerDivision < 3 ? 12 : 0);
+                    }
+                    const hasMargin = rightLowerDivision === (1 || 2);
+                    const isForexMode = viewMode === viewModeKeys.forexModeKey;
+                    return (
+                        <BGraph width={width} height={height} fullmode={isFullScreen} id="graph-chart-parent">
+                            <BGraphSection>
+                                <BGraphControls
+                                    height={isLowerSectionOpened ? (height - lowerSectionHeight) : height}
+                                    isCoinSearch={convertState === STATE_KEYS.coinSearch}
+                                    isBorderHidden={isBoderHidden}
+                                >
+                                    {isPriceChart && !isBestRateTradingView && (
+                                        isForexMode ? (
+                                            <ForexChartCanvas
+                                                isLowerSectionOpened={isLowerSectionOpened}
+                                                isBorderHidden={isBoderHidden}
+                                            />
+                                        ) : (
+                                            <PriceChartCanvas
+                                                isLowerSectionOpened={isLowerSectionOpened}
+                                                isBorderHidden={isBoderHidden}
+                                            />
+                                        )
+                                    )}
+                                    {isTradingView && (
+                                        <TradingView
+                                            width={width}
+                                            height={isLowerSectionOpened ? chartHeight - lowerSectionHeight : height}
+                                            convertState={convertState}
+                                            coinPair={baseSymbol ? `${baseSymbol}-${quoteSymbol}` : 'BTC-USDT'}
+                                        />
+                                    )}
+
+                                    {isDonutChart && (
+                                        <DonutChart
+                                            width={width}
+                                            height={isLowerSectionOpened ? chartHeight - lowerSectionHeight : height}
+                                            isLoggedIn={isLoggedIn}
+                                            isExchangeCellsV2
+                                            donutChatId="donut-chart"
+                                        />
+                                    )}
+                                </BGraphControls>
+
+                                {isLowerSectionOpened && (
+                                    <RightLowerSectionGrid
+                                        height={lowerSectionHeight - (rightLowerDivision < 3 ? 12 : 0)}
+                                        hasMargin={hasMargin}
                                     />
                                 )}
-
-                                {isArbitrageMode && isDonutChart && <PortfolioChartCanvas />}
-
-                                <TradingView
-                                    width={width}
-                                    height={isLowerSectionOpened ? chartHeight - lowerSectionHeight : height}
-                                    convertState={convertState}
-                                    coinPair={baseSymbol ? `${baseSymbol}-${quoteSymbol}` : 'BTC-USDT'}
-                                    isVisible={isTradingView}
-                                />
-
-                                <DonutChart
-                                    width={width}
-                                    height={isLowerSectionOpened ? chartHeight - lowerSectionHeight : height}
-                                    isVisible={isDonutChart}
-                                    isLoggedIn={isLoggedIn}
-                                />
-
-                                {convertState === STATE_KEYS.coinSearch && isLowerSectionOpened && (
-                                    <GraphPrices.BottomToggleBar
-                                        isOpened={isLowerSectionOpened}
-                                        onClick={() => {
-                                            if (isLowerSectionOpened) {
-                                                showDepthChartMode(false);
-                                                showOrderFormWith(orderFormToggleKeys.offToggleKey);
-                                                setViewMode(viewModeKeys.basicModeKey);
-                                                setTradingViewMode(false);
-                                            } else {
-                                                if (!isDGLoaded) return;
-                                                showDepthChartMode(true);
-                                                setViewMode(viewModeKeys.advancedModeKey);
-                                                showOrderFormWith(orderFormToggleKeys.offToggleKey);
-                                                setTradingViewMode(true);
-                                                updateExchange(0, '');
-                                            }
-                                        }}
-                                    >
-                                        <ArrowUpIcon />
-                                    </GraphPrices.BottomToggleBar>
-                                )}
-                            </BGraphControls>
-                            {isLowerSectionOpened && <RightLowerSectionGrid />}
-                        </BGraphSection>
-                    </BGraph>
-                );
-            }}
-        </AutoSizer>
-    );
-};
+                            </BGraphSection>
+                        </BGraph>
+                    );
+                }}
+            </AutoSizer>
+        );
+    }
+}
 
 export default compose(
     inject(
@@ -192,9 +203,10 @@ export default compose(
         STORE_KEYS.YOURACCOUNTSTORE,
         STORE_KEYS.TELEGRAMSTORE,
         STORE_KEYS.SETTINGSSTORE,
-        STORE_KEYS.ORDERFORMTOGGLE,
+        STORE_KEYS.MARKETMAKER,
         STORE_KEYS.ORDERHISTORY,
-        STORE_KEYS.ORDERBOOK
+        STORE_KEYS.ORDERBOOK,
+        STORE_KEYS.EXCHANGESSTORE,
     ),
     observer,
     withProps(
@@ -203,39 +215,42 @@ export default compose(
             [STORE_KEYS.VIEWMODESTORE]: {
                 isFullScreen,
                 depthChartMode,
-                showDepthChartMode,
                 tradingViewMode,
-                setTradingViewMode,
-                setViewMode,
                 isFirstLoad,
                 setIsFirstLoad,
+                graphSwitchMode,
+                rightLowerDivision,
+                viewMode,
             },
             [STORE_KEYS.CONVERTSTORE]: { convertState },
             [STORE_KEYS.LOWESTEXCHANGESTORE]: { updateExchange, exchangeIndex },
             [STORE_KEYS.TELEGRAMSTORE]: { isLoggedIn },
             [STORE_KEYS.YOURACCOUNTSTORE]: { selectedCoin },
-            [STORE_KEYS.ORDERFORMTOGGLE]: { showOrderFormWith },
-            [STORE_KEYS.SETTINGSSTORE]: { isArbitrageMode },
+            [STORE_KEYS.MARKETMAKER]: { showOrderFormWith },
+            [STORE_KEYS.SETTINGSSTORE]: { tradeColStatus, sidebarStatus },
+            [STORE_KEYS.EXCHANGESSTORE]: { exchanges },
         }) => {
             return {
                 baseSymbol,
                 quoteSymbol,
                 isFullScreen,
                 depthChartMode,
-                showDepthChartMode,
                 isDGLoaded,
                 tradingViewMode,
-                setTradingViewMode,
-                setViewMode,
                 isFirstLoad,
                 setIsFirstLoad,
+                graphSwitchMode,
+                rightLowerDivision,
+                viewMode,
                 convertState,
                 updateExchange,
                 exchangeIndex,
                 isLoggedIn,
                 selectedCoin,
                 showOrderFormWith,
-                isArbitrageMode,
+                tradeColStatus,
+                sidebarStatus,
+                exchanges,
             };
         }
     )

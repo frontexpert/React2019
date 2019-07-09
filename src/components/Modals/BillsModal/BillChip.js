@@ -1,59 +1,40 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react'
+import PropTypes from 'prop-types'
 
-import { unifyDigitString } from '../../../utils';
-import { BillImgWrapper, BillImg } from './Components';
+import { getDenoSymbol } from '@/utils'
 
-class BillChip extends Component {
-    componentDidMount() {}
+import { ChipWrapper, ChipBGImg, ChipPrice, ChipPriceUnit, ChipSymbol, convertLevel } from './ChipComponents'
 
-    render() {
-        const {
-            level,
-            height,
-            index,
-            symbol,
-            hoverable = true,
-            disabled,
-            deno,
-            isV2,
-        } = this.props;
+const BillChip = props => {
+    const { level, disabled, isDeposit, symbol, deno, onClick } = props
+    const srcUrl = `./img/bills/thumb_${isDeposit ? 11 : convertLevel(level)}.png`
+    let { unit, unitSymbol } = getDenoSymbol(deno)
 
-        const unit = deno < 0 ? Math.pow(10, deno).toFixed(Math.abs(deno)) : Math.pow(10, deno);
-        const publicAddr = '1F1tAaz5x1HUXrCNLbtMDqcw6o5GNn4xqX';
-
-        return (
-            <BillImgWrapper
-                isV2={isV2}
-                width={Math.floor(height * 3192 / 1801)}
-                height={height}
-                disabled={disabled}
-                hoverable={hoverable}
-                onClick={this.props.onClick}
-            >
-                <BillImg
-                    index={index}
-                    lv={level}
-                    height={height}
-                >
-                    <div className="info">
-                        <div className="label_deno">
-                            {unifyDigitString(unit)} {symbol}
-                        </div>
-                        <div className="label_details">
-                            {/*
-                            <div className="label_symbol">
-                                {symbol}
-                            </div>
-                            */}
-                            <div className="label_address">
-                                {publicAddr}
-                            </div>
-                        </div>
-                    </div>
-                </BillImg>
-            </BillImgWrapper>
-        );
-    }
+    return (
+        <ChipWrapper disabled={disabled} onClick={onClick}>
+            <ChipBGImg src={srcUrl} />
+            <ChipPrice>
+                <ChipPriceUnit>{unit}</ChipPriceUnit>
+                <ChipSymbol>
+                    <p>{symbol}</p>
+                    <p>{unitSymbol}</p>
+                </ChipSymbol>
+            </ChipPrice>
+        </ChipWrapper>
+    )
 }
 
-export default BillChip;
+BillChip.propTypes = {
+    deno: PropTypes.number.isRequired,
+    disabled: PropTypes.bool,
+    isDeposit: PropTypes.number,
+    level: PropTypes.number.isRequired,
+    symbol: PropTypes.string.isRequired,
+    onClick: PropTypes.func.isRequired,
+}
+BillChip.defaultProp = {
+    disabled: true,
+    isDeposit: false,
+}
+
+export default BillChip

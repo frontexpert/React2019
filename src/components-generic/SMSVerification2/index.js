@@ -3,6 +3,8 @@ import { inject, observer } from 'mobx-react';
 import { FormattedMessage } from 'react-intl';
 import Cookies from 'universal-cookie';
 import { formatPhoneNumber, formatPhoneNumberIntl } from 'react-phone-number-input';
+import { withSafeTimeout } from '@hocs/safe-timers';
+import { compose } from 'recompose';
 import {
     Wrapper,
     InputWrapper,
@@ -31,11 +33,23 @@ class SMSVerification extends Component {
         isSendingCode: false,
         isCodeSent: false,
     };
+    codeInput = React.createRef();
+    clearConfirmAuthCodeHandleTimeout = null;
+    clearConfirmAuthCodeInnerHandleTimeout = null;
 
     componentDidMount() {
         const cookies = new Cookies();
         let phoneNum = this.getInternationPhoneNumberFormat(cookies.get('phoneNumber') || '');
         this.setState({ phoneNumber: phoneNum });
+    }
+
+    componentWillUnmount() {
+        if (this.clearConfirmAuthCodeHandleTimeout) {
+            this.clearConfirmAuthCodeHandleTimeout();
+        }
+        if (this.clearConfirmAuthCodeInnerHandleTimeout) {
+            this.clearConfirmAuthCodeInnerHandleTimeout();
+        }
     }
 
     getInternationPhoneNumberFormat = value => {
@@ -51,6 +65,7 @@ class SMSVerification extends Component {
         }
         return intFormatValue;
     }
+
     handleChangePhoneNumber = e => {
         e.stopPropagation();
         let phoneNum = this.getInternationPhoneNumberFormat(e.target.value);
@@ -63,9 +78,64 @@ class SMSVerification extends Component {
 
     handleChangeCode = e => {
         e.stopPropagation();
-
         this.setState({
             code: e.target.value,
+        }, () => {
+            const { code: securityCode } = this.state;
+            if (securityCode.length < 4) return;
+            const { confirmAuthCode } = this.props[STORE_KEYS.SMSAUTHSTORE];
+
+            this.setState({
+                isSendingCode: true,
+            });
+
+            confirmAuthCode(securityCode)
+                .then(() => {
+                    if (this.clearConfirmAuthCodeHandleTimeout) {
+                        this.clearConfirmAuthCodeHandleTimeout();
+                    }
+                    this.clearConfirmAuthCodeHandleTimeout = this.props.setSafeTimeout(() => {
+                        this.setState({
+                            isCodeSent: true,
+                            isSendingCode: false,
+                            currentView: SMS_AUTH_VIEW_STEPS.VERIFY_SUCCESS,
+                        });
+
+                        if (this.clearConfirmAuthCodeInnerHandleTimeout) {
+                            this.clearConfirmAuthCodeInnerHandleTimeout();
+                        }
+                        this.clearConfirmAuthCodeInnerHandleTimeout = this.props.setSafeTimeout(() => {
+                            const {
+                                [STORE_KEYS.YOURACCOUNTSTORE]: yourAccountStore,
+                                [STORE_KEYS.LOWESTEXCHANGESTORE]: lowestExchangeStore,
+                                [STORE_KEYS.TELEGRAMSTORE]: telegramStore,
+                                [STORE_KEYS.ORDERHISTORY]: orderHistoryStore,
+                                onClose,
+                            } = this.props;
+                            const mockUser = {
+                                id: '1020',
+                                username: '',
+                                first_name: 'SMS',
+                                last_name: 'User',
+                            };
+
+                            telegramStore.initByTelegramLogin();
+                            orderHistoryStore.requestOrderHistory();
+                            yourAccountStore.requestPositionWithReply();
+                            lowestExchangeStore.requestOrderEvents();
+                            telegramStore.loginFinishWith(mockUser);
+
+                            if (onClose) {
+                                onClose();
+                            }
+                        }, 500);
+                    }, 500);
+                })
+                .catch(err => {
+                    this.setState({
+                        isSendingCode: false,
+                    });
+                });
         });
     };
 
@@ -85,66 +155,14 @@ class SMSVerification extends Component {
                 isPhoneNumberSent: true,
                 isSendingPhoneNumber: false,
                 currentView: SMS_AUTH_VIEW_STEPS.ENTER_CODE,
+            }, () => {
+                this.codeInput.current.focus();
             });
         }).catch(err => {
             this.setState({
                 isSendingPhoneNumber: false,
             });
         });
-    };
-
-    handleSendCode = e => {
-        e.stopPropagation();
-        const { code: securityCode } = this.state;
-        const { confirmAuthCode } = this.props[STORE_KEYS.SMSAUTHSTORE];
-
-        this.setState({
-            isSendingCode: true,
-        });
-
-        confirmAuthCode(securityCode)
-            .then(() => {
-                setTimeout(() => {
-                    this.setState({
-                        isCodeSent: true,
-                        isSendingCode: false,
-                        currentView: SMS_AUTH_VIEW_STEPS.VERIFY_SUCCESS,
-                    });
-
-                    setTimeout(() => {
-                        const {
-                            [STORE_KEYS.YOURACCOUNTSTORE]: yourAccountStore,
-                            [STORE_KEYS.LOWESTEXCHANGESTORE]: lowestExchangeStore,
-                            [STORE_KEYS.TELEGRAMSTORE]: telegramStore,
-                            [STORE_KEYS.ORDERHISTORY]: orderHistoryStore,
-                            [STORE_KEYS.PORTFOLIODATASTORE]: portfolioDataStore,
-                            onClose,
-                        } = this.props;
-                        const mockUser = {
-                            id: '1020',
-                            username: '',
-                            first_name: 'SMS',
-                            last_name: 'User',
-                        };
-
-                        telegramStore.initByTelegramLogin();
-                        orderHistoryStore.requestOrderHistory();
-                        yourAccountStore.requestPositionWithReply();
-                        portfolioDataStore.initPortfolioDataStore();
-                        lowestExchangeStore.requestOrderEvents();
-                        telegramStore.loginFinishWith(mockUser);
-
-                        if (onClose) {
-                            onClose();
-                        }
-                    }, 500);
-                }, 500);
-            })
-            .catch(err => {
-                this.setState({
-                    isSendingCode: false,
-                });
-            });
     };
 
     handleGoBack = () => {
@@ -208,6 +226,7 @@ class SMSVerification extends Component {
                         {placeholder =>
                             <Input
                                 type="number"
+                                ref={this.codeInput}
                                 placeholder={placeholder}
                                 value={code}
                                 onChange={this.handleChangeCode}
@@ -217,11 +236,9 @@ class SMSVerification extends Component {
                     </FormattedMessage>
 
                     {(code && !isCodeSent) ? (
-                        <InputAddon onClick={isSendingCode ? null : this.handleSendCode}>
-                            {isSendingCode
-                                ? <SpinnerIcon />
-                                : <SendIcon2 className={code == null ? 'disabled' : ''} />
-                            }
+                        isSendingCode &&
+                        <InputAddon>
+                            <SpinnerIcon />
                         </InputAddon>
                     ) : (
                         <InputAddon onClick={this.handleGoBack}>
@@ -237,11 +254,16 @@ class SMSVerification extends Component {
     }
 }
 
-export default inject(
-    STORE_KEYS.SMSAUTHSTORE,
-    STORE_KEYS.TELEGRAMSTORE,
-    STORE_KEYS.ORDERHISTORY,
-    STORE_KEYS.YOURACCOUNTSTORE,
-    STORE_KEYS.PORTFOLIODATASTORE,
-    STORE_KEYS.LOWESTEXCHANGESTORE
-)(observer(SMSVerification));
+const enhanced = compose(
+    withSafeTimeout,
+    inject(
+        STORE_KEYS.SMSAUTHSTORE,
+        STORE_KEYS.TELEGRAMSTORE,
+        STORE_KEYS.ORDERHISTORY,
+        STORE_KEYS.YOURACCOUNTSTORE,
+        STORE_KEYS.LOWESTEXCHANGESTORE
+    ),
+    observer,
+);
+
+export default enhanced(SMSVerification);

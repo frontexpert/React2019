@@ -1,17 +1,15 @@
-import {
-    observable,
-    action,
-    runInAction
-} from 'mobx';
+import React from 'react';
+import { observable, action } from 'mobx';
 import _ from 'lodash';
 
 import { scheduleVisualDOMUpdate } from './utils/storeUtils';
 import { mockData } from '../components/SideBar/ExchangePop/mock';
 import {
-    SaveMemberExchangesRequest,
+    AddExchangeAccount,
     getMarketExchangesRequest,
     SetOrderbookExchangeRequest
 } from '../lib/bct-ws';
+import { REST_MARKET } from '../config/constants';
 
 class ExchangesStore {
     @observable exchanges = {};
@@ -20,8 +18,11 @@ class ExchangesStore {
         name: 'Global', icon: '',
     };
     @observable isEmptyExchange = false;
+    @observable exchangeSearchValue = '';
+    snackbar = null;
 
-    constructor(instrumentStore) {
+    constructor(instrumentStore, snackbar) {
+        this.snackbar = snackbar;
         instrumentStore.instrumentsReaction(
             (base, quote) => {
                 const symbol = base + '-' + quote;
@@ -29,11 +30,10 @@ class ExchangesStore {
             },
             true
         );
-        this.loadFromStorage();
     }
 
     fetchMarketExchanges(symbol) {
-        fetch(`https://market-data.bct.trade/api/exchanges/${symbol}`)
+        fetch(`${REST_MARKET}/api/exchanges/${symbol}`)
             .then(response => response.json())
             .then(res => {
                 const newData = _.cloneDeep(mockData);
@@ -68,30 +68,25 @@ class ExchangesStore {
             .catch(console.log);
     }
 
-    loadFromStorage = () => {
-        const exchangesStr = localStorage.getItem('exchanges') || '{}';
-
-        try {
-            this.exchanges = JSON.parse(exchangesStr) || {};
-        } catch (e) {
-            console.log(e);
-        }
-    };
-
-    saveToStorage = () => {
-        localStorage.setItem('exchanges', JSON.stringify(this.exchanges));
-    };
-
     @action.bound updateExchange(key, value) {
         // --- access to backend --- //
-        SaveMemberExchangesRequest(key || '', value.apiKey || '', value.apiSecret, value.active || true);
+        AddExchangeAccount(key || '', value.apiKey || '', value.apiSecret)
+            .then(res => {
+                this.snackbar({
+                    message: () => <span><b>{res.result}</b></span>
+                })
+            })
+            .catch(err => {
+                this.snackbar({
+                    message: () => <span><b>{err.result}</b></span>
+                })
+            });
 
         // --- save to localstorage ---//
         this.exchanges = {
             ...this.exchanges,
             [key]: value,
         };
-        this.saveToStorage();
     }
 
     @action.bound setExchangeActive(key, value) {
@@ -150,7 +145,7 @@ class ExchangesStore {
                     }
                 }
                 if (noSelected) {
-                    isGlobalActive = true;
+                    isGlobalActive = false;
                 }
             }
 
@@ -166,8 +161,6 @@ class ExchangesStore {
                 },
             };
         }
-
-        this.saveToStorage();
     }
 
     @action.bound setExchangeApiSynced(key, value) {
@@ -203,7 +196,6 @@ class ExchangesStore {
                 },
             };
         }
-        this.saveToStorage();
     }
 
     @action.bound selectExchangeActive(name) {
@@ -233,19 +225,9 @@ class ExchangesStore {
         }
 
         this.exchanges = newExchanges;
-        this.saveToStorage();
     }
 
     @action.bound setExchange(exchangeName) {
-        // SetOrderbookExchangeRequest(exchangeName).then(res => {
-
-        //     scheduleVisualDOMUpdate(() => {
-        //         runInAction(() => {
-        //             this.selectedExchange = exchange;
-        //         });
-        //     });
-        // });
-
         if (exchangeName === 'Global') {
             this.selectedExchange = {
                 name: 'Global',
@@ -281,6 +263,17 @@ class ExchangesStore {
                 ? activeExchange
                 : `${activeExchanges} Exchanges`);
     }
+
+    @action.bound setExchangeSearchValue(value) {
+        this.exchangeSearchValue = value;
+    }
+
+    @action.bound clearExchanges() {
+        this.exchanges = {};
+    }
 }
 
-export default (instrumentStore) => new ExchangesStore(instrumentStore);
+export default (instrumentStore, snackbar) => {
+    const store = new ExchangesStore(instrumentStore, snackbar);
+    return store;
+}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { compose, withProps } from 'recompose';
 import { inject, observer } from 'mobx-react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import { Tooltip } from 'react-tippy';
 
 import { STORE_KEYS } from '../../../stores';
@@ -289,7 +289,7 @@ const withStores = compose(
         STORE_KEYS.TELEGRAMSTORE,
         STORE_KEYS.VIEWMODESTORE,
         STORE_KEYS.ORDERBOOK,
-        STORE_KEYS.ORDERFORMTOGGLE,
+        STORE_KEYS.MARKETMAKER,
         STORE_KEYS.ROUTER,
         STORE_KEYS.LOWESTEXCHANGESTORE,
         STORE_KEYS.CONVERTSTORE,
@@ -312,7 +312,7 @@ const withStores = compose(
             [STORE_KEYS.ORDERBOOK]: {
                 isOrderBookStop,
             },
-            [STORE_KEYS.ORDERFORMTOGGLE]: {
+            [STORE_KEYS.MARKETMAKER]: {
                 showOrderForm,
             },
             [STORE_KEYS.LOWESTEXCHANGESTORE]: {

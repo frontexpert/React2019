@@ -1,22 +1,21 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import styled from 'styled-components';
-import Fullscreen from 'react-full-screen';
+import styled from 'styled-components/macro';
+import { inject, observer } from 'mobx-react';
+import { compose, withProps } from 'recompose';
+import { BrowserRouter as Router, Route } from 'react-router-dom';
 
 // Child Components
 import LeftTopSectionGrid from './LeftTopSectionGrid';
+import RightTopSectionGridV2 from './RightTopSectionGridV2';
 import RightTopSectionGrid from './RightTopSectionGrid';
-import SideBarGrid from './SideBarGrid';
-import {
-    ICO, Charts, News, Stats, Other, NotFound, NotFoundNew
-} from '../components/Pages';
-import { Router, Route } from '../components/Router';
+import { NotFound } from '../components/Pages';
 import InitialLoaderContainer from '../components/InitialLoaderContainer';
 import LoginOrderModalV2 from '../components/LoginOrderModalV2';
-import MobileControl from '../components/MobileControl';
-import { getScreenInfo } from '../utils';
-import BillsModal from '../components/Modals/BillsModal';
 import ConnectionLost from '../components-generic/ConnectionLost';
+import { getScreenInfo } from '../utils';
+import { STORE_KEYS } from '../stores';
+import { orderFormToggleKeys } from '../stores/MarketMaker';
 
 // Set ReactDom
 window.React = React;
@@ -24,16 +23,18 @@ window.ReactDOM = ReactDOM;
 
 const GridWrapper = styled.div`
     position: relative;
-    display: grid;
-    grid-template-rows: 100%;
-    grid-gap: 12px;
+    display: flex;
     height: 100%;
     background: ${props => props.theme.palette.clrBackground};
     padding: ${({ theme: { palette: { contentGap } } }) => `${contentGap} ${contentGap} ${contentGap}`} 0;
-    grid-template-areas: 'sidebar lefttopsection righttopsection';
-    grid-template-columns: ${props => (props.isMobileDevice || props.isSmallWidth) ? '0 calc(100% - 8px) 0' : '0 minmax(390px, 33%) auto'};
-    // grid-template-columns: 55px minmax(353px, 23%) auto;
-    
+
+    @media(max-width: 1600px) {
+        transform:scale(0.85);
+        transform-origin:0 0;
+        width: 117.64%;
+        height: 117.64%;
+    }
+
     @media(max-width: 1500px) {
         transform:scale(0.75);
         transform-origin:0 0;
@@ -41,7 +42,7 @@ const GridWrapper = styled.div`
         height: 133.33%;
     }
 
-    @media(max-width: 1080px) { 
+    @media(max-width: 1080px) {
         transform:scale(0.65);
         transform-origin:0 0;
         width: 153.84%;
@@ -61,7 +62,7 @@ const GridWrapper = styled.div`
         width: 222.22%;
         height: 222.22%;
     }
-    
+
     @media(max-width: 700px) {
         transform:scale(0.35);
         transform-origin:0 0;
@@ -69,48 +70,49 @@ const GridWrapper = styled.div`
         height: 285.71%;
     }
 
-    // ${props => props.isMobileDevice ? `
-    //     @media(orientation: landscape) {
-    //         transform: rotate(-90deg) !important;
-    //         transform-origin: left top;
-    //         width: 100vh !important;
-    //         height: ${props.heightRatio}% !important;
-    //         overflow-x: hidden;
-    //         position: absolute;
-    //         top: 100%;
-    //         left: 0;
-    //     }
-    // ` : ''};
-    
-    // transform:${props => props.isMobileDevice ? 'scale(0.75) !important' : (props.isSmallWidth ? 'scale(1) !important' : '')};
-    // width:${props => props.isMobileDevice ? '133.33% !important' : (props.isSmallWidth ? '100% !important' : '')};
-    // height:${props => props.isMobileDevice ? '133.33% !important' : (props.isSmallWidth ? '100% !important' : '')};
-    transform:${props => props.isMobileDevice ? 'scale(1) !important' : (props.isSmallWidth ? 'scale(1) !important' : '')};
-    width:${props => props.isMobileDevice ? '100% !important' : (props.isSmallWidth ? '100% !important' : '')};
-    height:${props => props.isMobileDevice ? '100% !important' : (props.isSmallWidth ? '100% !important' : '')};
+    transform: ${({
+        isPayApp, isMobilePortrait, isMobileLandscape, isSmallWidth,
+    }) => {
+        if (isMobileLandscape && !isPayApp) return 'scale(0.5) !important';
+        if (isPayApp) return 'scale(1) !important';
+        if (isMobilePortrait) return 'scale(0.75) !important';
+        if (isSmallWidth) return 'scale(1) !important';
+    }};
+
+    width: ${({
+        isPayApp, isMobilePortrait, isMobileLandscape, isSmallWidth,
+    }) => {
+        if (isMobileLandscape && !isPayApp) return '200% !important';
+        if (isPayApp) return '100% !important';
+        if (isMobilePortrait) return '133.33% !important';
+        if (isSmallWidth) return '100% !important';
+    }};
+
+    height: ${({
+        isPayApp, isMobilePortrait, isMobileLandscape, isSmallWidth,
+    }) => {
+        if (isMobileLandscape && !isPayApp) return '200% !important';
+        if (isPayApp) return '100% !important';
+        if (isMobilePortrait) return '133.33% !important';
+        if (isSmallWidth) return '100% !important';
+    }};
 `;
 
 class Trading extends React.Component {
-    state = {
-        isFull: false,
-    };
-
     componentDidMount() {
+        const { setRouterCoin } = this.props;
+        if (this.props && this.props.match && this.props.match.params && this.props.match.params.coin !== '') {
+            setRouterCoin(this.props.match.params.coin.toUpperCase());
+        }
         window.addEventListener('resize', this.updateDimensions);
-        // window.screen.orientation.lock('portrait');
     }
-
-    updateDimensions = () => {
-        this.state.isFull = false;
-        this.forceUpdate();
-    };
-
-    goFull = () => {
-        this.setState({ isFull: !this.state.isFull });
-    };
 
     refresh = () => {
         window.location.reload();
+    };
+
+    updateDimensions = () => {
+        this.forceUpdate();
     };
 
     render() {
@@ -118,33 +120,66 @@ class Trading extends React.Component {
             screenWidth,
             screenHeight,
             isMobileDevice,
+            isMobilePortrait,
+            isMobileLandscape,
         } = getScreenInfo();
+
+        const {
+            isPayApp,
+            arbMode,
+            isCoinTransfer,
+            showOrderFormWith,
+            isLoggedIn,
+        } = this.props;
 
         const isSmallWidth = screenWidth < 850 && !isMobileDevice;
         const sizeRatio = screenWidth / screenHeight * 100;
 
+        if (isMobilePortrait) {
+            showOrderFormWith(orderFormToggleKeys.offToggleKey);
+        }
+
+        if (isMobileLandscape) {
+            showOrderFormWith(orderFormToggleKeys.onToggleKey);
+        }
+
         return (
-            <Fullscreen enabled={this.state.isFull}>
-                <GridWrapper id="grid" isMobileDevice={isMobileDevice} isSmallWidth={isSmallWidth} heightRatio={sizeRatio}>
-                    {!isMobileDevice && (
-                        <SideBarGrid />
-                    )}
-                    <LeftTopSectionGrid isMobileDevice={isMobileDevice}/>
-                    <RightTopSectionGrid/>
-                    <InitialLoaderContainer isMobileDevice={isMobileDevice}/>
-                    <LoginOrderModalV2/>
-                    <BillsModal/>
-                    <ConnectionLost/>
-                    {/*
-                    <MobileControl
+            <GridWrapper
+                id="grid"
+                isPayApp={isPayApp && isMobileDevice}
+                isMobilePortrait={isMobilePortrait}
+                isMobileLandscape={isMobileLandscape}
+                isSmallWidth={isSmallWidth}
+                heightRatio={sizeRatio}
+            >
+                <LeftTopSectionGrid
+                    isCoinTransfer={isCoinTransfer}
+                    isMobileDevice={isMobileDevice}
+                    isMobilePortrait={isMobilePortrait}
+                    isSmallWidth={isSmallWidth}
+                    trId={isCoinTransfer ? this.props.id : null}
+                />
+
+                {(arbMode && isLoggedIn) ? (
+                    <RightTopSectionGridV2
+                        isMobilePortrait={isMobilePortrait}
+                        isSmallWidth={isSmallWidth}
                         isMobileDevice={isMobileDevice}
-                        isMobileBrowser={isMobilePortrait}
-                        goFull={this.goFull}
-                        refresh={this.refresh}
                     />
-                    */}
-                </GridWrapper>
-            </Fullscreen>
+                ) : (
+                    <RightTopSectionGrid
+                        isMobilePortrait={isMobilePortrait}
+                        isSmallWidth={isSmallWidth}
+                        isMobileDevice={isMobileDevice}
+                    />
+                )}
+
+                <InitialLoaderContainer isMobileDevice={isMobileDevice}/>
+
+                <LoginOrderModalV2/>
+
+                <ConnectionLost isMobileDevice={isMobileDevice}/>
+            </GridWrapper>
         );
     }
 }
@@ -152,8 +187,11 @@ class Trading extends React.Component {
 const MainGrid = props => {
     return (
         <Router defaultComponent={NotFound}>
-            <Route path="/index.html" component={() => <Trading {...props} />} />
-            <Route path="/" component={() => <Trading {...props} />} />
+            <Route exact path="/cointransfer/:id" component={({ match }) => <Trading {...props} isCoinTransfer={true} id={match.params.id}/>} />
+            <Route exact path="/transfer/:id" component={({ match }) => <Trading {...props} isCoinTransfer={true} id={match.params.id}/>} />
+            <Route exact path="/index.html" component={() => <Trading {...props} />} />
+            <Route exact path="/" component={() => <Trading {...props} />} />
+            <Route exact path="/:coin" component={({ match }) => <Trading {...props} match={match}/>} />
             {/*
             <Route path="/ico" component={() => <ICO themeType={props.themeType}/>}/>
             <Route path="/charts" component={() => <Charts themeType={props.themeType}/>}/>
@@ -166,4 +204,28 @@ const MainGrid = props => {
     );
 };
 
-export default MainGrid;
+export default compose(
+    inject(
+        STORE_KEYS.INSTRUMENTS,
+        STORE_KEYS.VIEWMODESTORE,
+        STORE_KEYS.MARKETMAKER,
+        STORE_KEYS.TELEGRAMSTORE,
+    ),
+    observer,
+    withProps(
+        ({
+            [STORE_KEYS.VIEWMODESTORE]: { isPayApp, arbMode },
+            [STORE_KEYS.INSTRUMENTS]: { setRouterCoin },
+            [STORE_KEYS.MARKETMAKER]: { showOrderFormWith },
+            [STORE_KEYS.TELEGRAMSTORE]: { isLoggedIn }
+        }) => {
+            return {
+                isPayApp,
+                arbMode,
+                setRouterCoin,
+                showOrderFormWith,
+                isLoggedIn,
+            };
+        }
+    )
+)(MainGrid);

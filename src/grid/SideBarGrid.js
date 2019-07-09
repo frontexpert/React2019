@@ -1,5 +1,5 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import { AutoSizer } from 'react-virtualized';
 import { inject, observer } from 'mobx-react';
 

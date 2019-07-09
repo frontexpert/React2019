@@ -1,36 +1,38 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import { inject, observer } from 'mobx-react';
-import { withStyles } from '@material-ui/core/styles';
+import { withStyles } from '@material-ui/styles';
+import { compose, withProps } from 'recompose';
 
-import OrderBookRecentTradesContainer from '../components/OrderBookRecentTradesContainer';
-import Telegram from '../components/Telegram';
-// import PayApp from '../components/PayApp/PayWindow';
-// import PayApp from '../components/PayApp';
-import PayApp from '../components/CryptoApp';
-import SettingsPanel from '../components/SettingsPanel';
-import ExchangeCellsV2 from '../components/GraphTool/ExchangeCellsV2';
 import { STORE_KEYS } from '../stores';
 import { viewModeKeys } from '../stores/ViewModeStore';
-import { format2DigitString } from '../utils';
-import DepositView from '../components/DepositView';
-import { payViewModeKeys } from '../stores/PayAppStore';
+import { STATE_KEYS } from '../stores/ConvertStore';
+import OrderBookRecentTradesContainer from '../components/OrderBookRecentTradesContainer';
+import PayApp from '../components/CryptoApp';
+import ForexApp from '../components/ForexApp';
+import SettingsPanel from '../components/SettingsPanel';
+import ExchangeCellsV2 from '../components/GraphTool/ExchangeCellsV2';
+import CoinPairSearchV2 from '../components/CoinPairSearchV2';
+import OrderHistoryTable from '../components/ArbitrageHistory';
 
 const StyledLeftTopSectionGrid = styled.div`
     position: relative;
-    grid-area: lefttopsection;
-    
-    & > div {
+    ${props => ((props.isMobilePortrait) || props.isSmallWidth) ? 'width: calc(100% - 8px);' : 'max-width: 33%; width: 33%;'}
+    margin-left: ${props => (props.isTrading || !props.isSidebar) && !props.isMobilePortrait ? '-33%' : '12px'};
+    transition: margin .1s linear;
+    border: ${props => (props.isForex && !props.isSidebarMenuOpen) && `1px solid ${props.theme.palette.clrMouseClick}`};
+
+    & > div:first-child {
         ${props => props.isSidebarOpen
         ? `
             transition: 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
             margin-left: 37px !important;
-            width: calc(100% - 37px) !important;
+            width: calc(100% - 37px);
         `
         : `
             transition: none !important;
-            margin-left: 0 !important;;
-            width: 100% !important;;
+            margin-left: 0 !important;
+            width: 100% !important;
         `}
     }
 `;
@@ -47,110 +49,111 @@ const styles = (theme) => {
 
 class LeftTopSectionGrid extends React.Component {
     componentDidMount() {
-        const url = window.location.href;
-        const coinTransferInfo = url ? url.split('cointransfer')[1] : '';
-        if (coinTransferInfo && coinTransferInfo !== '') {
-            const {
-                [STORE_KEYS.SENDCOINSTORE]: { requestDetailsPrivate, requestDetailsPublic },
-            } = this.props;
-            const { isLoggedIn } = this.props[STORE_KEYS.TELEGRAMSTORE];
-            const uniqueId = coinTransferInfo ? coinTransferInfo.split('.')[0] : '';
-
-            if (isLoggedIn) {
-                requestDetailsPrivate(uniqueId).then(res => {
-                    setTimeout(() => {
-                        this.showSendCoinConfirm(uniqueId, res.Coin, res.Amount, res.DefaultCurrency, res.FullName, res.Status, isLoggedIn);
-                    }, 4000);
-
-                });
-            } else {
-                requestDetailsPublic(uniqueId).then(res => {
-                    setTimeout(() => {
-                        this.showSendCoinConfirm(uniqueId, res.Coin, res.Amount, res.DefaultCurrency, res.FullName, res.Status, isLoggedIn);
-                    }, 4000);
-                });
-            }
-        }
     }
-
-    showSendCoinConfirm = (uniqueId, coin, amount, defaultCurrency, fullName, status, isLoggedIn) => {
-        if (coin && (coin !== '') && amount && (amount !== '')) {
-            const {
-                getCoinPrice, defaultFiatSymbol, isDefaultCrypto, getDefaultPrice,
-            } = this.props[STORE_KEYS.SETTINGSSTORE];
-            const { setQrObject, switchAppContentView } = this.props[STORE_KEYS.PAYAPPSTORE];
-
-            let labelAmount = '';
-            if (!isDefaultCrypto) {
-                labelAmount = defaultFiatSymbol + format2DigitString(getDefaultPrice(getCoinPrice(coin.toUpperCase()) * amount));
-            } else {
-                labelAmount = format2DigitString(amount) + ' ' + coin.toUpperCase();
-            }
-            setQrObject({
-                uniqueId,
-                coin,
-                fullName,
-                amount,
-                labelAmount,
-                isLoggedIn,
-            });
-            switchAppContentView(payViewModeKeys.payScanConfirmModeKey);
-        }
-    };
 
     render() {
         const {
-            viewMode, isSidebarOpen, depositActiveCoin, isSettingsOpen, setUserDropDownOpen,
-        } = this.props[STORE_KEYS.VIEWMODESTORE];
-        const { isOrderBookBreakDownStop, isOrderBookDataLoaded } = this.props[STORE_KEYS.ORDERBOOKBREAKDOWN];
-        const { isNoExchanges } = this.props[STORE_KEYS.LOWESTEXCHANGESTORE];
-        const { isEmptyExchange } = this.props[STORE_KEYS.EXCHANGESSTORE];
-        const { isLoggedIn } = this.props[STORE_KEYS.TELEGRAMSTORE];
-        const { isUserDropDownOpen } = this.props[STORE_KEYS.VIEWMODESTORE];
-        const {
-            isMobileDevice,
+            viewMode, isSidebarOpen, isSettingsOpen, isPayApp, isPayAppLoading, isUserDropDownOpen,
+            isArbitrageMode, tradeColStatus, sidebarStatus,
+            isEmptyExchange,
+            isOrderBookBreakDownStop, isOrderBookDataLoaded,
+            convertState,
+            isCoinTransfer, isMobileDevice, isMobilePortrait, isSmallWidth,
         } = this.props;
+
+        const isArbitrageMonitorMode = isArbitrageMode && (convertState !== STATE_KEYS.coinSearch);
+
         let SelectedComponent = PayApp;
         if (isSettingsOpen) {
             SelectedComponent = SettingsPanel;
         } else if (viewMode === viewModeKeys.basicModeKey) {
-            SelectedComponent =  isMobileDevice
+            SelectedComponent = (isMobileDevice && isPayApp)
                 ? PayApp
-                : (depositActiveCoin !== null
-                    ? DepositView
-                    : ((!isOrderBookBreakDownStop && isOrderBookDataLoaded && !isEmptyExchange)
-                        ? OrderBookRecentTradesContainer
-                        : (!isNoExchanges ? ExchangeCellsV2 : SettingsPanel)));
+                : OrderBookRecentTradesContainer;
         } else if (viewMode === viewModeKeys.advancedModeKey) {
             SelectedComponent = (!isOrderBookBreakDownStop && isOrderBookDataLoaded && !isEmptyExchange)
                 ? OrderBookRecentTradesContainer
-                : (!isNoExchanges ? ExchangeCellsV2 : SettingsPanel);
-        } else if (viewMode === viewModeKeys.friendModeKey) {
-            SelectedComponent = Telegram;
-        } else if (viewMode === viewModeKeys.publicChatModeKey) {
-            SelectedComponent = Telegram;
+                : ExchangeCellsV2;
         } else if (viewMode === viewModeKeys.settingsModeKey) {
             SelectedComponent = SettingsPanel;
         } else if (viewMode === viewModeKeys.exchangesModeKey) {
             SelectedComponent = ExchangeCellsV2;
+        } else if (viewMode === viewModeKeys.forexModeKey) {
+            SelectedComponent = ForexApp;
         }
 
+        const isSidebarMenuOpen = (isUserDropDownOpen || (isArbitrageMonitorMode && tradeColStatus === 'open')) &&
+            sidebarStatus === 'open';
+
         return (
-            <StyledLeftTopSectionGrid isSidebarOpen={isSidebarOpen} id="left-sidebar">
-                <SelectedComponent/>
+            <StyledLeftTopSectionGrid
+                id="left-sidebar"
+                full={(isArbitrageMonitorMode && tradeColStatus === 'closed') || sidebarStatus === 'closed'}
+                isSidebarOpen={isSidebarOpen}
+                isMobilePortrait={isMobilePortrait}
+                isSmallWidth={isSmallWidth}
+                isForex={viewMode === viewModeKeys.forexModeKey}
+                isTrading={isArbitrageMonitorMode && tradeColStatus === 'closed'}
+                isSidebar={sidebarStatus === 'open'}
+                isSidebarMenuOpen={isSidebarMenuOpen}
+            >
+                <SelectedComponent
+                    isLeftTop
+                    isMobileDevice={isMobileDevice}
+                    isCoinTransfer={isCoinTransfer}
+                    trId={isCoinTransfer ? this.props.trId : null}
+                    firstLoad={isPayAppLoading}
+                    isUserDropDownOpen={isUserDropDownOpen}
+                    isArbitrageMonitorMode={isArbitrageMonitorMode}
+                    isSidebarMenuOpen={isSidebarMenuOpen}
+                />
+
+                {isMobileDevice && !isArbitrageMonitorMode && (
+                    <CoinPairSearchV2 isSimple={true} isHidden/>
+                )}
             </StyledLeftTopSectionGrid>
         );
     }
 }
 
-export default withStyles(styles)(inject(
-    STORE_KEYS.VIEWMODESTORE,
-    STORE_KEYS.LOWESTEXCHANGESTORE,
-    STORE_KEYS.SENDCOINSTORE,
-    STORE_KEYS.TELEGRAMSTORE,
-    STORE_KEYS.MODALSTORE,
-    STORE_KEYS.SETTINGSSTORE,
-    STORE_KEYS.PAYAPPSTORE,
-    STORE_KEYS.EXCHANGESSTORE,
-    STORE_KEYS.ORDERBOOKBREAKDOWN
-)(observer(LeftTopSectionGrid)));
+const withStore = compose(
+    inject(
+        STORE_KEYS.VIEWMODESTORE,
+        STORE_KEYS.LOWESTEXCHANGESTORE,
+        STORE_KEYS.SETTINGSSTORE,
+        STORE_KEYS.EXCHANGESSTORE,
+        STORE_KEYS.ORDERBOOKBREAKDOWN,
+        STORE_KEYS.CONVERTSTORE,
+        STORE_KEYS.MARKETMAKER,
+    ),
+    observer,
+    withProps(
+        ({
+            [STORE_KEYS.VIEWMODESTORE]: {
+                viewMode, isSidebarOpen, isSettingsOpen, isPayApp, isPayAppLoading, isUserDropDownOpen,
+            },
+            [STORE_KEYS.SETTINGSSTORE]: {
+                isArbitrageMode, tradeColStatus, sidebarStatus,
+            },
+            [STORE_KEYS.EXCHANGESSTORE]: { isEmptyExchange },
+            [STORE_KEYS.ORDERBOOKBREAKDOWN]: { isOrderBookBreakDownStop, isOrderBookDataLoaded },
+            [STORE_KEYS.CONVERTSTORE]: { convertState },
+        }) => ({
+            viewMode,
+            isSidebarOpen,
+            isSettingsOpen,
+            isPayApp,
+            isPayAppLoading,
+            isArbitrageMode,
+            tradeColStatus,
+            sidebarStatus,
+            isEmptyExchange,
+            isOrderBookBreakDownStop,
+            isOrderBookDataLoaded,
+            convertState,
+            isUserDropDownOpen,
+        })
+    )
+);
+
+export default withStyles(styles)(withStore(LeftTopSectionGrid));

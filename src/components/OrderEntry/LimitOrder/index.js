@@ -16,7 +16,7 @@ const LimitOrderSideBySideContainer = ({
             price: buyPrice,
             total: buyTotal,
             setAmount: setLimitBuyAmount,
-            setPrice: setLimitBuyPrice,
+            setUserEnteredPrice: setLimitBuyPrice,
             enabled: limitOrderFormBuyEnabled,
             submitOrder: limitOrderFormBuySubmit,
             sliderMax: buySliderMax,
@@ -26,7 +26,7 @@ const LimitOrderSideBySideContainer = ({
             price: sellPrice,
             total: sellTotal,
             setAmount: setLimitSellAmount,
-            setPrice: setLimitSellPrice,
+            setUserEnteredPrice: setLimitSellPrice,
             enabled: limitOrderFormSellEnabled,
             submitOrder: limitOrderFormSellSubmit,
             sliderMax: sellSliderMax,
@@ -37,6 +37,10 @@ const LimitOrderSideBySideContainer = ({
     // },
     [STORE_KEYS.ORDERBOOK]: {
         base: baseSymbol, quote: quoteSymbol,
+    },
+    [STORE_KEYS.SETTINGSSTORE]: {
+        defaultFiat,
+        price: rate,    // local to usdt
     },
     showModal,
 }) => {
@@ -57,10 +61,12 @@ const LimitOrderSideBySideContainer = ({
                         priceCoin={quoteSymbol}
                         total={buyTotal}
                         totalCoin={quoteSymbol}
+                        rate={rate}
+                        sliderCurrency={quoteSymbol}
                         orderButtonText={`${value} ${baseSymbol}`}
                         isBuy={true}
                         orderButtonDisabled={!limitOrderFormBuyEnabled}
-                        handleOrder={showModal}
+                        handleOrder={showModal('buy')}
                         // handleOrder={() => {
                         //     showApiModal(Modal, 'graph-chart-parent');
                         //     // limitOrderFormBuySubmit();
@@ -84,10 +90,12 @@ const LimitOrderSideBySideContainer = ({
                         priceCoin={quoteSymbol}
                         total={sellTotal}
                         totalCoin={quoteSymbol}
+                        rate={rate}
+                        sliderCurrency={baseSymbol}
                         orderButtonText={`${value} ${baseSymbol}`}
                         isBuy={false}
                         orderButtonDisabled={!limitOrderFormSellEnabled}
-                        handleOrder={showModal}
+                        handleOrder={showModal('sell')}
                         // handleOrder={() => {
                         //     showApiModal(Modal, 'graph-chart-parent');
                         //     // limitOrderFormSellSubmit();
@@ -104,6 +112,7 @@ export default compose(
         STORE_KEYS.ORDERENTRY,
         STORE_KEYS.INSTRUMENTS,
         STORE_KEYS.ORDERBOOK,
+        STORE_KEYS.SETTINGSSTORE,
     ),
     observer,
 )(LimitOrderSideBySideContainer);

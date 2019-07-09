@@ -1,5 +1,5 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 
 export const Wrapper = styled.div.attrs({ className: 'settings-pop-wrapper' })`
     position: absolute;
@@ -8,7 +8,7 @@ export const Wrapper = styled.div.attrs({ className: 'settings-pop-wrapper' })`
     right: 0;
     bottom: 15px;
     z-index: 999999;
-    // background: rgba(0, 0, 0, 0.5); 
+    // background: rgba(0, 0, 0, 0.5);
     background: transparent;
 `;
 
@@ -27,7 +27,7 @@ export const Modal = styled.div.attrs({ className: 'settings-pop-modal' })`
     font-weight: 600;
     color: ${props => props.theme.palette.settingsText};
     z-index: 999999;
-    
+
     // &:before {
     //     content: '';
     //     position: absolute;
@@ -39,16 +39,16 @@ export const Modal = styled.div.attrs({ className: 'settings-pop-modal' })`
     //     border-color: transparent ${props => props.theme.palette.settingsBorder} transparent transparent;
     //     z-index: 10000001;
     // }
-    
+
     .ps__rail-y {
         background-color: ${props => props.theme.palette.settingsBackground} !important;
         border-left: 1px solid ${props => props.theme.palette.settingsBorder};
         opacity: 1 !important;
-        
+
         .ps__thumb-y {
             z-index: 9999;
             cursor: pointer;
-            
+
             &:before {
                 background-color: ${props => props.theme.palette.settingsBorder};
             }
@@ -71,11 +71,11 @@ export const Header = styled.div.attrs({ className: 'settings-pop-header' })`
     color: ${props => props.theme.palette.settingsHeaderText};
     fill: ${props => props.theme.palette.settingsHeaderText};
     overflow: hidden;
-    
+
     span {
         margin-left: 10px;
     }
-    
+
     .terms-link {
         // position: absolute;
         // right: 10px;
@@ -130,21 +130,35 @@ export const Item = styled.div.attrs({ className: 'settings-pop-item' })`
     flex-shrink: 0;
     position: relative;
     width: 100%;
-    height: 60px;
-    // border-bottom: 1px solid ${props => props.theme.palette.clrInnerBorder};
+    ${props => props.isMobileDevice ? 'flex: 1;' : 'height: 70px;'}
+    height: ${props => props.UserItem ? 100 : 70}px;
+    ${props => props.settingsOpen && 'height: 400px;'};
+    border-bottom: 1px solid ${props => props.theme.palette.clrInnerBorder};
     margin-top: -1px;
     display: flex;
-    align-items: center;
-    padding-right: 25px;
-    padding-left: ${props => props.UserItem ? 0 : 25}px;
+    justify-content: ${props => props.appStoreButton ? 'flex-start' : 'space-between'};
+    align-items: ${props => props.UserItem ? 'flex-start' : 'center'};
+    padding-right: ${props => props.header ? 4 : 12}px;
+    padding-left: ${props => props.UserItem ? 0 : (props.appStoreButton ? 0 : 70)}px;
     color: ${props => props.theme.palette.settingsText};
-    background: ${props => props.theme.palette.settingsBackground};
-    // z-index: 100;
-    // border-top: 1px solid ${props => props.theme.palette.clrInnerBorder};
-    
+    border-top: 1px solid ${props => props.theme.palette.clrInnerBorder};
+    ${props => props.btn && `
+        cursor: pointer;
+        &:hover {
+            background-color: ${props.theme.palette.clrInnerBorder};
+        }
+    `}
+
     &:last-child {
         border-bottom: 0.25px solid ${props => props.theme.palette.clrInnerBorder};
     }
+
+    .settings-label {
+        font-size: 38px;
+        font-weight: 600;
+        padding-left: 12px;
+    }
+
     >  a {
         text-decoration: none;
     }
@@ -152,49 +166,35 @@ export const Item = styled.div.attrs({ className: 'settings-pop-item' })`
         cursor: pointer;
         text-decoration: underline;
     }
-    > span {
-        flex: 1;
+
+    .symbol_i {
+        background: ${props => props.theme.palette.clrMouseClick};
+        border-radius: 50%;
+        color: ${props => props.theme.palette.clrMainWindow};
+        font-size: 12px;
+        font-weight: 700;
         display: flex;
         align-items: center;
-        
-        .symbol_i {
-            background: ${props => props.theme.palette.clrMouseClick};
-            border-radius: 50%;
-            color: ${props => props.theme.palette.clrMainWindow};
-            font-size: 18px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 22.8px;
-            height: 22.8px;
-            margin-left: 5px;
-        }
-        
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+        margin-left: 5px;
+    }
+
+    .info-tooltip {
+        align-items: center;
+        justify-content: center;
+    }
+
+    > span {
+        display: flex;
+        align-items: center;
+
         &.clickable {
             cursor: pointer;
         }
     }
-    
-    > .btn_reset {
-        border-radius: ${props => props.theme.palette.borderRadius};
-        border: 0;
-        background: ${props => props.theme.palette.clrLightRed};
-        color: ${props => props.theme.palette.clrHighContrast};
-        outline: none;
-        height: 31px;
-        width: 78px;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        overflow: hidden;
-        white-space: nowrap;
-        
-        &:hover {
-            opacity: 0.8;
-        }
-    }
-    
+
     > .btn_normal {
         border-radius: ${props => props.theme.palette.borderRadius};
         border: 1px solid ${props => props.theme.palette.clrInnerBorder};
@@ -208,31 +208,18 @@ export const Item = styled.div.attrs({ className: 'settings-pop-item' })`
         cursor: pointer;
         overflow: hidden;
         white-space: nowrap;
-        
+
         &:hover {
             opacity: 0.8;
         }
     }
-    
-    .fullName {
-        padding-left: 15px;
-        font-size: 20px;
-        font-weight: 600;
-    }
 
-    .affliate-label-wrapper {
-        width: 50%;
-    }
-
-    .affliate-label-wrapper > span {
-        flex: 2;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .affliate-label-wrapper > div {
-        flex: 1;
+    .icon-wrapper {
+        display: flex;
+        align-items: center;
+        svg, svg * {
+            fill: ${props => props.theme.palette.userMenuPopupMenuItemHover} !important;
+        }
     }
 `;
 
@@ -248,7 +235,7 @@ export const AvatarWrapper = styled.div.attrs({ className: 'settings-pop-avatar-
     border-radius: 50%;
     overflow: hidden;
     // z-index: 2;
-    
+
     .user-pic {
         z-index: 2;
         width: 44px;
@@ -308,6 +295,11 @@ export const InputTextCustom = styled.input`
     color: ${props => props.theme.palette.clrPurple};
     outline: none;
     cursor: ${props => props.clickable ? 'pointer' : 'initial'};
+    ${props => props.readOnly ? `
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    ` : ''}
 `;
 
 export const InputTextGroup = styled.div`
@@ -321,7 +313,7 @@ export const InputTextGroup = styled.div`
     width: ${props => props.width ? props.width + 'px' : '100%'};
     height: 40px;
     background: transparent;
-    
+
     .settings-pop-input-addon {
         justify-content: flex-end;
         border-right: none !important;
@@ -329,7 +321,7 @@ export const InputTextGroup = styled.div`
         border-top-right-radius: 0 !important;
         border-bottom-right-radius: 0 !important;
     }
-    
+
     input {
         flex-grow: 1;
         border-left: none !important;
@@ -363,10 +355,58 @@ export const InputTextAddon = styled.div.attrs({ className: 'settings-pop-input-
 export const UserInfoWrapper = styled.div.attrs({ className: 'settings-user-info-wrapper' })`
     flex: 1;
     display: flex;
-    flex-direction: row;
-    align-items: center;
+    flex-direction: column;
+    align-items: baseline;
     justify-content: flex-start;
     height: 100%;
+    color: rgb(69, 76, 115);
+    font-size: 17px;
+    font-weight: 700;
+    padding: 17px 0;
+    .user-info-top {
+        display: flex;
+    }
+    ${props => props.isMobileDevice && `
+        // flex-direction: column;
+        // align-items: flex-start;
+        // .affiliateContainer {
+        //     flex-direction: column;
+        //     align-items: flex-start;
+        // }
+        // .btn-wrapper {
+        //     order: 2;
+        // }
+    `}
+
+    .userContainer, .btn-wrapper, .affiliateContainer {
+        display: flex;
+        order: 1;
+        align-items: center;
+        span {
+            display: flex;
+            margin-right: ${props => props.isMobileDevice ? '7px' : '12px'};
+        }
+    }
+
+    .affiliateContainer {
+        margin-top: -10px;
+    }
+
+    .affliate-label-wrapper {
+        display: inline-flex !important;
+        margin-right: 12px;
+        font-size: 17px;
+        span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-right: 0;
+        }
+    }
+
+    .btn-wrapper {
+        display: flex;
+    }
 `;
 
 export const ImageWrapper = styled.div`
@@ -403,13 +443,13 @@ export const BackButton = styled.button`
     background: transparent;
     cursor: pointer;
     outline: none !important;
-    
-    &:hover {    
+
+    &:hover {
         .arrow {
             fill: ${props => props.theme.palette.contrastText};
         }
     }
-    
+
     .arrow {
         width: 10px;
         height: 100%;
@@ -418,37 +458,31 @@ export const BackButton = styled.button`
 `;
 
 export const SettingsBtn = styled.button`
-    border: 1px solid ${props => props.theme.palette.clrInnerBorder};
+    border: none;
     border-radius: ${props => props.theme.palette.borderRadius};
-    background: ${props => props.theme.palette.clrBackground};
+    background: transparent;
     // margin: 0 10px;
     // margin-left: auto;
     min-width: 78px;
     height: 31px;
     color: ${props => props.theme.palette.clrMouseClick};
-    font-size: 14px;
+    font-size: 17px;
     font-weight: 600;
     cursor: pointer;
     outline: none;
-    
+
     &:hover {
-        background: ${props => props.theme.palette.clrMouseHover};
-        border: 1px solid ${props => props.theme.palette.clrPurple};
         color: ${props => props.theme.palette.clrHighContrast};
     }
-    
+
     &:active {
-        background: ${props => props.theme.palette.clrInnerBorder};
-        border: 1px solid ${props => props.theme.palette.clrPurple};
-        color: ${props => props.theme.palette.clrHighContrast};            
+        color: ${props => props.theme.palette.clrHighContrast};
     }
-    
+
     &:disabled {
-        background: ${props => props.theme.palette.clrBackground};
-        border: 1px solid ${props => props.theme.palette.clrMouseHover};
-        color: ${props => props.theme.palette.clrMouseHover};                
+        color: ${props => props.theme.palette.clrMouseHover};
     }
-    
+
     span {
         margin-left: 0;
     }
@@ -476,7 +510,7 @@ const CloseSvgWrapper = styled.svg`
     height: 30px;
     fill: ${props => props.theme.palette.clrPurple};
     cursor: pointer;
-    
+
     &:hover {
         fill: ${props => props.theme.palette.clrHighContrast};
     }

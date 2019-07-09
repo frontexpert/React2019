@@ -1,6 +1,6 @@
 import React from 'react';
 import { AutoSizer, Column, Table } from 'react-virtualized';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import PerfectScrollBar from 'react-perfect-scrollbar';
 import CoinIcon from '../CoinIcon';
 
@@ -177,7 +177,7 @@ class CoinSelect extends React.PureComponent {
                     {/* return ( */}
                     <PerfectScrollBar
                         containerRef={ref => { this.scrollRef = ref; }}
-                        option={{
+                        options={{
                             suppressScrollX: true,
                             minScrollbarLength: 30,
                         }}

@@ -1,10 +1,14 @@
 import React, { Component, Fragment } from 'react';
 import { inject, observer } from 'mobx-react';
+import Icon from '@material-ui/core/Icon';
+import { withSafeTimeout } from '@hocs/safe-timers';
+import { compose } from 'recompose';
 
-import { STORE_KEYS } from '../../stores';
+import { STORE_KEYS } from '@/stores';
 import CurrencyDropdown from './index';
-import { SelectedItem } from '../../components/PayApp/PayWindow/Header/Components';
-import CoinIcon from '../CoinIcon';
+import { SelectedItem, CurrencyImage, CurrencySymbol } from '@/components/WalletHeader/Components';
+import { CurrencyText } from './Components.js'
+import { CoinIcon, BTCFontIcon } from '../CoinIcon';
 
 class CurrencyDropdownWithSymbol extends Component {
     state = {
@@ -12,6 +16,7 @@ class CurrencyDropdownWithSymbol extends Component {
     };
 
     wrapperRef = null;
+    toggleDropDownTimeout = null;
 
     componentDidMount() {
         document.addEventListener('mousedown', this.handleClickOutside);
@@ -32,6 +37,7 @@ class CurrencyDropdownWithSymbol extends Component {
     toggleDropDown = isOpen => {
         const {
             isClickable = true,
+            setSafeTimeout,
         } = this.props;
 
         if (isClickable) {
@@ -40,7 +46,7 @@ class CurrencyDropdownWithSymbol extends Component {
             }));
         }
 
-        setTimeout(() => {
+        setSafeTimeout(() => {
             if (this.props.onToggleDropdown) {
                 this.props.onToggleDropdown(this.state.isOpen);
             }
@@ -50,49 +56,66 @@ class CurrencyDropdownWithSymbol extends Component {
     render() {
         const { isOpen } = this.state;
         const {
+            isColorfulToggle = false,
             isChild = false,
             isDisabled = false,
             isMobile = false,
             isMobileAbsolute = false,
             type = 'currency',
             hasBorder = true,
-            alignLeft = true,
+            alignLeft = false,
             alignRight = true,
             alignTop = true,
             width = 350,
             height = 500,
             maxHeight,
-            coinSize = 35,
+            coinSize,
             onChange,
-            showFiat,
             symbolSize,
+            symbol = false,
+            disableCrypto,
+            isFromTrading,
+            isBadgeMode,
+            isForexMode,
+            forexCurrency,
         } = this.props;
         const {
             defaultFiat, defaultFiatSymbol, defaultCrypto, defaultCryptoSymbol, isDefaultCrypto,
         } = this.props[STORE_KEYS.SETTINGSSTORE];
 
         const isFiat = (type === 'fiat') || (type === 'currency' && !isDefaultCrypto);
-        const value = isFiat ? defaultFiat : defaultCrypto;
+        const value = isForexMode ? forexCurrency : isFiat ? defaultFiat : defaultCrypto;
 
         const refreshHeight = height > (maxHeight - 100) ? (maxHeight - 100) : height;
 
         return (
             <div
                 ref={ref => this.wrapperRef = ref}
-                className="dropdown-wrapper"
+                className="dropdown-wrapper btc-wrapper"
+                style={this.props.style}
             >
-                <SelectedItem isChild onClick={this.toggleDropDown} size={symbolSize}>
-                    {isFiat ? (
+                {isBadgeMode &&
+                    <SelectedItem isChild onClick={this.toggleDropDown} size={symbolSize} isColorfulToggle={isColorfulToggle} isWhite={true}>
                         <Fragment>
-                            {showFiat && (
-                                <span className="fiat-label">{value}</span>
-                            )}
-                            {defaultFiatSymbol}
+                            <CurrencyImage src="/img/icon-currency_symbol.png" alt="" width={coinSize} />
+                            <CurrencySymbol isFromTrading={isFromTrading}>
+                                {isFiat ?
+                                    `${defaultFiat} ${defaultFiatSymbol}`:
+                                    defaultCryptoSymbol
+                                }
+                            </CurrencySymbol>
                         </Fragment>
-                    ) : (
-                        <CoinIcon value={defaultCryptoSymbol} size={coinSize}/>
-                    )}
-                </SelectedItem>
+                    </SelectedItem>
+                }
+
+                {!isBadgeMode &&
+                    <CurrencyText onClick={this.toggleDropDown}>
+                        {isFiat ?
+                            `${defaultFiat} ${defaultFiatSymbol}`:
+                            defaultCryptoSymbol
+                        }
+                    </CurrencyText>
+                }
 
                 {isOpen && (
                     <CurrencyDropdown
@@ -110,6 +133,8 @@ class CurrencyDropdownWithSymbol extends Component {
                         toggleDropDown={this.toggleDropDown}
                         isDisabled={isDisabled}
                         onChange={onChange}
+                        disableCrypto={disableCrypto}
+                        isForexMode={isForexMode}
                     />
                 )}
             </div>
@@ -117,6 +142,12 @@ class CurrencyDropdownWithSymbol extends Component {
     }
 }
 
-export default inject(
-    STORE_KEYS.SETTINGSSTORE,
-)(observer(CurrencyDropdownWithSymbol));
+const enhanced = compose(
+    withSafeTimeout,
+    inject(
+        STORE_KEYS.SETTINGSSTORE,
+    ),
+    observer
+);
+
+export default enhanced(CurrencyDropdownWithSymbol);

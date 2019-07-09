@@ -1,63 +1,51 @@
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 
 export const ChartWrapper = styled.div`
     position: absolute;
+    ${props => props.isBorderHidden && 'border: none !important;'}
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: ${props => props.theme.palette.clrBackground};
-    padding-bottom: ${props => (props.isLowerSectionOpened ? '15px' : '0')};
-    border-top-left-radius: ${props => props.theme.palette.borderRadius};
+    background-color: ${props => props.theme.palette.clrChartBackground};
+    border-radius: ${props => props.theme.palette.borderRadius};
     border-style: solid;
     border-color: ${props => props.theme.palette.clrBorder};
-    border-width: 1px 0 ${props => (props.isLowerSectionOpened ? '0' : '1px')} 1px;
+    border-width: 1px 0 1px 1px;
+    ${props => props.noBorder && 'border: none !important;'}
     cursor: crosshair;
 `;
 
 export const PortfolioLabels = styled.div`
-    position: absolute;
     display: flex;
     justify-content: center;
     align-items: center;
+    margin-left: 18px;
     font-size: 33px;
     font-weight: 400;
-    bottom: 40px;
-    left: 15px;
-`;
-
-export const TotalPrice = styled.div`
-    display: flex;
-    font-weight: 600;
-    text-align: left;
-`;
-
-export const PriceLabel = styled.div`
-    text-align: left;
-    color: ${props => props.theme.palette.clrPurple};
-    margin-right: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-`;
-
-export const BackTesting = styled.div`
-    margin-left: 10px;
-    text-align: left;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: ${props => props.theme.palette.clrPurple};
-
-    .dropdown-wrapper {
-        margin-left: 5px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+    
+    > svg {
+        cursor: pointer;
+        margin-left: 12px;
+        margin-bottom: 5px;
+        &:hover {
+            fill: white;
+        }
     }
 `;
 
-export const OneDayProfitStyled = styled.span`
-    margin-right: 3px;
-    color: ${props => props.theme.palette.clrPurple};
+export const ChartInfoWrapper = styled.div`
+    position: absolute;
+    left: 12px;
+    right: 75px;
+    bottom: 26px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 20px;
+`;
+
+export const GraphControlWrapper = styled.div`
+    display: flex;
+    align-items: center;
 `;

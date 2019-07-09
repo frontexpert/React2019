@@ -1,8 +1,10 @@
 import React, { Fragment } from 'react';
+import { withRouter } from 'react-router-dom';
 import { inject, observer } from 'mobx-react';
 import { FormattedMessage } from 'react-intl';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import { AutoSizer, Column, Table } from 'react-virtualized';
+import QRCode from 'qrcode-react';
 import moment from 'moment';
 
 import {
@@ -15,56 +17,36 @@ import {
     Wrapper,
     HeaderWrapper,
     ContentWrapper,
-    AvatarWrapper,
-    DefaultAvatar,
-    HistoryCell,
-    ImageWrapper,
     List,
     LoadingWrapper,
     NoDataText,
     TableWrapper,
-    TransactionAmount,
-    TransactionDate,
-    TransactionInfo,
-    TransactionTitle,
     InnerWrapper,
-    Item,
-    OpenArrow,
+    InfoItem,
     ArrowIcon,
-    CloseIcon,
     InnerList,
     BalanceRow
 } from './Components';
-import SettingsPanel from '../../SettingsPanel';
-import SMSVerification from '../../../components-generic/SMSVerification';
-
-function ucfirst(string) {
-    try {
-        return string.charAt(0).toUpperCase() + string.slice(1);
-    } catch (e) {
-        return '';
-    }
-}
-
-const showLoginModal = (Modal, onClose, portal, additionalVerticalSpace) => () => {
-    return Modal({
-        portal,
-        additionalVerticalSpace,
-        showClose: false,
-        ModalComponentFn: () => <SMSVerification portal={portal} onClose={onClose} isMobile />,
-    });
-};
+import logoutIcon from '../asset/img/logout.png';
+import settingIcon from '../asset/img/setting.png';
+import acceptIcon from '../asset/img/accept.png';
+import rejectIcon from '../asset/img/reject.png';
 
 class AppHistory extends React.Component {
     state = {
+        isLogoutScreen: false,
+        isAccept: null,
+        loading: false,
         scrollTop: 0,
         openedMenu: '',
+        history: this.props[STORE_KEYS.SENDCOINSTORE].transferHistory,
     };
 
     mounted = true;
     scrollRef = null;
     psRef = null;
     tableRef = null;
+    interval = null;
 
     componentDidMount() {
         const {
@@ -74,6 +56,12 @@ class AppHistory extends React.Component {
         } = this.props;
 
         requestTransferHistory();
+
+        this.interval = setInterval(() => {
+            if (this.mounted) {
+                this.setState({ loading: true });
+            }
+        }, 1000);
     }
 
     componentWillReceiveProps(nextProps, nextContext) {
@@ -94,6 +82,7 @@ class AppHistory extends React.Component {
     }
 
     componentWillUnmount() {
+        clearInterval(this.interval);
         this.mounted = false;
     }
 
@@ -101,19 +90,22 @@ class AppHistory extends React.Component {
         this.setState({ scrollTop });
     };
 
-    handleClose = () => {
-        if (this.props.onClose) {
-            this.props.onClose();
-        }
+    handleClose = (e) => {
+        // const { isCoinTransfer } = this.props;
+
+        // if (isCoinTransfer) {
+        //     this.props.history.push('/');
+        // } else if (this.props.onClose) {
+        //     this.props.onClose(true);
+        // }
+        if(e) e.stopPropagation();
+        this.props.onClose(true);
     };
 
     historyCellRenderer = ({ rowData }) => {
         const {
             [STORE_KEYS.TELEGRAMSTORE]: {
                 loggedInUser,
-            },
-            [STORE_KEYS.SENDCOINSTORE]: {
-                requestCancelTransferRequest,
             },
             [STORE_KEYS.SETTINGSSTORE]: {
                 getLocalFiatPrice, getCoinPrice, getFiatSymbolFromName, defaultFiat,
@@ -128,7 +120,7 @@ class AppHistory extends React.Component {
             Executor,
             Initiator,
             IsMemberSender,
-            Status, // canceled, claimed, pending
+            Status,
             TrId,
         } = rowData;
 
@@ -148,32 +140,16 @@ class AppHistory extends React.Component {
         }
 
         let userName = (loggedInUser && loggedInUser.username) || '';
-        let isSend = false;
 
-        let displayFullName = '';
-        let displayUserName = '';
-        let displayAvatar = '';
+        let displayFullName = (Status ==='pending' ? 'Pending' : 'User');
+        let qrCodeValue = 'https://' + window.location.hostname + '/cointransfer/' + TrId;
 
         if (userName === initiatorUserName) {
-            displayFullName = executorFullName;
-            displayUserName = executorUserName;
-            displayAvatar = `https://t.me/i/userpic/320/${executorUserName}.jpg`;
-        } else {
+            if (executorFullName !== '') {
+                displayFullName = executorFullName;
+            }
+        } else if (initiatorFullName !== '') {
             displayFullName = initiatorFullName;
-            displayUserName = initiatorUserName;
-            displayAvatar = `https://t.me/i/userpic/320/${initiatorUserName}.jpg`;
-        }
-        switch (Status) {
-        case 'pending':
-            displayFullName = 'QR Code';
-            displayAvatar = '/img/icon_qr.png';
-            break;
-        case 'canceled':
-            displayFullName = 'QR Code';
-            displayAvatar = '/img/icon_qr.png';
-            break;
-        default:
-            break;
         }
 
         let createdAt = CreatedAt;
@@ -181,62 +157,51 @@ class AppHistory extends React.Component {
         try {
             const createdAtMoment = moment(CreatedAt);
             if (createdAtMoment.isValid()) {
-                // createdAt = createdAtMoment.fromNow();
                 createdAt = createdAtMoment.format('lll');
             }
         } catch (e) {
             console.log(e);
         }
 
-        let labelAmount = '';
-        if (defaultFiat !== '') {
-            labelAmount = getFiatSymbolFromName(defaultFiat) + format2DigitString(getLocalFiatPrice(getCoinPrice(Coin.toUpperCase()) * Amount, defaultFiat));
-        } else {
-            labelAmount = format2DigitString(Amount) + ' ' + Coin.toUpperCase();
-        }
+        let labelAmount = getFiatSymbolFromName(defaultFiat) + format2DigitString(Amount);
+        // if (defaultFiat !== '') {
+        //     labelAmount = getFiatSymbolFromName(defaultFiat) + format2DigitString(getLocalFiatPrice(getCoinPrice(Coin.toUpperCase()) * Amount, defaultFiat));
+        // } else {
+        //     labelAmount = format2DigitString(Amount) + ' ' + Coin.toUpperCase();
+        // }
 
         return (
-            <HistoryCell>
-                <ImageWrapper>
-                    <AvatarWrapper>
-                        <DefaultAvatar color={getItemColor(displayUserName).hexColor}>
-                            {(displayFullName || ' ')[0].toUpperCase()}
-                        </DefaultAvatar>
-                        <img
-                            alt=""
-                            className="user-pic"
-                            src={displayAvatar}
-                        />
-                    </AvatarWrapper>
-                </ImageWrapper>
-
-                <TransactionInfo>
-                    <TransactionTitle>
-                        <span>{displayFullName}</span>
-                        <TransactionAmount className={Status === 'canceled' ? 'clr-red' : 'clr-green'} isCanceled={Status === 'canceled'}>
-                            {IsMemberSender ? '-' : '+'} {labelAmount}
-                        </TransactionAmount>
-                    </TransactionTitle>
-
-                    <TransactionDate isPending={Status === 'pending'} isCanceled={Status === 'canceled'}>
-                        <span>
-                            {createdAt}
-                        </span>
-                        <button onClick={() => {
-                            requestCancelTransferRequest(TrId || '');
-                        }}
-                        >
-                            <FormattedMessage
-                                id="button.cancel"
-                                defaultMessage="Cancel"
+            <InfoItem
+                isActive={this.state.openedMenu === 'activity'}
+            >
+                <div className="prefix">
+                    {Status === 'pending' ? (
+                        <div className="circleText transparent">
+                            <img src={`${process.env.PUBLIC_URL}/img/gold_certificate.png`} alt="" />
+                            <QRCode
+                                value={qrCodeValue}
+                                size={20}
+                                bgColor="#FFB400"
+                                fgColor="#000"
                             />
-                        </button>
-                        <span className="status">
-                            {ucfirst(Status)}
-                        </span>
-                    </TransactionDate>
-                </TransactionInfo>
-            </HistoryCell>
+                        </div>
+                    ) : (
+                        <div className="circleText">
+                            <span className="circleContent">U</span>
+                        </div>
+                    )}
+                    <div className="containerText">
+                        <div className={Status === 'pending' ? 'titleText grey' : 'titleText'}>{displayFullName}</div>
+                        <div className="descText">{createdAt}</div>
+                    </div>
+                </div>
+                <div className="prefix">
+                    <div className="containerText">
+                        <div className={Status === 'pending' ? 'titleText grey' : 'titleText'}>{IsMemberSender ? '-' : '+'} {labelAmount}</div>
+                        <div className="descText">{Status}</div>
+                    </div>
+                </div>
+            </InfoItem>
         );
     };
 
@@ -252,14 +217,29 @@ class AppHistory extends React.Component {
         }
     };
 
+    onLogout = (e, option = -1) => {
+        e.stopPropagation();
+        if (option === -1) this.setState({ isLogoutScreen: true});
+        if (option === false) {
+            this.setState({
+                isLogoutScreen: false,
+                isAccept: null,
+            });
+        } else if (option === true) {
+            localStorage.clear();
+            window.location.reload();
+        }
+    }
+
     render() {
         const {
             scrollTop,
             openedMenu,
+            isLogoutScreen,
         } = this.state;
 
         const {
-            [STORE_KEYS.TELEGRAMSTORE]: {
+            [STORE_KEYS.SMSAUTHSTORE]: {
                 isLoggedIn,
             },
             [STORE_KEYS.SENDCOINSTORE]: {
@@ -272,6 +252,7 @@ class AppHistory extends React.Component {
             },
             [STORE_KEYS.YOURACCOUNTSTORE]: {
                 PortfolioData,
+                PortfolioUSDTValue,
             },
         } = this.props;
 
@@ -281,140 +262,114 @@ class AppHistory extends React.Component {
         }
 
         return (
-            <Wrapper>
+            <Wrapper onClick={this.handleClose}>
                 <ContentWrapper>
-                    <HeaderWrapper>
-                        <ArrowIcon onClick={this.handleClose} />
-                        <BalanceRow>
-                            Total Balance: <span>{Intl.NumberFormat('en-EN').format(totalBalance)} USD</span>
-                        </BalanceRow>
-                    </HeaderWrapper>
+                    {isLogoutScreen ? (
+                        <HeaderWrapper>
+                            <img src={rejectIcon} alt="reject" onClick={e => this.onLogout(e, false)}/>
+                            <BalanceRow isLogoutScreen={true}>
+                                Are you sure you want to sign out?
+                            </BalanceRow>
+                            <img src={acceptIcon} alt="accept" onClick={e => this.onLogout(e, true)} />
+                        </HeaderWrapper>
+                    ) : (
+                        <HeaderWrapper onClick={e => e.stopPropagation()}>
+                            <img src={settingIcon} alt="setting" />
+                            <BalanceRow>
+                                <div><p>$</p></div>
+                                {`${Number(PortfolioUSDTValue).toLocaleString()}`}
+                            </BalanceRow>
+                            <img src={logoutIcon} alt="setting" onClick={e => this.onLogout(e)} />
+                        </HeaderWrapper>
+                    )}
 
-                    <InnerWrapper>
-                        <Item
-                            isActive={openedMenu === 'activity'}
-                            onClick={() => this.toggleMenu('activity')}
-                        >
-                            <span>
-                                <FormattedMessage
-                                    id="pay_app.history.label_activity"
-                                    defaultMessage="Activity"
-                                />
-                            </span>
-                            {openedMenu === 'activity' ? <CloseIcon /> : <OpenArrow />}
-                        </Item>
-
-                        {openedMenu === 'activity' && (
-                            <List>
-                                {isLoggedIn ? (
-                                    isFetchingTransferHistory ? (
-                                        <LoadingWrapper>
-                                            <DataLoader width={120} height={120} />
-                                        </LoadingWrapper>
-                                    ) : (
-                                        <InnerList>
-                                            {(tableData && tableData.length) ? (
-                                                <AutoSizer>
-                                                    {({ width, height }) => (
-                                                        <TableWrapper width={width} height={height - 80}>
-                                                            <PerfectScrollbar
-                                                                containerRef={ref => {
-                                                                    this.scrollRef = ref;
-                                                                }}
-                                                                ref={ref => {
-                                                                    this.psRef = ref;
-                                                                }}
-                                                                option={{
-                                                                    suppressScrollX: true,
-                                                                    minScrollbarLength: 40,
-                                                                    maxScrollbarLength: 60,
-                                                                }}
-                                                                onScrollY={this.handleScroll}
-                                                            >
-                                                                <Table
-                                                                    ref={ref => {
-                                                                        this.tableRef = ref;
-                                                                    }}
-                                                                    autoHeight
-                                                                    width={width}
-                                                                    height={height}
-                                                                    disableHeader
-                                                                    rowCount={tableData.length}
-                                                                    rowGetter={({ index }) => tableData[index]}
-                                                                    rowHeight={80}
-                                                                    overscanRowCount={0}
-                                                                    scrollTop={scrollTop}
-                                                                >
-                                                                    <Column
-                                                                        width={width}
-                                                                        dataKey="History"
-                                                                        cellRenderer={this.historyCellRenderer}
-                                                                    >
-                                                                    </Column>
-                                                                </Table>
-                                                            </PerfectScrollbar>
-                                                        </TableWrapper>
-                                                    )}
-                                                </AutoSizer>
-                                            ) : (
-                                                <NoDataText>
-                                                    <FormattedMessage
-                                                        id="pay_app.history_view_v2.label_no_transaction"
-                                                        defaultMessage="No Transaction Yet"
-                                                    />
-                                                </NoDataText>
-                                            )}
-                                        </InnerList>
-                                    )
+                    {!isLogoutScreen && <InnerWrapper onClick={e => e.stopPropagation()}>
+                        <List>
+                            {isLoggedIn ? (
+                                isFetchingTransferHistory ? (
+                                    <LoadingWrapper>
+                                        <DataLoader width={120} height={120} />
+                                    </LoadingWrapper>
                                 ) : (
-                                    <NoDataText>
-                                        <FormattedMessage
-                                            id="pay_app.history_view_v2.label_login"
-                                            defaultMessage="Please login to see transactions"
-                                        />
-                                    </NoDataText>
-                                )}
-                            </List>
-                        )}
-
-                        <Item
-                            isActive={openedMenu === 'settings'}
-                            onClick={() => this.toggleMenu('settings')}
-                        >
-                            <span>
-                                <FormattedMessage
-                                    id="settings.label_settings"
-                                    defaultMessage="Settings"
-                                />
-                            </span>
-                            {openedMenu === 'settings' ? <CloseIcon /> : <OpenArrow />}
-                        </Item>
-
-                        {openedMenu === 'settings' && (
-                            <List>
-                                <SettingsPanel />
-                            </List>
-                        )}
-
-                        <Item
-                            isActive={openedMenu === 'invite'}
-                            onClick={() => this.toggleMenu('invite')}
-                        >
-                            <span>
-                                <FormattedMessage
-                                    id="pay_app.history_view_v2.label_invite_friend"
-                                    defaultMessage="Invite Friends get $5"
-                                />
-                            </span>
-                            {openedMenu === 'invite' ? <CloseIcon /> : <OpenArrow />}
-                        </Item>
-
-                        {!isLoggedIn && (
-                            <Item onClick={() => showLoginModal(Modal, onClose, 'root', true)()}>
-                                <span>Login</span>
-                            </Item>
-                        )}
-                    </InnerWrapper>
+                                    <InnerList>
+                                        {(tableData && tableData.length) ? (
+                                            <AutoSizer>
+                                                {({ width, height }) => (
+                                                    <TableWrapper width={width} height={height}>
+                                                        <PerfectScrollbar
+                                                            containerRef={ref => {
+                                                                this.scrollRef = ref;
+                                                            }}
+                                                            ref={ref => {
+                                                                this.psRef = ref;
+                                                            }}
+                                                            options={{
+                                                                suppressScrollX: true,
+                                                            }}
+                                                            onScrollY={this.handleScroll}
+                                                        >
+                                                            <InfoItem style={{ backgroundColor: '#4080FF' }}>
+                                                                <div className="prefix">
+                                                                    <div className="containerText">
+                                                                        <div style={{ fontSize: '36px', paddingRight: '10px' }}>
+                                                                            $5
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="prefix">
+                                                                    <div className="containerText">
+                                                                        <div style={{ fontSize: '12px' }}>
+                                                                            Send any amount to your friends and we'll send you both $5 when they try this App!
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </InfoItem>
+                                                            <Table
+                                                                ref={ref => {
+                                                                    this.tableRef = ref;
+                                                                }}
+                                                                autoHeight
+                                                                width={width}
+                                                                height={height}
+                                                                disableHeader
+                                                                rowCount={tableData.length}
+                                                                rowGetter={({ index }) => tableData[index]}
+                                                                rowHeight={80}
+                                                                overscanRowCount={0}
+                                                                scrollTop={scrollTop}
+                                                            >
+                                                                <Column
+                                                                    width={width}
+                                                                    dataKey="History"
+                                                                    cellRenderer={this.historyCellRenderer}
+                                                                    style={{ paddingRight: 0 }}
+                                                                >
+                                                                </Column>
+                                                            </Table>
+                                                        </PerfectScrollbar>
+                                                    </TableWrapper>
+                                                )}
+                                            </AutoSizer>
+                                        ) : (
+                                            <NoDataText>
+                                                <FormattedMessage
+                                                    id="pay_app.history_view_v2.label_no_transaction"
+                                                    defaultMessage="No Transaction Yet"
+                                                />
+                                            </NoDataText>
+                                        )}
+                                    </InnerList>
+                                )
+                            ) : (
+                                <NoDataText>
+                                    <FormattedMessage
+                                        id="pay_app.history_view_v2.label_login"
+                                        defaultMessage="Please login to see transactions"
+                                    />
+                                </NoDataText>
+                            )}
+                        </List>
+                    </InnerWrapper>}
                 </ContentWrapper>
             </Wrapper>
         );
@@ -427,4 +382,5 @@ export default inject(
     STORE_KEYS.SETTINGSSTORE,
     STORE_KEYS.MODALSTORE,
     STORE_KEYS.YOURACCOUNTSTORE,
-)(observer(AppHistory));
+    STORE_KEYS.SMSAUTHSTORE,
+)(observer(withRouter(AppHistory)));

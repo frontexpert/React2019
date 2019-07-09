@@ -1,10 +1,7 @@
-import React,  { Component } from 'react';
+import React, { Component } from 'react';
 
 import {
-    Wrapper,
-    Label,
-    DropdownList,
-    DropdownItem
+    Wrapper, Label, DropdownList, DropdownItem
 } from './Components';
 
 class DropMenu extends Component {
@@ -36,9 +33,9 @@ class DropMenu extends Component {
         this.setState({
             opened: !this.state.opened,
         });
-    }
+    };
 
-    handleClickOutside = (event) => {
+    handleClickOutside = event => {
         if (this.state.opened && this.wrapperRef && !this.wrapperRef.contains(event.target)) {
             this.toggleDropMenu();
         }
@@ -50,22 +47,24 @@ class DropMenu extends Component {
         let droplist = [];
         for (let i = 0; i < data.length; i++) {
             droplist.push(
-                <DropdownItem key={i} isActive={activeItem === data[i]}>{data[i]}</DropdownItem>
+                <DropdownItem key={i} isActive={activeItem === data[i]}>
+                    {data[i]}
+                </DropdownItem>
             );
         }
 
         return (
             <Wrapper
-                innerRef={ref => { this.wrapperRef = ref; }}
+                ref={ref => {
+                    this.wrapperRef = ref;
+                }}
                 onClick={this.toggleDropMenu}
             >
                 <Label>
                     <span className="label">{label}</span>
                     <span className="value">{activeItem}</span>
                 </Label>
-                <DropdownList opened={opened}>
-                    {droplist}
-                </DropdownList>
+                {opened && <DropdownList>{droplist}</DropdownList>}
             </Wrapper>
         );
     }

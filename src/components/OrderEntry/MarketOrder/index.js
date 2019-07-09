@@ -19,6 +19,7 @@ const MarketOrderSideBySideContainer = ({
         MarketOrderBuyForm: {
             amount: buyAmount,
             price: buyPrice,
+            total: buyTotal,
             setAmount: setMarketBuyAmount,
             enabled: marketOrderFormBuyEnabled,
             submitOrder: marketOrderFormBuySubmit,
@@ -28,6 +29,7 @@ const MarketOrderSideBySideContainer = ({
         MarketOrderSellForm: {
             amount: sellAmount,
             price: sellPrice,
+            total: sellTotal,
             setAmount: setMarketSellAmount,
             enabled: marketOrderFormSellEnabled,
             submitOrder: marketOrderFormSellSubmit,
@@ -46,12 +48,13 @@ const MarketOrderSideBySideContainer = ({
                 {value1 =>
                     <FormattedMessage
                         id="order_entry.label_lowest_price"
-                        defaultMessage="Lowest Price"
+                        defaultMessage="Lowest"
                     >
                         {value2 =>
                             <MarketOrderContainer
                                 amount={buyAmount}
                                 price={buyPrice}
+                                total={buyTotal}
                                 sliderMax={buySliderMax}
                                 handleAmountChange={partial(withValueFromEvent, setMarketBuyAmount)}
                                 orderButtonDisabled={!marketOrderFormBuyEnabled}
@@ -61,6 +64,7 @@ const MarketOrderSideBySideContainer = ({
                                 amountCoin={baseSymbol}
                                 baseSymbol={baseSymbol}
                                 quoteSymbol={quoteSymbol}
+                                sliderCurrency={quoteSymbol}
                                 isBuy={true}
                                 priceLabel={value2}
                                 estimatedAmountReceived={buyAmount * buyEstimatedAmount}
@@ -76,12 +80,13 @@ const MarketOrderSideBySideContainer = ({
                 {value1 =>
                     <FormattedMessage
                         id="order_entry.label_highest_price"
-                        defaultMessage="Highest Price"
+                        defaultMessage="Highest"
                     >
                         {value2 =>
                             <MarketOrderContainer
                                 amount={sellAmount}
                                 price={sellPrice}
+                                total={sellPrice}
                                 sliderMax={sellSliderMax}
                                 handleAmountChange={partial(withValueFromEvent, setMarketSellAmount)}
                                 orderButtonText={`${value1} ${baseSymbol}`}
@@ -89,6 +94,7 @@ const MarketOrderSideBySideContainer = ({
                                 amountCoin={baseSymbol}
                                 baseSymbol={baseSymbol}
                                 quoteSymbol={quoteSymbol}
+                                sliderCurrency={baseSymbol}
                                 handleOrder={showModal}
                                 // handleOrder={marketOrderFormSellSubmit}
                                 isBuy={false}

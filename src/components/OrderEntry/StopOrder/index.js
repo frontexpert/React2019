@@ -16,7 +16,7 @@ const StopOrderSideBySideContainer = ({
             stopPrice: buyStopPrice,
             total: buyTotal,
             setAmount: setBuyAmount,
-            setPrice: setBuyPrice,
+            setUserEnteredPrice: setBuyPrice,
             setStopPrice: setBuyStopPrice,
             enabled: orderFormBuyEnabled,
             submitOrder: orderFormBuySubmit,
@@ -28,7 +28,7 @@ const StopOrderSideBySideContainer = ({
             stopPrice: sellStopPrice,
             total: sellTotal,
             setAmount: setSellAmount,
-            setPrice: setSellPrice,
+            setUserEnteredPrice: setSellPrice,
             setStopPrice: setSellStopPrice,
             enabled: orderFormSellEnabled,
             submitOrder: orderFormSellSubmit,
@@ -64,6 +64,7 @@ const StopOrderSideBySideContainer = ({
                         totalCoin={quoteSymbol}
                         orderButtonText={`${value} ${baseSymbol}`}
                         isBuy={true}
+                        sliderCurrency={quoteSymbol}
                         orderButtonDisabled={!orderFormBuyEnabled}
                         handleOrder={showModal}
                         // handleOrder={orderFormBuySubmit}
@@ -90,6 +91,7 @@ const StopOrderSideBySideContainer = ({
                         totalCoin={quoteSymbol}
                         orderButtonText={`${value} ${baseSymbol}`}
                         isBuy={false}
+                        sliderCurrency={baseSymbol}
                         orderButtonDisabled={!orderFormSellEnabled}
                         handleOrder={showModal}
                         // handleOrder={orderFormSellSubmit}

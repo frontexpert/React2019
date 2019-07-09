@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import { FormattedMessage } from 'react-intl';
 import sortBy from 'lodash/sortBy';
 import { AutoSizer, Table, Column } from 'react-virtualized';
 import PerfectScrollbar from 'react-perfect-scrollbar';
+import { withSafeTimeout } from '@hocs/safe-timers';
 
 import { highlightSearchDom } from '../../utils';
 import {
@@ -26,7 +27,7 @@ const Dropdown = styled.div`
     flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
-    background: ${props => props.theme.palette.clrBackground};
+    background: ${props => props.theme.palette.clrChartBackground};
     border: 1px solid ${props => props.theme.palette.clrBorder};
     ${props => props.hasBorder ? '' : (props.alignTop ? 'border-bottom: 0' : 'border-top: 0')};
     border-radius: ${props => props.hasBorder
@@ -36,7 +37,7 @@ const Dropdown = styled.div`
             : `0 0 ${props.theme.palette.borderRadius} ${props.theme.palette.borderRadius}`};
     box-shadow: 2px 0 0 2px rgba(0, 0, 0, .2);
     font-size: 18px;
-    
+
     &.mobile {
         position: ${props => props.isMobileAbsolute ? 'absolute' : 'fixed'};
         left: 0;
@@ -47,7 +48,7 @@ const Dropdown = styled.div`
         height: unset;
         padding: 12px;
         font-size: 24px;
-        
+
         &:before {
             content: '';
             position: absolute;
@@ -59,7 +60,7 @@ const Dropdown = styled.div`
             border-radius: ${props => props.theme.palette.borderRadius};
         }
     }
-    
+
     &.fullscreen {
         position: fixed;
         left: 12px;
@@ -79,11 +80,12 @@ class LanguageDropdown extends Component {
     };
 
     searchValueRef = null;
+    clearUpdateTableItemsTimeout = null;
 
     componentDidMount() {
         this.updateTableItems(this.props);
 
-        setTimeout(() => {
+        this.props.setSafeTimeout(() => {
             if (this.searchValueRef) {
                 this.searchValueRef.focus();
             }
@@ -92,6 +94,12 @@ class LanguageDropdown extends Component {
 
     componentWillReceiveProps(nextProps, nextContext) {
         this.updateTableItems(nextProps);
+    }
+
+    componentWillUnmount() {
+        if (this.clearUpdateTableItemsTimeout) {
+            this.clearUpdateTableItemsTimeout();
+        }
     }
 
     handleScroll = ({ scrollTop }) => {
@@ -103,7 +111,10 @@ class LanguageDropdown extends Component {
             searchValue: (e && e.target && e.target.value) || '',
         });
 
-        setTimeout(this.updateTableItems);
+        if (this.clearUpdateTableItemsTimeout) {
+            this.clearUpdateTableItemsTimeout();
+        }
+        this.clearUpdateTableItemsTimeout = this.props.setSafeTimeout(this.updateTableItems);
     };
 
     handleSelectItem = (lang) => {
@@ -117,7 +128,10 @@ class LanguageDropdown extends Component {
 
             this.props.toggleDropDown(false);
 
-            setTimeout(() => {
+            if (this.clearUpdateTableItemsTimeout) {
+                this.clearUpdateTableItemsTimeout();
+            }
+            this.clearUpdateTableItemsTimeout = this.props.setSafeTimeout(() => {
                 this.updateTableItems();
             });
         }
@@ -140,11 +154,10 @@ class LanguageDropdown extends Component {
     updateTableItems = (propsInput) => {
         let props = propsInput || this.props;
         let tableItems = [];
-
         if (props && props.items && props.items.length) {
             const items = props.items;
             for (let i = 0; i < items.length; i++) {
-                const weight = this.isSearched(items[i], this.state.searchValue);
+                const weight = this.isSearched(items[i].name, this.state.searchValue);
 
                 if (weight >= 0) {
                     tableItems.push({
@@ -207,7 +220,7 @@ class LanguageDropdown extends Component {
                         {placeholder =>
                             <SearchInput
                                 isBigger
-                                innerRef={ref => this.searchValueRef = ref}
+                                ref={ref => this.searchValueRef = ref}
                                 value={searchValue}
                                 readOnly={isDisabled}
                                 onChange={this.handleChangeSearchValue}
@@ -228,7 +241,7 @@ class LanguageDropdown extends Component {
                                 length={tableItems.length}
                             >
                                 <PerfectScrollbar
-                                    option={{
+                                    options={{
                                         suppressScrollX: true,
                                         minScrollbarLength: 50,
                                     }}
@@ -262,4 +275,4 @@ class LanguageDropdown extends Component {
     }
 }
 
-export default LanguageDropdown;
+export default withSafeTimeout(LanguageDropdown);

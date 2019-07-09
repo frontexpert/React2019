@@ -1,33 +1,38 @@
 import { observable, action } from 'mobx';
+
 import { CoinAddressRequest, WithdrawRequest } from '../lib/bct-ws';
 
 class CoinAddressStore {
+    @observable symbol = '';
     @observable coinDepositAddress = '';
     @observable errMsg = '';
 
     @action.bound createDepositAddress(symbol) {
-        this.coinDepositAddress = '';
-        return new Promise((resolve, reject) => {
-            let payload;
-            if (!localStorage.getItem('authToken')) {
-                payload = { Coin: symbol };
-                CoinAddressRequest(payload).then(res => {
-                    this.coinDepositAddress = res;
-                    resolve(res);
-                });
-            } else {
-                const clientId = localStorage.getItem('authClientId');
-                payload = { Coin: symbol, ClientId: clientId };
-                CoinAddressRequest(payload).then(res => {
-                    this.coinDepositAddress = res;
-                    resolve(res);
-                });
-            }
-        });
+        if (this.symbol !== symbol) {
+            this.symbol = symbol;
+            this.coinDepositAddress = '';
+
+            return new Promise((resolve, reject) => {
+                let payload;
+                if (!localStorage.getItem('authToken')) {
+                    payload = { Coin: symbol };
+                    CoinAddressRequest(payload).then(res => {
+                        this.coinDepositAddress = res;
+                        resolve(res);
+                    });
+                } else {
+                    const clientId = localStorage.getItem('authClientId');
+                    payload = { Coin: symbol, ClientId: clientId };
+                    CoinAddressRequest(payload).then(res => {
+                        this.coinDepositAddress = res;
+                        resolve(res);
+                    });
+                }
+            });
+        }
     }
 
     @action.bound withdrawDeposit(coin, address, amount) {
-        console.log(coin, address, amount);
         // --- validation ---
         if (!coin || !address || !amount) {
             this.errMsg = 'Please input correct values';

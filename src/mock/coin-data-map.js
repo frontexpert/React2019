@@ -28154,9 +28154,20 @@ export default {
     },
 
     // ----- stable coins -----
-
+    'F:KRW': {
+        'name': 'South Korean Won',
+        "imageurl": "/img/coin/krw.png",
+        "coinmarketcap": "https://coinmarketcap.com/currencies/krw/",
+        "url": "https://krw.to",
+        "file": "krw.png",
+        "symbol": "F:KRW",
+        "rgb": "(43, 161, 127)",
+        "hex": "#2a3e80",
+        "fiat": true,
+        "social_info":[]
+    },
     "F:EUR": {
-        "name": "Euro - Stablecoin",
+        "name": "Euro",
         "imageurl": "/img/coin/eur.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/eur/",
         "url": "https://eur.to",
@@ -28168,7 +28179,7 @@ export default {
         "social_info":[]
     },
     "F:GBP": {
-        "name": "British Pound - Stablecoin",
+        "name": "British Pound",
         "imageurl": "/img/coin/gbp.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/gbp/",
         "url": "https://gbp.to",
@@ -28180,7 +28191,7 @@ export default {
         "social_info":[]
     },
     "F:INR": {
-        "name": "Indian Rupee - Stablecoin",
+        "name": "Indian Rupee",
         "imageurl": "/img/coin/inr.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/inr/",
         "url": "https://inr.to",
@@ -28192,7 +28203,7 @@ export default {
         "social_info":[]
     },
     "F:AUD": {
-        "name": "Australian Dollar - Stablecoin",
+        "name": "Australian Dollar",
         "imageurl": "/img/coin/aud.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/aud/",
         "url": "https://aud.to",
@@ -28204,7 +28215,7 @@ export default {
         "social_info":[]
     },
     "F:CAD": {
-        "name": "Canadian Dollar - Stablecoin",
+        "name": "Canadian Dollar",
         "imageurl": "/img/coin/cad.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/cad/",
         "url": "https://cad.to",
@@ -28216,7 +28227,7 @@ export default {
         "social_info":[]
     },
     "F:SGD": {
-        "name": "Singapore Dollar - Stablecoin",
+        "name": "Singapore Dollar",
         "imageurl": "/img/coin/sgd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/sgd/",
         "url": "https://sgd.to",
@@ -28228,7 +28239,7 @@ export default {
         "social_info":[]
     },
     "F:CHF": {
-        "name": "Swiss Franc - Stablecoin",
+        "name": "Swiss Franc",
         "imageurl": "/img/coin/chf.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/chf/",
         "url": "https://chf.to",
@@ -28240,7 +28251,7 @@ export default {
         "social_info":[]
     },
     "F:MYR": {
-        "name": "Malaysian Ringgit - Stablecoin",
+        "name": "Malaysian Ringgit",
         "imageurl": "/img/coin/myr.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/myr/",
         "url": "https://myr.to",
@@ -28252,7 +28263,7 @@ export default {
         "social_info":[]
     },
     "F:JPY": {
-        "name": "Japanese Yen - Stablecoin",
+        "name": "Japanese Yen",
         "imageurl": "/img/coin/jpy.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/jpy/",
         "url": "https://jpy.to",
@@ -28264,7 +28275,7 @@ export default {
         "social_info":[]
     },
     "F:CNY": {
-        "name": "Chinese Yuan Renminbi - Stablecoin",
+        "name": "Chinese Yuan Renminbi",
         "imageurl": "/img/coin/cny.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/cny/",
         "url": "https://cny.to",
@@ -28276,7 +28287,7 @@ export default {
         "social_info":[]
     },
     "F:NZD": {
-        "name": "New Zealand Dollar - Stablecoin",
+        "name": "New Zealand Dollar",
         "imageurl": "/img/coin/nzd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/nzd/",
         "url": "https://nzd.to",
@@ -28288,7 +28299,7 @@ export default {
         "social_info":[]
     },
     "F:THB": {
-        "name": "Thai Baht - Stablecoin",
+        "name": "Thai Baht",
         "imageurl": "/img/coin/thb.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/thb/",
         "url": "https://thb.to",
@@ -28300,7 +28311,7 @@ export default {
         "social_info":[]
     },
     "F:HUF": {
-        "name": "Hungarian Forint - Stablecoin",
+        "name": "Hungarian Forint",
         "imageurl": "/img/coin/huf.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/huf/",
         "url": "https://huf.to",
@@ -28311,7 +28322,7 @@ export default {
         "fiat": true,
     },
     'F:AED': {
-        'name': 'Emirati Dirham - Stablecoin',
+        'name': 'Emirati Dirham',
         "imageurl": "/img/coin/aed.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/aed/",
         "url": "https://aed.to",
@@ -28323,7 +28334,7 @@ export default {
         "social_info":[]
     },
     'F:HKD': {
-        'name': 'Hong Kong Dollar - Stablecoin',
+        'name': 'Hong Kong Dollar',
         "imageurl": "/img/coin/hkd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/hkd/",
         "url": "https://hkd.to",
@@ -28335,7 +28346,7 @@ export default {
         "social_info":[]
     },
     'F:MXN': {
-        'name': 'Mexican Peso - Stablecoin',
+        'name': 'Mexican Peso',
         "imageurl": "/img/coin/mxn.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/mxn/",
         "url": "https://mxn.to",
@@ -28347,7 +28358,7 @@ export default {
         "social_info":[]
     },
     'F:ZAR': {
-        'name': 'South African Rand - Stablecoin',
+        'name': 'South African Rand',
         "imageurl": "/img/coin/zar.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/zar/",
         "url": "https://zar.to",
@@ -28359,7 +28370,7 @@ export default {
         "social_info":[]
     },
     'F:PHP': {
-        'name': 'Philippine Peso - Stablecoin',
+        'name': 'Philippine Peso',
         "imageurl": "/img/coin/php.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/php/",
         "url": "https://php.to",
@@ -28371,7 +28382,7 @@ export default {
         "social_info":[]
     },
     'F:SEK': {
-        'name': 'Swedish Krona - Stablecoin',
+        'name': 'Swedish Krona',
         "imageurl": "/img/coin/sek.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/sek/",
         "url": "https://sek.to",
@@ -28383,7 +28394,7 @@ export default {
         "social_info":[]
     },
     'F:IDR': {
-        'name': 'Indonesian Rupiah - Stablecoin',
+        'name': 'Indonesian Rupiah',
         "imageurl": "/img/coin/idr.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/idr/",
         "url": "https://idr.to",
@@ -28395,7 +28406,7 @@ export default {
         "social_info":[]
     },
     'F:SAR': {
-        'name': 'Saudi Arabian Riyal - Stablecoin',
+        'name': 'Saudi Arabian Riyal',
         "imageurl": "/img/coin/sar.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/sar/",
         "url": "https://sar.to",
@@ -28407,7 +28418,7 @@ export default {
         "social_info":[]
     },
     'F:BRL': {
-        'name': 'Brazilian Real - Stablecoin',
+        'name': 'Brazilian Real',
         "imageurl": "/img/coin/brl.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/brl/",
         "url": "https://brl.to",
@@ -28419,7 +28430,7 @@ export default {
         "social_info":[]
     },
     'F:TRY': {
-        'name': 'Turkish Lira - Stablecoin',
+        'name': 'Turkish Lira',
         "imageurl": "/img/coin/try.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/try/",
         "url": "https://try.to",
@@ -28431,7 +28442,7 @@ export default {
         "social_info":[]
     },
     'F:KES': {
-        'name': 'Kenyan Shilling - Stablecoin',
+        'name': 'Kenyan Shilling',
         "imageurl": "/img/coin/kes.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/kes/",
         "url": "https://kes.to",
@@ -28442,20 +28453,8 @@ export default {
         "fiat": true,
         "social_info":[]
     },
-    'F:KRW': {
-        'name': 'South Korean Won - Stablecoin',
-        "imageurl": "/img/coin/krw.png",
-        "coinmarketcap": "https://coinmarketcap.com/currencies/krw/",
-        "url": "https://krw.to",
-        "file": "krw.png",
-        "symbol": "F:KRW",
-        "rgb": "(43, 161, 127)",
-        "hex": "#2a3e80",
-        "fiat": true,
-        "social_info":[]
-    },
     'F:EGP': {
-        'name': 'Egyptian Pound - Stablecoin',
+        'name': 'Egyptian Pound',
         "imageurl": "/img/coin/egp.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/egp/",
         "url": "https://egp.to",
@@ -28467,7 +28466,7 @@ export default {
         "social_info":[]
     },
     'F:IQD': {
-        'name': 'Iraqi Dinar - Stablecoin',
+        'name': 'Iraqi Dinar',
         "imageurl": "/img/coin/iqd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/iqd/",
         "url": "https://iqd.to",
@@ -28479,7 +28478,7 @@ export default {
         "social_info":[]
     },
     'F:NOK': {
-        'name': 'Norwegian Krone - Stablecoin',
+        'name': 'Norwegian Krone',
         "imageurl": "/img/coin/nok.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/nok/",
         "url": "https://nok.to",
@@ -28491,7 +28490,7 @@ export default {
         "social_info":[]
     },
     'F:KWD': {
-        'name': 'Kuwaiti Dinar - Stablecoin',
+        'name': 'Kuwaiti Dinar',
         "imageurl": "/img/coin/kwd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/kwd/",
         "url": "https://kwd.to",
@@ -28503,7 +28502,7 @@ export default {
         "social_info":[]
     },
     'F:RUB': {
-        'name': 'Russian Ruble - Stablecoin',
+        'name': 'Russian Ruble',
         "imageurl": "/img/coin/rub.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/rub/",
         "url": "https://rub.to",
@@ -28515,7 +28514,7 @@ export default {
         "social_info":[]
     },
     'F:DKK': {
-        'name': 'Danish Krone - Stablecoin',
+        'name': 'Danish Krone',
         "imageurl": "/img/coin/dkk.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/dkk/",
         "url": "https://dkk.to",
@@ -28527,7 +28526,7 @@ export default {
         "social_info":[]
     },
     'F:PKR': {
-        'name': 'Pakistani Rupee - Stablecoin',
+        'name': 'Pakistani Rupee',
         "imageurl": "/img/coin/pkr.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/pkr/",
         "url": "https://pkr.to",
@@ -28539,7 +28538,7 @@ export default {
         "social_info":[]
     },
     'F:ILS': {
-        'name': 'Israeli Shekel - Stablecoin',
+        'name': 'Israeli Shekel',
         "imageurl": "/img/coin/ils.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/ils/",
         "url": "https://ils.to",
@@ -28551,7 +28550,7 @@ export default {
         "social_info":[]
     },
     'F:PLN': {
-        'name': 'Polish Zloty - Stablecoin',
+        'name': 'Polish Zloty',
         "imageurl": "/img/coin/pln.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/pln/",
         "url": "https://pln.to",
@@ -28563,7 +28562,7 @@ export default {
         "social_info":[]
     },
     'F:QAR': {
-        'name': 'Qatari Riyal - Stablecoin',
+        'name': 'Qatari Riyal',
         "imageurl": "/img/coin/qar.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/qar/",
         "url": "https://qar.to",
@@ -28575,7 +28574,7 @@ export default {
         "social_info":[]
     },
     'F:XAU': {
-        'name': 'Gold Ounce - Stablecoin',
+        'name': 'Gold Ounce',
         "imageurl": "/img/coin/xau.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/xau/",
         "url": "https://xau.to",
@@ -28587,7 +28586,7 @@ export default {
         "social_info":[]
     },
     'F:OMR': {
-        'name': 'Omani Rial - Stablecoin',
+        'name': 'Omani Rial',
         "imageurl": "/img/coin/omr.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/omr/",
         "url": "https://omr.to",
@@ -28599,7 +28598,7 @@ export default {
         "social_info":[]
     },
     'F:COP': {
-        'name': 'Colombian Peso - Stablecoin',
+        'name': 'Colombian Peso',
         "imageurl": "/img/coin/cop.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/cop/",
         "url": "https://cop.to",
@@ -28611,7 +28610,7 @@ export default {
         "social_info":[]
     },
     'F:CLP': {
-        'name': 'Chilean Peso - Stablecoin',
+        'name': 'Chilean Peso',
         "imageurl": "/img/coin/clp.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/clp/",
         "url": "https://clp.to",
@@ -28623,7 +28622,7 @@ export default {
         "social_info":[]
     },
     'F:TWD': {
-        'name': 'Taiwan New Dollar - Stablecoin',
+        'name': 'Taiwan New Dollar',
         "imageurl": "/img/coin/twd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/twd/",
         "url": "https://twd.to",
@@ -28635,7 +28634,7 @@ export default {
         "social_info":[]
     },
     'F:ARS': {
-        'name': 'Argentine Peso - Stablecoin',
+        'name': 'Argentine Peso',
         "imageurl": "/img/coin/ars.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/ars/",
         "url": "https://ars.to",
@@ -28647,7 +28646,7 @@ export default {
         "social_info":[]
     },
     'F:CZK': {
-        'name': 'Czech Koruna - Stablecoin',
+        'name': 'Czech Koruna',
         "imageurl": "/img/coin/czk.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/czk/",
         "url": "https://czk.to",
@@ -28659,7 +28658,7 @@ export default {
         "social_info":[]
     },
     'F:VND': {
-        'name': 'Vietnamese Dong - Stablecoin',
+        'name': 'Vietnamese Dong',
         "imageurl": "/img/coin/vnd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/vnd/",
         "url": "https://vnd.to",
@@ -28671,7 +28670,7 @@ export default {
         "social_info":[]
     },
     'F:MAD': {
-        'name': 'Moroccan Dirham - Stablecoin',
+        'name': 'Moroccan Dirham',
         "imageurl": "/img/coin/mad.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/mad/",
         "url": "https://mad.to",
@@ -28683,7 +28682,7 @@ export default {
         "social_info":[]
     },
     'F:JOD': {
-        'name': 'Jordanian Dinar - Stablecoin',
+        'name': 'Jordanian Dinar',
         "imageurl": "/img/coin/jod.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/jod/",
         "url": "https://jod.to",
@@ -28695,7 +28694,7 @@ export default {
         "social_info":[]
     },
     'F:BHD': {
-        'name': 'Bahraini Dinar - Stablecoin',
+        'name': 'Bahraini Dinar',
         "imageurl": "/img/coin/bhd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/bhd/",
         "url": "https://bhd.to",
@@ -28707,7 +28706,7 @@ export default {
         "social_info":[]
     },
     'F:XOF': {
-        'name': 'CFA Franc - Stablecoin',
+        'name': 'CFA Franc',
         "imageurl": "/img/coin/xof.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/xof/",
         "url": "https://xof.to",
@@ -28719,7 +28718,7 @@ export default {
         "social_info":[]
     },
     'F:LKR': {
-        'name': 'Sri Lankan Rupee - Stablecoin',
+        'name': 'Sri Lankan Rupee',
         "imageurl": "/img/coin/lkr.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/lkr/",
         "url": "https://lkr.to",
@@ -28731,7 +28730,7 @@ export default {
         "social_info":[]
     },
     'F:UAH': {
-        'name': 'Ukrainian Hryvnia - Stablecoin',
+        'name': 'Ukrainian Hryvnia',
         "imageurl": "/img/coin/uah.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/uah/",
         "url": "https://uah.to",
@@ -28743,7 +28742,7 @@ export default {
         "social_info":[]
     },
     'F:NGN': {
-        'name': 'Nigerian Naira - Stablecoin',
+        'name': 'Nigerian Naira',
         "imageurl": "/img/coin/ngn.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/ngn/",
         "url": "https://ngn.to",
@@ -28755,7 +28754,7 @@ export default {
         "social_info":[]
     },
     'F:TND': {
-        'name': 'Tunisian Dinar - Stablecoin',
+        'name': 'Tunisian Dinar',
         "imageurl": "/img/coin/tnd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/tnd/",
         "url": "https://tnd.to",
@@ -28767,7 +28766,7 @@ export default {
         "social_info":[]
     },
     'F:UGX': {
-        'name': 'Ugandan Shilling - Stablecoin',
+        'name': 'Ugandan Shilling',
         "imageurl": "/img/coin/ugx.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/ugx/",
         "url": "https://ugx.to",
@@ -28779,7 +28778,7 @@ export default {
         "social_info":[]
     },
     'F:RON': {
-        'name': 'Romanian Leu - Stablecoin',
+        'name': 'Romanian Leu',
         "imageurl": "/img/coin/ron.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/ron/",
         "url": "https://ron.to",
@@ -28791,7 +28790,7 @@ export default {
         "social_info":[]
     },
     'F:BDT': {
-        'name': 'Bangladeshi Taka - Stablecoin',
+        'name': 'Bangladeshi Taka',
         "imageurl": "/img/coin/bdt.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/bdt/",
         "url": "https://bdt.to",
@@ -28803,7 +28802,7 @@ export default {
         "social_info":[]
     },
     'F:PEN': {
-        'name': 'Peruvian Sol - Stablecoin',
+        'name': 'Peruvian Sol',
         "imageurl": "/img/coin/pen.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/pen/",
         "url": "https://pen.to",
@@ -28815,7 +28814,7 @@ export default {
         "social_info":[]
     },
     'F:GEL': {
-        'name': 'Georgian Lari - Stablecoin',
+        'name': 'Georgian Lari',
         "imageurl": "/img/coin/gel.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/gel/",
         "url": "https://gel.to",
@@ -28827,7 +28826,7 @@ export default {
         "social_info":[]
     },
     'F:XAF': {
-        'name': 'Central African CFA Franc BEAC - Stablecoin',
+        'name': 'Central African CFA Franc BEAC',
         "imageurl": "/img/coin/xaf.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/xaf/",
         "url": "https://xaf.to",
@@ -28839,7 +28838,7 @@ export default {
         "social_info":[]
     },
     'F:FJD': {
-        'name': 'Fijian Dollar - Stablecoin',
+        'name': 'Fijian Dollar',
         "imageurl": "/img/coin/fjd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/fjd/",
         "url": "https://fjd.to",
@@ -28851,7 +28850,7 @@ export default {
         "social_info":[]
     },
     'F:VEF': {
-        'name': 'Venezuelan Bolívar - Stablecoin',
+        'name': 'Venezuelan Bolívar',
         "imageurl": "/img/coin/vef.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/vef/",
         "url": "https://vef.to",
@@ -28863,7 +28862,7 @@ export default {
         "social_info":[]
     },
     'F:VES': {
-        'name': 'Venezuelan Bolívar - Stablecoin',
+        'name': 'Venezuelan Bolívar',
         "imageurl": "/img/coin/ves.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/ves/",
         "url": "https://ves.to",
@@ -28875,7 +28874,7 @@ export default {
         "social_info":[]
     },
     'F:BYN': {
-        'name': 'Belarusian Ruble - Stablecoin',
+        'name': 'Belarusian Ruble',
         "imageurl": "/img/coin/byn.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/byn/",
         "url": "https://byn.to",
@@ -28887,7 +28886,7 @@ export default {
         "social_info":[]
     },
     'F:HRK': {
-        'name': 'Croatian Kuna - Stablecoin',
+        'name': 'Croatian Kuna',
         "imageurl": "/img/coin/hrk.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/hrk/",
         "url": "https://hrk.to",
@@ -28899,7 +28898,7 @@ export default {
         "social_info":[]
     },
     'F:UZS': {
-        'name': 'Uzbekistani Som - Stablecoin',
+        'name': 'Uzbekistani Som',
         "imageurl": "/img/coin/uzs.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/uzs/",
         "url": "https://uzs.to",
@@ -28911,7 +28910,7 @@ export default {
         "social_info":[]
     },
     'F:BGN': {
-        'name': 'Bulgarian Lev - Stablecoin',
+        'name': 'Bulgarian Lev',
         "imageurl": "/img/coin/bgn.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/bgn/",
         "url": "https://bgn.to",
@@ -28923,7 +28922,7 @@ export default {
         "social_info":[]
     },
     'F:DZD': {
-        'name': 'Algerian Dinar - Stablecoin',
+        'name': 'Algerian Dinar',
         "imageurl": "/img/coin/dzd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/dzd/",
         "url": "https://dzd.to",
@@ -28935,7 +28934,7 @@ export default {
         "social_info":[]
     },
     'F:IRR': {
-        'name': 'Iranian Rial - Stablecoin',
+        'name': 'Iranian Rial',
         "imageurl": "/img/coin/irr.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/irr/",
         "url": "https://irr.to",
@@ -28947,7 +28946,7 @@ export default {
         "social_info":[]
     },
     'F:DOP': {
-        'name': 'Dominican Peso - Stablecoin',
+        'name': 'Dominican Peso',
         "imageurl": "/img/coin/dop.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/dop/",
         "url": "https://dop.to",
@@ -28959,7 +28958,7 @@ export default {
         "social_info":[]
     },
     'F:ISK': {
-        'name': 'Icelandic Krona - Stablecoin',
+        'name': 'Icelandic Krona',
         "imageurl": "/img/coin/isk.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/isk/",
         "url": "https://isk.to",
@@ -28971,7 +28970,7 @@ export default {
         "social_info":[]
     },
     'F:XAG': {
-        'name': 'Silver Ounce - Stablecoin',
+        'name': 'Silver Ounce',
         "imageurl": "/img/coin/xag.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/xag/",
         "url": "https://xag.to",
@@ -28983,7 +28982,7 @@ export default {
         "social_info":[]
     },
     'F:CRC': {
-        'name': 'Costa Rican Colon - Stablecoin',
+        'name': 'Costa Rican Colon',
         "imageurl": "/img/coin/crc.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/crc/",
         "url": "https://crc.to",
@@ -28995,7 +28994,7 @@ export default {
         "social_info":[]
     },
     'F:SYP': {
-        'name': 'Syrian Pound - Stablecoin',
+        'name': 'Syrian Pound',
         "imageurl": "/img/coin/syp.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/syp/",
         "url": "https://syp.to",
@@ -29007,7 +29006,7 @@ export default {
         "social_info":[]
     },
     'F:LYD': {
-        'name': 'Libyan Dinar - Stablecoin',
+        'name': 'Libyan Dinar',
         "imageurl": "/img/coin/lyd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/lyd/",
         "url": "https://lyd.to",
@@ -29019,7 +29018,7 @@ export default {
         "social_info":[]
     },
     'F:JMD': {
-        'name': 'Jamaican Dollar - Stablecoin',
+        'name': 'Jamaican Dollar',
         "imageurl": "/img/coin/jmd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/jmd/",
         "url": "https://jmd.to",
@@ -29031,7 +29030,7 @@ export default {
         "social_info":[]
     },
     'F:MUR': {
-        'name': 'Mauritian Rupee - Stablecoin',
+        'name': 'Mauritian Rupee',
         "imageurl": "/img/coin/mur.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/mur/",
         "url": "https://mur.to",
@@ -29043,7 +29042,7 @@ export default {
         "social_info":[]
     },
     'F:GHS': {
-        'name': 'Ghanaian Cedi - Stablecoin',
+        'name': 'Ghanaian Cedi',
         "imageurl": "/img/coin/ghs.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/ghs/",
         "url": "https://ghs.to",
@@ -29055,7 +29054,7 @@ export default {
         "social_info":[]
     },
     'F:AOA': {
-        'name': 'Angolan Kwanza - Stablecoin',
+        'name': 'Angolan Kwanza',
         "imageurl": "/img/coin/aoa.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/aoa/",
         "url": "https://aoa.to",
@@ -29067,7 +29066,7 @@ export default {
         "social_info":[]
     },
     'F:UYU': {
-        'name': 'Uruguayan Peso - Stablecoin',
+        'name': 'Uruguayan Peso',
         "imageurl": "/img/coin/uyu.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/uyu/",
         "url": "https://uyu.to",
@@ -29079,7 +29078,7 @@ export default {
         "social_info":[]
     },
     'F:AFN': {
-        'name': 'Afghan Afghani - Stablecoin',
+        'name': 'Afghan Afghani',
         "imageurl": "/img/coin/afn.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/afn/",
         "url": "https://afn.to",
@@ -29091,7 +29090,7 @@ export default {
         "social_info":[]
     },
     'F:LBP': {
-        'name': 'Lebanese Pound - Stablecoin',
+        'name': 'Lebanese Pound',
         "imageurl": "/img/coin/lbp.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/lbp/",
         "url": "https://lbp.to",
@@ -29103,7 +29102,7 @@ export default {
         "social_info":[]
     },
     'F:XPF': {
-        'name': 'CFP Franc - Stablecoin',
+        'name': 'CFP Franc',
         "imageurl": "/img/coin/xpf.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/xpf/",
         "url": "https://xpf.to",
@@ -29115,7 +29114,7 @@ export default {
         "social_info":[]
     },
     'F:TTD': {
-        'name': 'Trinidadian Dollar - Stablecoin',
+        'name': 'Trinidadian Dollar',
         "imageurl": "/img/coin/ttd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/ttd/",
         "url": "https://ttd.to",
@@ -29127,7 +29126,7 @@ export default {
         "social_info":[]
     },
     'F:TZS': {
-        'name': 'Tanzanian Shilling - Stablecoin',
+        'name': 'Tanzanian Shilling',
         "imageurl": "/img/coin/tzs.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/tzs/",
         "url": "https://tzs.to",
@@ -29139,7 +29138,7 @@ export default {
         "social_info":[]
     },
     'F:ALL': {
-        'name': 'Albanian Lek - Stablecoin',
+        'name': 'Albanian Lek',
         "imageurl": "/img/coin/all.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/all/",
         "url": "https://all.to",
@@ -29151,7 +29150,7 @@ export default {
         "social_info":[]
     },
     'F:XCD': {
-        'name': 'East Caribbean Dollar - Stablecoin',
+        'name': 'East Caribbean Dollar',
         "imageurl": "/img/coin/xcd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/xcd/",
         "url": "https://xcd.to",
@@ -29163,7 +29162,7 @@ export default {
         "social_info":[]
     },
     'F:GTQ': {
-        'name': 'Guatemalan Quetzal - Stablecoin',
+        'name': 'Guatemalan Quetzal',
         "imageurl": "/img/coin/gtq.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/gtq/",
         "url": "https://gtq.to",
@@ -29175,7 +29174,7 @@ export default {
         "social_info":[]
     },
     'F:NPR': {
-        'name': 'Nepalese Rupee - Stablecoin',
+        'name': 'Nepalese Rupee',
         "imageurl": "/img/coin/npr.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/npr/",
         "url": "https://npr.to",
@@ -29187,7 +29186,7 @@ export default {
         "social_info":[]
     },
     'F:BOB': {
-        'name': 'Bolivian Bolíviano - Stablecoin',
+        'name': 'Bolivian Bolíviano',
         "imageurl": "/img/coin/bob.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/bob/",
         "url": "https://bob.to",
@@ -29199,7 +29198,7 @@ export default {
         "social_info":[]
     },
     'F:ZWD': {
-        'name': 'Zimbabwean Dollar - Stablecoin',
+        'name': 'Zimbabwean Dollar',
         "imageurl": "/img/coin/zwd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/zwd/",
         "url": "https://zwd.to",
@@ -29211,7 +29210,7 @@ export default {
         "social_info":[]
     },
     'F:BBD': {
-        'name': 'Barbadian or Bajan Dollar - Stablecoin',
+        'name': 'Barbadian or Bajan Dollar',
         "imageurl": "/img/coin/bbd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/bbd/",
         "url": "https://bbd.to",
@@ -29223,7 +29222,7 @@ export default {
         "social_info":[]
     },
     'F:CUC': {
-        'name': 'Cuban Convertible Peso - Stablecoin',
+        'name': 'Cuban Convertible Peso',
         "imageurl": "/img/coin/cuc.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/cuc/",
         "url": "https://cuc.to",
@@ -29235,7 +29234,7 @@ export default {
         "social_info":[]
     },
     'F:LAK': {
-        'name': 'Lao Kip - Stablecoin',
+        'name': 'Lao Kip',
         "imageurl": "/img/coin/lak.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/lak/",
         "url": "https://lak.to",
@@ -29247,7 +29246,7 @@ export default {
         "social_info":[]
     },
     'F:BND': {
-        'name': 'Bruneian Dollar - Stablecoin',
+        'name': 'Bruneian Dollar',
         "imageurl": "/img/coin/bnd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/bnd/",
         "url": "https://bnd.to",
@@ -29259,7 +29258,7 @@ export default {
         "social_info":[]
     },
     'F:BWP': {
-        'name': 'Botswana Pula - Stablecoin',
+        'name': 'Botswana Pula',
         "imageurl": "/img/coin/bwp.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/bwp/",
         "url": "https://bwp.to",
@@ -29271,7 +29270,7 @@ export default {
         "social_info":[]
     },
     'F:HNL': {
-        'name': 'Honduran Lempira - Stablecoin',
+        'name': 'Honduran Lempira',
         "imageurl": "/img/coin/hnl.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/hnl/",
         "url": "https://hnl.to",
@@ -29283,7 +29282,7 @@ export default {
         "social_info":[]
     },
     'F:PYG': {
-        'name': 'Paraguayan Guarani - Stablecoin',
+        'name': 'Paraguayan Guarani',
         "imageurl": "/img/coin/pyg.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/pyg/",
         "url": "https://pyg.to",
@@ -29295,7 +29294,7 @@ export default {
         "social_info":[]
     },
     'F:ETB': {
-        'name': 'Ethiopian Birr - Stablecoin',
+        'name': 'Ethiopian Birr',
         "imageurl": "/img/coin/etb.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/etb/",
         "url": "https://etb.to",
@@ -29307,7 +29306,7 @@ export default {
         "social_info":[]
     },
     'F:NAD': {
-        'name': 'Namibian Dollar - Stablecoin',
+        'name': 'Namibian Dollar',
         "imageurl": "/img/coin/nad.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/nad/",
         "url": "https://nad.to",
@@ -29319,7 +29318,7 @@ export default {
         "social_info":[]
     },
     'F:PGK': {
-        'name': 'Papua New Guinean Kina - Stablecoin',
+        'name': 'Papua New Guinean Kina',
         "imageurl": "/img/coin/pgk.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/pgk/",
         "url": "https://pgk.to",
@@ -29331,7 +29330,7 @@ export default {
         "social_info":[]
     },
     'F:SDG': {
-        'name': 'Sudanese Pound - Stablecoin',
+        'name': 'Sudanese Pound',
         "imageurl": "/img/coin/sdg.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/sdg/",
         "url": "https://sdg.to",
@@ -29343,7 +29342,7 @@ export default {
         "social_info":[]
     },
     'F:MOP': {
-        'name': 'Macau Pataca - Stablecoin',
+        'name': 'Macau Pataca',
         "imageurl": "/img/coin/mop.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/mop/",
         "url": "https://mop.to",
@@ -29355,7 +29354,7 @@ export default {
         "social_info":[]
     },
     'F:NIO': {
-        'name': 'Nicaraguan Cordoba - Stablecoin',
+        'name': 'Nicaraguan Cordoba',
         "imageurl": "/img/coin/nio.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/nio/",
         "url": "https://nio.to",
@@ -29367,7 +29366,7 @@ export default {
         "social_info":[]
     },
     'F:BMD': {
-        'name': 'Bermudian Dollar - Stablecoin',
+        'name': 'Bermudian Dollar',
         "imageurl": "/img/coin/bmd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/bmd/",
         "url": "https://bmd.to",
@@ -29379,7 +29378,7 @@ export default {
         "social_info":[]
     },
     'F:KZT': {
-        'name': 'Kazakhstani Tenge - Stablecoin',
+        'name': 'Kazakhstani Tenge',
         "imageurl": "/img/coin/kzt.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/kzt/",
         "url": "https://kzt.to",
@@ -29391,7 +29390,7 @@ export default {
         "social_info":[]
     },
     'F:PAB': {
-        'name': 'Panamanian Balboa - Stablecoin',
+        'name': 'Panamanian Balboa',
         "imageurl": "/img/coin/pab.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/pab/",
         "url": "https://pab.to",
@@ -29403,7 +29402,7 @@ export default {
         "social_info":[]
     },
     'F:BAM': {
-        'name': 'Bosnian Convertible Marka - Stablecoin',
+        'name': 'Bosnian Convertible Marka',
         "imageurl": "/img/coin/bam.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/bam/",
         "url": "https://bam.to",
@@ -29415,7 +29414,7 @@ export default {
         "social_info":[]
     },
     'F:GYD': {
-        'name': 'Guyanese Dollar - Stablecoin',
+        'name': 'Guyanese Dollar',
         "imageurl": "/img/coin/gyd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/gyd/",
         "url": "https://gyd.to",
@@ -29427,7 +29426,7 @@ export default {
         "social_info":[]
     },
     'F:YER': {
-        'name': 'Yemeni Rial - Stablecoin',
+        'name': 'Yemeni Rial',
         "imageurl": "/img/coin/yer.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/yer/",
         "url": "https://yer.to",
@@ -29439,7 +29438,7 @@ export default {
         "social_info":[]
     },
     'F:MGA': {
-        'name': 'Malagasy Ariary - Stablecoin',
+        'name': 'Malagasy Ariary',
         "imageurl": "/img/coin/mga.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/mga/",
         "url": "https://mga.to",
@@ -29451,7 +29450,7 @@ export default {
         "social_info":[]
     },
     'F:KYD': {
-        'name': 'Caymanian Dollar - Stablecoin',
+        'name': 'Caymanian Dollar',
         "imageurl": "/img/coin/kyd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/kyd/",
         "url": "https://kyd.to",
@@ -29463,7 +29462,7 @@ export default {
         "social_info":[]
     },
     'F:MZN': {
-        'name': 'Mozambican Metical - Stablecoin',
+        'name': 'Mozambican Metical',
         "imageurl": "/img/coin/mzn.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/mzn/",
         "url": "https://mzn.to",
@@ -29475,7 +29474,7 @@ export default {
         "social_info":[]
     },
     'F:RSD': {
-        'name': 'Serbian Dinar - Stablecoin',
+        'name': 'Serbian Dinar',
         "imageurl": "/img/coin/rsd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/rsd/",
         "url": "https://rsd.to",
@@ -29487,7 +29486,7 @@ export default {
         "social_info":[]
     },
     'F:SCR': {
-        'name': 'Seychellois Rupee - Stablecoin',
+        'name': 'Seychellois Rupee',
         "imageurl": "/img/coin/scr.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/scr/",
         "url": "https://scr.to",
@@ -29499,7 +29498,7 @@ export default {
         "social_info":[]
     },
     'F:AMD': {
-        'name': 'Armenian Dram - Stablecoin',
+        'name': 'Armenian Dram',
         "imageurl": "/img/coin/amd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/amd/",
         "url": "https://amd.to",
@@ -29511,7 +29510,7 @@ export default {
         "social_info":[]
     },
     'F:SBD': {
-        'name': 'Solomon Islander Dollar - Stablecoin',
+        'name': 'Solomon Islander Dollar',
         "imageurl": "/img/coin/sbd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/sbd/",
         "url": "https://sbd.to",
@@ -29523,7 +29522,7 @@ export default {
         "social_info":[]
     },
     'F:AZN': {
-        'name': 'Azerbaijan Manat - Stablecoin',
+        'name': 'Azerbaijan Manat',
         "imageurl": "/img/coin/azn.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/azn/",
         "url": "https://azn.to",
@@ -29535,7 +29534,7 @@ export default {
         "social_info":[]
     },
     'F:SLL': {
-        'name': 'Sierra Leonean Leone - Stablecoin',
+        'name': 'Sierra Leonean Leone',
         "imageurl": "/img/coin/sll.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/sll/",
         "url": "https://sll.to",
@@ -29547,7 +29546,7 @@ export default {
         "social_info":[]
     },
     'F:TOP': {
-        'name': 'Tongan Paanga - Stablecoin',
+        'name': 'Tongan Paanga',
         "imageurl": "/img/coin/top.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/top/",
         "url": "https://top.to",
@@ -29559,7 +29558,7 @@ export default {
         "social_info":[]
     },
     'F:BZD': {
-        'name': 'Belizean Dollar - Stablecoin',
+        'name': 'Belizean Dollar',
         "imageurl": "/img/coin/bzd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/bzd/",
         "url": "https://bzd.to",
@@ -29571,7 +29570,7 @@ export default {
         "social_info":[]
     },
     'F:MWK': {
-        'name': 'Malawian Kwacha - Stablecoin',
+        'name': 'Malawian Kwacha',
         "imageurl": "/img/coin/mwk.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/mwk/",
         "url": "https://mwk.to",
@@ -29583,7 +29582,7 @@ export default {
         "social_info":[]
     },
     'F:GMD': {
-        'name': 'Gambian Dalasi - Stablecoin',
+        'name': 'Gambian Dalasi',
         "imageurl": "/img/coin/gmd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/gmd/",
         "url": "https://gmd.to",
@@ -29595,7 +29594,7 @@ export default {
         "social_info":[]
     },
     'F:BIF': {
-        'name': 'Burundian Franc - Stablecoin',
+        'name': 'Burundian Franc',
         "imageurl": "/img/coin/bif.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/bif/",
         "url": "https://bif.to",
@@ -29607,7 +29606,7 @@ export default {
         "social_info":[]
     },
     'F:SOS': {
-        'name': 'Somali Shilling - Stablecoin',
+        'name': 'Somali Shilling',
         "imageurl": "/img/coin/sos.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/sos/",
         "url": "https://sos.to",
@@ -29619,7 +29618,7 @@ export default {
         "social_info":[]
     },
     'F:HTG': {
-        'name': 'Haitian Gourde - Stablecoin',
+        'name': 'Haitian Gourde',
         "imageurl": "/img/coin/htg.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/htg/",
         "url": "https://htg.to",
@@ -29631,7 +29630,7 @@ export default {
         "social_info":[]
     },
     'F:GNF': {
-        'name': 'Guinean Franc - Stablecoin',
+        'name': 'Guinean Franc',
         "imageurl": "/img/coin/gnf.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/gnf/",
         "url": "https://gnf.to",
@@ -29643,7 +29642,7 @@ export default {
         "social_info":[]
     },
     'F:MVR': {
-        'name': 'Maldivian Rufiyaa - Stablecoin',
+        'name': 'Maldivian Rufiyaa',
         "imageurl": "/img/coin/mvr.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/mvr/",
         "url": "https://mvr.to",
@@ -29655,7 +29654,7 @@ export default {
         "social_info":[]
     },
     'F:MNT': {
-        'name': 'Mongolian Tughrik - Stablecoin',
+        'name': 'Mongolian Tughrik',
         "imageurl": "/img/coin/mnt.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/mnt/",
         "url": "https://mnt.to",
@@ -29667,7 +29666,7 @@ export default {
         "social_info":[]
     },
     'F:CDF': {
-        'name': 'Congolese Franc - Stablecoin',
+        'name': 'Congolese Franc',
         "imageurl": "/img/coin/cdf.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/cdf/",
         "url": "https://cdf.to",
@@ -29679,7 +29678,7 @@ export default {
         "social_info":[]
     },
     'F:STN': {
-        'name': 'Sao Tomean Dobra - Stablecoin',
+        'name': 'Sao Tomean Dobra',
         "imageurl": "/img/coin/stn.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/stn/",
         "url": "https://stn.to",
@@ -29691,7 +29690,7 @@ export default {
         "social_info":[]
     },
     'F:TJS': {
-        'name': 'Tajikistani Somoni - Stablecoin',
+        'name': 'Tajikistani Somoni',
         "imageurl": "/img/coin/tjs.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/tjs/",
         "url": "https://tjs.to",
@@ -29703,7 +29702,7 @@ export default {
         "social_info":[]
     },
     'F:KPW': {
-        'name': 'North Korean Won - Stablecoin',
+        'name': 'North Korean Won',
         "imageurl": "/img/coin/kpw.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/kpw/",
         "url": "https://kpw.to",
@@ -29715,7 +29714,7 @@ export default {
         "social_info":[]
     },
     'F:MMK': {
-        'name': 'Burmese Kyat - Stablecoin',
+        'name': 'Burmese Kyat',
         "imageurl": "/img/coin/mmk.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/mmk/",
         "url": "https://mmk.to",
@@ -29727,7 +29726,7 @@ export default {
         "social_info":[]
     },
     'F:LSL': {
-        'name': 'Basotho Loti - Stablecoin',
+        'name': 'Basotho Loti',
         "imageurl": "/img/coin/lsl.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/lsl/",
         "url": "https://lsl.to",
@@ -29739,7 +29738,7 @@ export default {
         "social_info":[]
     },
     'F:LRD': {
-        'name': 'Liberian Dollar - Stablecoin',
+        'name': 'Liberian Dollar',
         "imageurl": "/img/coin/lrd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/lrd/",
         "url": "https://lrd.to",
@@ -29751,7 +29750,7 @@ export default {
         "social_info":[]
     },
     'F:KGS': {
-        'name': 'Kyrgyzstani Som - Stablecoin',
+        'name': 'Kyrgyzstani Som',
         "imageurl": "/img/coin/kgs.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/kgs/",
         "url": "https://kgs.to",
@@ -29763,7 +29762,7 @@ export default {
         "social_info":[]
     },
     'F:GIP': {
-        'name': 'Gibraltar Pound - Stablecoin',
+        'name': 'Gibraltar Pound',
         "imageurl": "/img/coin/gip.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/gip/",
         "url": "https://gip.to",
@@ -29775,7 +29774,7 @@ export default {
         "social_info":[]
     },
     'F:XPT': {
-        'name': 'Platinum Ounce - Stablecoin',
+        'name': 'Platinum Ounce',
         "imageurl": "/img/coin/xpt.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/xpt/",
         "url": "https://xpt.to",
@@ -29787,7 +29786,7 @@ export default {
         "social_info":[]
     },
     'F:MDL': {
-        'name': 'Moldovan Leu - Stablecoin',
+        'name': 'Moldovan Leu',
         "imageurl": "/img/coin/mdl.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/mdl/",
         "url": "https://mdl.to",
@@ -29799,7 +29798,7 @@ export default {
         "social_info":[]
     },
     'F:CUP': {
-        'name': 'Cuban Peso - Stablecoin',
+        'name': 'Cuban Peso',
         "imageurl": "/img/coin/cup.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/cup/",
         "url": "https://cup.to",
@@ -29811,7 +29810,7 @@ export default {
         "social_info":[]
     },
     'F:KHR': {
-        'name': 'Cambodian Riel - Stablecoin',
+        'name': 'Cambodian Riel',
         "imageurl": "/img/coin/khr.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/khr/",
         "url": "https://khr.to",
@@ -29823,7 +29822,7 @@ export default {
         "social_info":[]
     },
     'F:MKD': {
-        'name': 'Macedonian Denar - Stablecoin',
+        'name': 'Macedonian Denar',
         "imageurl": "/img/coin/mkd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/mkd/",
         "url": "https://mkd.to",
@@ -29835,7 +29834,7 @@ export default {
         "social_info":[]
     },
     'F:VUV': {
-        'name': 'Ni-Vanuatu Vatu - Stablecoin',
+        'name': 'Ni-Vanuatu Vatu',
         "imageurl": "/img/coin/vuv.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/vuv/",
         "url": "https://vuv.to",
@@ -29847,7 +29846,7 @@ export default {
         "social_info":[]
     },
     'F:MRU': {
-        'name': 'Mauritanian Ouguiya - Stablecoin',
+        'name': 'Mauritanian Ouguiya',
         "imageurl": "/img/coin/mru.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/mru/",
         "url": "https://mru.to",
@@ -29859,7 +29858,7 @@ export default {
         "social_info":[]
     },
     'F:ANG': {
-        'name': 'Dutch Guilder - Stablecoin',
+        'name': 'Dutch Guilder',
         "imageurl": "/img/coin/ang.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/ang/",
         "url": "https://ang.to",
@@ -29871,7 +29870,7 @@ export default {
         "social_info":[]
     },
     'F:SZL': {
-        'name': 'Swazi Lilangeni - Stablecoin',
+        'name': 'Swazi Lilangeni',
         "imageurl": "/img/coin/szl.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/szl/",
         "url": "https://szl.to",
@@ -29883,7 +29882,7 @@ export default {
         "social_info":[]
     },
     'F:CVE': {
-        'name': 'Cape Verdean Escudo - Stablecoin',
+        'name': 'Cape Verdean Escudo',
         "imageurl": "/img/coin/cve.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/cve/",
         "url": "https://cve.to",
@@ -29895,7 +29894,7 @@ export default {
         "social_info":[]
     },
     'F:SRD': {
-        'name': 'Surinamese Dollar - Stablecoin',
+        'name': 'Surinamese Dollar',
         "imageurl": "/img/coin/srd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/srd/",
         "url": "https://srd.to",
@@ -29907,7 +29906,7 @@ export default {
         "social_info":[]
     },
     'F:XPD': {
-        'name': 'Palladium Ounce - Stablecoin',
+        'name': 'Palladium Ounce',
         "imageurl": "/img/coin/xpd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/xpd/",
         "url": "https://xpd.to",
@@ -29919,7 +29918,7 @@ export default {
         "social_info":[]
     },
     'F:SVC': {
-        'name': 'Salvadoran Colon - Stablecoin',
+        'name': 'Salvadoran Colon',
         "imageurl": "/img/coin/svc.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/svc/",
         "url": "https://svc.to",
@@ -29931,7 +29930,7 @@ export default {
         "social_info":[]
     },
     'F:BSD': {
-        'name': 'Bahamian Dollar - Stablecoin',
+        'name': 'Bahamian Dollar',
         "imageurl": "/img/coin/bsd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/bsd/",
         "url": "https://bsd.to",
@@ -29943,7 +29942,7 @@ export default {
         "social_info":[]
     },
     'F:XDR': {
-        'name': 'IMF Special Drawing Rights - Stablecoin',
+        'name': 'IMF Special Drawing Rights',
         "imageurl": "/img/coin/xdr.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/xdr/",
         "url": "https://xdr.to",
@@ -29955,7 +29954,7 @@ export default {
         "social_info":[]
     },
     'F:RWF': {
-        'name': 'Rwandan Franc - Stablecoin',
+        'name': 'Rwandan Franc',
         "imageurl": "/img/coin/rwf.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/rwf/",
         "url": "https://rwf.to",
@@ -29967,7 +29966,7 @@ export default {
         "social_info":[]
     },
     'F:AWG': {
-        'name': 'Aruban or Dutch Guilder - Stablecoin',
+        'name': 'Aruban or Dutch Guilder',
         "imageurl": "/img/coin/awg.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/awg/",
         "url": "https://awg.to",
@@ -29979,7 +29978,7 @@ export default {
         "social_info":[]
     },
     'F:DJF': {
-        'name': 'Djiboutian Franc - Stablecoin',
+        'name': 'Djiboutian Franc',
         "imageurl": "/img/coin/djf.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/djf/",
         "url": "https://djf.to",
@@ -29991,7 +29990,7 @@ export default {
         "social_info":[]
     },
     'F:BTN': {
-        'name': 'Bhutanese Ngultrum - Stablecoin',
+        'name': 'Bhutanese Ngultrum',
         "imageurl": "/img/coin/btn.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/btn/",
         "url": "https://btn.to",
@@ -30003,7 +30002,7 @@ export default {
         "social_info":[]
     },
     'F:KMF': {
-        'name': 'Comorian Franc - Stablecoin',
+        'name': 'Comorian Franc',
         "imageurl": "/img/coin/kmf.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/kmf/",
         "url": "https://kmf.to",
@@ -30015,7 +30014,7 @@ export default {
         "social_info":[]
     },
     'F:WST': {
-        'name': 'Samoan Tala - Stablecoin',
+        'name': 'Samoan Tala',
         "imageurl": "/img/coin/wst.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/wst/",
         "url": "https://wst.to",
@@ -30027,7 +30026,7 @@ export default {
         "social_info":[]
     },
     'F:SPL': {
-        'name': 'Seborgan Luigino - Stablecoin',
+        'name': 'Seborgan Luigino',
         "imageurl": "/img/coin/spl.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/spl/",
         "url": "https://spl.to",
@@ -30039,7 +30038,7 @@ export default {
         "social_info":[]
     },
     'F:ERN': {
-        'name': 'Eritrean Nakfa - Stablecoin',
+        'name': 'Eritrean Nakfa',
         "imageurl": "/img/coin/ern.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/ern/",
         "url": "https://ern.to",
@@ -30051,7 +30050,7 @@ export default {
         "social_info":[]
     },
     'F:FKP': {
-        'name': 'Falkland Island Pound - Stablecoin',
+        'name': 'Falkland Island Pound',
         "imageurl": "/img/coin/fkp.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/fkp/",
         "url": "https://fkp.to",
@@ -30063,7 +30062,7 @@ export default {
         "social_info":[]
     },
     'F:SHP': {
-        'name': 'Saint Helenian Pound - Stablecoin',
+        'name': 'Saint Helenian Pound',
         "imageurl": "/img/coin/shp.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/shp/",
         "url": "https://shp.to",
@@ -30075,7 +30074,7 @@ export default {
         "social_info":[]
     },
     'F:JEP': {
-        'name': 'Jersey Pound - Stablecoin',
+        'name': 'Jersey Pound',
         "imageurl": "/img/coin/jep.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/jep/",
         "url": "https://jep.to",
@@ -30087,7 +30086,7 @@ export default {
         "social_info":[]
     },
     'F:TMT': {
-        'name': 'Turkmenistani Manat - Stablecoin',
+        'name': 'Turkmenistani Manat',
         "imageurl": "/img/coin/tmt.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/tmt/",
         "url": "https://tmt.to",
@@ -30099,7 +30098,7 @@ export default {
         "social_info":[]
     },
     'F:TVD': {
-        'name': 'Tuvaluan Dollar - Stablecoin',
+        'name': 'Tuvaluan Dollar',
         "imageurl": "/img/coin/tvd.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/tvd/",
         "url": "https://tvd.to",
@@ -30111,7 +30110,7 @@ export default {
         "social_info":[]
     },
     'F:IMP': {
-        'name': 'Isle of Man Pound - Stablecoin',
+        'name': 'Isle of Man Pound',
         "imageurl": "/img/coin/imp.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/imp/",
         "url": "https://imp.to",
@@ -30123,7 +30122,7 @@ export default {
         "social_info":[]
     },
     'F:GGP': {
-        'name': 'Guernsey Pound - Stablecoin',
+        'name': 'Guernsey Pound',
         "imageurl": "/img/coin/ggp.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/ggp/",
         "url": "https://ggp.to",
@@ -30135,7 +30134,7 @@ export default {
         "social_info":[]
     },
     'F:ZMW': {
-        'name': 'Zambian Kwacha - Stablecoin',
+        'name': 'Zambian Kwacha',
         "imageurl": "/img/coin/zmw.png",
         "coinmarketcap": "https://coinmarketcap.com/currencies/zmw/",
         "url": "https://zmw.to",

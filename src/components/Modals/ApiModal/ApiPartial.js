@@ -13,6 +13,14 @@ class ApiPartial extends Component {
         isInProgress: false,
     };
 
+    clearHandleConfirmButtonTimeout = null;
+
+    componentWillUnmount() {
+        if (this.clearHandleConfirmButtonTimeout) {
+            this.clearHandleConfirmButtonTimeout();
+        }
+    }
+
     handleChange = field => value => {
         this.setState({
             [field]: value,
@@ -24,7 +32,11 @@ class ApiPartial extends Component {
             isInProgress: true,
         });
 
-        setTimeout(() => {
+
+        if (this.clearHandleConfirmButtonTimeout) {
+            this.clearHandleConfirmButtonTimeout();
+        }
+        this.clearHandleConfirmButtonTimeout = this.props.setSafeTimeout(() => {
             this.props.updateExchange(this.props.exchange, {
                 apiKey: this.state.apiKey,
                 apiSecret: this.state.apiSecret,

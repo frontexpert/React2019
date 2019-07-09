@@ -9,6 +9,7 @@
   "settings.label_access_level": "Tingkat Akses",
   "settings.label_balance_includes_credit": "Saldo termasuk Kredit",
   "settings.label_google_2fa": "Google 2FA",
+  "settings.label_email_2fa": "Email 2FA",
   "settings.label_arbitrage_mode": "Mode Arbitrage",
   "settings.label_private_vpn": "VPN pribadi",
   "settings.label_store_credit": "Kredit Toko",
@@ -187,7 +188,6 @@
   "data_loader_done.label_done": "DIBUAT",
   "sms_verification.label_enter_mobile_number": "Masukkan nomor ponsel",
   "sms_verification.label_what_code": "Apa kodenya?",
-  "switch_custom.label_off": "MATI",
 
   "button.save": "Menyimpan",
   "button.confirm": "Confirm",
@@ -216,5 +216,6 @@
   "order_book.buy_book.label_max_order_size": "MAX ORDER UKURAN: ",
   "settings.label_auto_flip": "Balik Otomatis",
   "settings.label_swaps": "Menukar",
-  "settings.label_is_auto_convert": "Konversi Otomatis"
+  "settings.label_is_auto_convert": "Konversi Otomatis",
+  "settings.label_support_center": "Pusat Dukungan Platform"
 }

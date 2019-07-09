@@ -1,15 +1,16 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import { FormattedMessage } from 'react-intl';
+
 import GradientButton from '../../components-generic/GradientButtonSquare';
-import { CreditSection } from '../YourAccount/AddFundsModal2/Components';
 
 const OuterWrapper = styled.section`
     background-color: ${props => props.theme.palette.clrMainWindow};
     color: ${props => props.theme.palette.clrHighContrast};
     border-radius: ${props => props.theme.palette.borderRadius};
     font-size: 12px;
-    width: 360px;
+    width: calc(100vw - 30px);
+    max-width: 360px;
     height: 200px;
     box-shadow: 0 3px 10px 5px rgba(0, 0, 0, .52);
 `;
@@ -37,8 +38,17 @@ const ButtonWrappers = styled.div`
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    padding: 40px 50px 0;
+    padding-top: 40px;
     width: 100%;
+    
+    button {
+        &:first-child {
+            margin: 0 10px 0 auto;
+        }
+        &:last-child {
+            margin: 0 auto 0 10px;
+        }
+    }
 `;
 
 const logOutAccount = () => {
@@ -58,7 +68,7 @@ const Content = ({ toggleModal }) => (
 
             <ButtonWrappers>
                 <GradientButton
-                    className="negative-solid"
+                    className="primary-solid"
                     width={120}
                     height={40}
                     onClick={toggleModal}

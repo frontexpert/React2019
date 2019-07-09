@@ -16,8 +16,11 @@ const rootKeys = createKeysEnum([
 // http://prntscr.com/m42q0y (2019.01.07 design)
 const corePalette = {
     clrBackground: '#020518',
+    clrChartBackground: '#080924',
+    clrPriceChartAreaBackground: '#0c102a',
     clrMainWindow: '#0d112b',
     clrPurple: '#7f8bc2',
+    clrWhite: 'rgba(255, 255, 255, 1.0)',
     clrDarkPurple: '#1b1c3d',
     clrBlue: '#2780ff',
     clrDarkBlue: '#1f67bc',
@@ -33,6 +36,7 @@ const corePalette = {
     clrInnerBorder: 'rgba(69, 76, 115, 0.5)',
     clrBorderLight: 'rgba(69, 76, 115, 0.5)',
     clrBorderHover: '#747ba6',
+    clrBorderHoverLight: 'rgb(116,123,166, 0.5)',
     clrBorderGray: '#333333',
     clrDisabled: '#1b1c3d',
     clrDarkPink: '#733fda',
@@ -40,11 +44,22 @@ const corePalette = {
     clrLightGray: '#999999',
     clrDarkGray: '#303030',
     clrLightBlue: '#41669d',
+    clrYellow: '#faea05',
 
     regularSpacer: '15px',
     cornerRadius: '3px',
     defaultStrokeWeight: '1px',
     portfolioChartStrokeWeight: '3px',
+
+    // order book
+    fern: '#68B168',
+    pastelGreen: '#7BDB7A',
+    dodgerBlue: '#09f',
+    malibu: '#66CBFF',
+    olive: '#4c9201',
+    cobalt: '#0057a3',
+    silver: '#c1c1c1',
+    portGore: '#191D3E',
 };
 
 // Shared styles between dark & light theme
@@ -71,11 +86,11 @@ const btnColorPalette = {
     btnPositiveHoverText: '#fff',
     btnPositiveActiveBg: '#05DB75',
     btnPositiveActiveText: '#01B067',
-    btnNegativeBg: '#BB1E1E',
+    btnNegativeBg: '#09f',
     btnNegativeText: '#fff',
-    btnNegativeHoverBg: '#D82525',
+    btnNegativeHoverBg: '#66CBFF',
     btnNegativeHoverText: '#fff',
-    btnNegativeActiveBg: '#d82525',
+    btnNegativeActiveBg: '#66CBFF',
     btnNegativeActiveText: '#BB1E1E',
 };
 
@@ -201,6 +216,7 @@ export const darkTheme = {
         // settings
         settingsBackground: corePalette.clrBackground,
         settingsText: corePalette.clrPurple,
+        settingsSelectedText: corePalette.clrWhite,
         settingsBorder: corePalette.clrBorder,
         settingsHeaderBackground: corePalette.clrBackground,
         settingsHeaderText: corePalette.clrHighContrast,
@@ -298,7 +314,7 @@ export const darkTheme = {
         // orderFormIcon: corePalette.clrMouseClick,
         // orderFormTabActive: '#02a4d3',
 
-        orderHistoryBackground: corePalette.clrMainWindow,
+        orderHistoryBackground: corePalette.clrBackground,
         orderHistoryBorder: corePalette.clrInnerBorder,
         orderHistoryText: corePalette.clrPurple,
         orderHistoryHoverText: corePalette.clrHighContrast,
@@ -321,15 +337,20 @@ export const darkTheme = {
         orderBookTableHeaderBorder: corePalette.clrBorder,
         orderBookTableHeaderText: corePalette.clrHighContrast,
         orderBookTableHeaderText2: corePalette.clrHighContrast,
+        orderBookTableHeaderButton: corePalette.clrYellow,
         orderBookTableCellBg: corePalette.clrBackground,
         orderBookTableCellBorder: corePalette.clrBorder,
-        orderBookHistoryCellInnerborder: corePalette.clrInnerBorder,
+        orderBookHistoryCellInnerborder: corePalette.portGore,
         orderBookTableCellText: corePalette.clrPurple,
-        orderBookTableCellTextAmount: corePalette.clrPurple,
-        orderBookTableCellTextNegative: corePalette.clrRed,
-        orderBookTableCellTextNegativeDark: corePalette.clrDarkRed,
-        orderBookTableCellTextPositive: corePalette.clrGreen,
-        orderBookTableCellTextPositiveDark: corePalette.clrDarkGreen,
+        orderBookTableCellTextAmount: '#bfbfbf',
+        orderBookTableCellTextBuy: corePalette.fern,
+        orderBookTableCellTextBuyBright: corePalette.pastelGreen,
+        orderBookTableCellTextBuyPriceInteger: '#5a975b',
+        orderBookTableCellTextSell: corePalette.dodgerBlue,
+        orderBookTableCellTextSellBright: corePalette.malibu,
+        orderBookTableCellTextSellPriceInteger: '#0a84d6',
+        orderBookTableCellBuyProgress: corePalette.olive,
+        orderBookTableCellSellProgress: corePalette.cobalt,
         orderBookTableCellHoverBg: corePalette.clrMouseHover,
         orderBookTableSpreadBg: corePalette.clrMainWindow,
         orderBookTableSpreadBorder: corePalette.clrBorder,
@@ -339,12 +360,16 @@ export const darkTheme = {
         orderBookAddonBorder: corePalette.clrBorder,
         orderBookAddonFill: corePalette.clrBorder,
         orderBookAddonHoverFill: corePalette.clrHighContrast,
+        orderBookIconFilter: 'invert(51%) sepia(41%) saturate(369%) hue-rotate(192deg) brightness(101%) contrast(90%)',
+        orderBookSellIconFilter: 'invert(47%) sepia(36%) saturate(4767%) hue-rotate(181deg) brightness(100%) contrast(104%)',
+        orderBookBuyIconFilter: 'invert(80%) sepia(11%) saturate(4698%) hue-rotate(62deg) brightness(98%) contrast(40%)',
 
         orderFormBg: corePalette.clrBackground,
         orderFormBorder: corePalette.clrBorder,
         orderFormHeaderBg: corePalette.clrMainWindow,
         orderFormHeaderText: corePalette.clrPurple,
         orderFormHeaderTabText: corePalette.clrMouseClick,
+        orderFormHeaderTabTextHover: corePalette.clrWhite,
         orderFormHeaderTabBorder: 'transparent',
         orderFormHeaderTabHoverText: corePalette.clrHighContrast,
         orderFormHeaderTabHoverBorder: 'transparent',
@@ -452,6 +477,7 @@ export const darkTheme = {
         walletToggleIcon: corePalette.clrMouseClick,
         walletSmallLinksToggleBg: corePalette.clrPurple,
         walletSmallLinksToggleText: corePalette.clrMainWindow,
+        walletHeaderIconFilter: 'invert(100%) sepia(1%) saturate(7496%) hue-rotate(291deg) brightness(116%) contrast(89%)',
 
         exchHeadHeight: '58px',
 
@@ -474,6 +500,8 @@ export const darkTheme = {
         coinPairSelectBg: corePalette.clrBackground,
         coinPairBuyDisabledBg: '#021620',
         coinPairSellDisabledBg: '#140819',
+        coinPairSellArrow: corePalette.dodgerBlue,
+        coinPairBuyArrow: corePalette.fern,
         coinPairSelectBorder: corePalette.clrBorder,
         coinPairSelectText: corePalette.clrHighContrast,
         coinPairSelectText2: corePalette.clrBorder,
@@ -519,6 +547,11 @@ export const darkTheme = {
         coinPairDoneBtnBg: corePalette.clrGreen,
         coinPairDoneBtnText: corePalette.clrHighContrast,
 
+        coinActiveFilter: 'invert(100%) sepia(0%) saturate(7484%) hue-rotate(303deg) brightness(105%) contrast(92%)',
+        coinInactiveFilter: 'invert(29%) sepia(15%) saturate(1496%) hue-rotate(193deg) brightness(91%) contrast(85%)',
+        coinBuyFilter: 'invert(60%) sepia(58%) saturate(5791%) hue-rotate(126deg) brightness(93%) contrast(101%)',
+        coinSellFilter: 'invert(39%) sepia(35%) saturate(4473%) hue-rotate(186deg) brightness(108%) contrast(103%)',
+
         // Gradient Btns
         gradientBtnNextBg: 'linear-gradient(to right, rgba(14,113,184,1) 0%, rgba(14,113,184,1) 15%, rgba(0,157,225,1) 45%, rgba(0,157,225,1) 55%, rgba(14,113,184,1) 85%, rgba(14,113,184,1) 100%)',
         gradientBtnNextHoverBg: 'linear-gradient(to right, rgb(16,129,210) 0%, rgb(16,131,214) 15%, rgba(0,157,225,1) 45%, rgba(0,157,225,1) 55%, rgb(16,131,214) 85%, rgb(16,129,210) 100%)',
@@ -529,8 +562,8 @@ export const darkTheme = {
         gradientBtnDisabled: '#0E1521',
 
         // Controls
-        ctrlSliderTrackBg: corePalette.clrBorderHover,
-        ctrlSliderTrackProgressBg: corePalette.clrHighContrast,
+        ctrlSliderTrackBg: corePalette.clrBorder,
+        ctrlSliderTrackProgressBg: corePalette.clrBorderHover,
         ctrlsliderTrackDisabledBg: corePalette.clrBorder,
         ctrlSliderTrackCurrentBg: corePalette.clrMainWindow,
         ctrlSliderThumbBg: corePalette.clrHighContrast,
@@ -539,7 +572,7 @@ export const darkTheme = {
         ctrlSliderThumbHoverBorder: corePalette.clrMainWindow,
         ctrlSliderThumbActiveBg: corePalette.clrBorderHover,
         ctrlSliderThumbActiveBorder: corePalette.clrHighContrast,
-        ctrlSliderDelimiterBg: corePalette.clrBorderHover,
+        ctrlSliderDelimiterBg: corePalette.clrBorder,
         ctrlSliderDelimiterBorder: corePalette.clrMainWindow,
         ctrlSliderDelimiterActiveBg: corePalette.clrHighContrast,
         ctrlSliderDelimiterActiveBorder: corePalette.clrMainWindow,
@@ -619,6 +652,6 @@ export const darkTheme = {
         mobile2PhoneInputBg: '#05040a',
         mobile2PhoneInputBorder: '#3269d1',
         mobile2CurrencyCornerNumber: '#fbdf8a',
-        mobile2CurrencyCornerBg: '#826858d0',
+        mobile2CurrencyCornerBg: 'rgba(130,104,88,0.815)',
     },
 };

@@ -12,7 +12,7 @@ RUN yarn
 
 # copy everything else and build
 COPY . ./
-RUN npm run build:production
+RUN npm run build
 
 FROM nginx:stable
 EXPOSE 80

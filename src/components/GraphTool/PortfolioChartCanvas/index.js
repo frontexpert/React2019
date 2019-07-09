@@ -1,36 +1,42 @@
 import React, { Component } from 'react';
 import { inject, observer } from 'mobx-react';
 import moment from 'moment';
-import min from 'lodash.min';
-import { FormattedMessage } from 'react-intl';
 
-import LineChart from '../../../lib/lineChart';
-import { STORE_KEYS } from '../../../stores';
-import { MAX_PRICES_LENGTH } from '../../../stores/PriceChartStore';
-import PortfolioValue from '../YourPortfolio/SplineAreaChartHighCharts/PortfolioValue';
-import CurrencyDropdownWithSymbol from '../../../components-generic/CurrencyDropdown/CurrencyDropdownWithSymbol';
-import { unifyDigitString } from '../../../utils';
+import LineChart from '@/lib/chartModules/lineChart';
+import { STORE_KEYS } from '@/stores';
+// import { STATE_KEYS } from '@/stores/ConvertStore';
+// import PortfolioValue from '@/components/GraphTool/YourPortfolio/PortfolioValue';
+// import { PieChartIcon } from '@/components/OrderHistory/OrderHistoryTable/Components';
+// import TimeFilters from '../TimeFilters';
+import { FILTERS } from '@/stores/HistoricalPricesStore';
 
 import {
-    ChartWrapper, PortfolioLabels, TotalPrice, PriceLabel, BackTesting, OneDayProfitStyled
+    ChartWrapper,
+    // PortfolioLabels,
+    // ChartInfoWrapper,
+    // GraphControlWrapper
 } from './styles';
 
+const MAX_PRICES_LENGTH = 600;
 const DUMMY_LINE_TIMEOUT = 2000;
+const GAP_TO_THE_RIGHT_EDGE = 1.39;
 
 class PortfolioChartCanvas extends Component {
-    constructor(props) {
-        super(props);
+    defaultFiat = undefined;
+    defaultCrypto = undefined;
+    selectedCoin = undefined;
+    chartInitialized = false;
+    selectedTimeFilter = undefined;
 
-        this.defaultFiat = undefined;
-        this.defaultCrypto = undefined;
-        this.selectedCoin = undefined;
-        this.chartInitialized = false;
+    drawDummyLineTimer = undefined;
+    nextPriceTimer = undefined;
+    dummyLineDrawnAt = undefined;
+    prevDataLength = 0;
+    forceShowPieChart = false;
 
-        this.drawDummyLineTimer = undefined;
-        this.nextPriceTimer = undefined;
-        this.dummyLineDrawnAt = undefined;
-        this.prevDataLength = 0;
-    }
+    state = {
+        selectedTimeFilter: undefined,
+    };
 
     componentDidMount() {
         this.handleNewData();
@@ -44,99 +50,141 @@ class PortfolioChartCanvas extends Component {
         this.destroyChart();
     }
 
-    getPortfolioInfo = () => {
+    handleFocus = () => {
+        if (this.forceShowPieChart) return;
+        const { [STORE_KEYS.VIEWMODESTORE]: viewModeStore } = this.props;
+
+        viewModeStore.setGraphSwitchMode(true);
+    };
+
+    handleLeave = () => {
+        if (this.forceShowPieChart) return;
+        const {[STORE_KEYS.VIEWMODESTORE]: viewModeStore} = this.props;
+
+        viewModeStore.setGraphSwitchMode(false);
+    };
+
+    onClickPieChartIcon = () => {
+        const { [STORE_KEYS.VIEWMODESTORE]: { setGraphSwitchMode } } = this.props;
+        setGraphSwitchMode(!this.forceShowPieChart);
+        this.forceShowPieChart = !this.forceShowPieChart;
+    };
+
+    getTimeEdges = () => {
         const {
-            [STORE_KEYS.PORTFOLIODATASTORE]: {
-                oneDayProfit,
-                lastPortfolioValue,
-                lastPortfolioValueChange,
-                isActiveState,
-            },
+            [STORE_KEYS.ORDERHISTORY]: { PortfolioGraphData },
         } = this.props;
 
-        const oneDayProfitStr = unifyDigitString(oneDayProfit);
+        const { selectedTimeFilter } = this.state;
 
-        return (
-            <PortfolioLabels>
-                <TotalPrice>
-                    <PriceLabel>
-                        <FormattedMessage id="graph_tool.your_portfolio.label_portfolio" defaultMessage="Portfolio" />
-                    </PriceLabel>
+        const now = Date.now();
+        let startTime = now;
+        let endTime = moment()
+            .add(180, 'seconds')
+            .valueOf();
 
-                    <PortfolioValue
-                        lastPortfolioValue={lastPortfolioValue}
-                        lastPortfolioValueChange={lastPortfolioValueChange}
-                        isActiveState={isActiveState}
-                    />
-                </TotalPrice>
+        if (selectedTimeFilter) {
+            startTime = now - FILTERS[selectedTimeFilter].ms;
+            endTime = now;
+        } else if (PortfolioGraphData.length) {
+            startTime = Math.max(
+                PortfolioGraphData[0].x,
+                moment()
+                    .subtract(14, 'minutes')
+                    .valueOf()
+            );
+            endTime = Math.max(startTime + (now - startTime) * GAP_TO_THE_RIGHT_EDGE, endTime);
+        }
 
-                {oneDayProfit > 0 && oneDayProfitStr.length < 12 && (
-                    <BackTesting>
-                        (
-                        <FormattedMessage
-                            id="graph_tool.your_portfolio.label_backtesting"
-                            defaultMessage="Backtesting"
-                        />
-                        :
-                        <OneDayProfitStyled>{oneDayProfitStr}</OneDayProfitStyled>
-                        <FormattedMessage
-                            id="graph_tool.your_portfolio.label_desc"
-                            defaultMessage="/day. Capped at 365%/year"
-                        />
-                        )
-                    </BackTesting>
-                )}
-            </PortfolioLabels>
-        );
+        return { startTime, endTime };
     };
 
     handleNewData = () => {
         const {
-            [STORE_KEYS.PORTFOLIODATASTORE]: { portfolioData },
+            [STORE_KEYS.ORDERHISTORY]: { PortfolioGraphData },
+            [STORE_KEYS.SETTINGSSTORE]: { defaultFiatSymbol, isDefaultCrypto },
         } = this.props;
 
-        if ((this.prevDataLength && !portfolioData.length) || (!this.prevDataLength && portfolioData.length)) {
-            this.destroyChart();
-        }
+        const { selectedTimeFilter } = this.state;
 
         if (this.chartInitialized) {
             this.updateChart();
         } else {
             this.chartInitialized = true;
-            let data = [];
-            const now = Date.now();
-            let startTime = now;
-            let endTime = moment()
-                .add(120, 'seconds')
-                .valueOf();
-            if (portfolioData.length) {
-                data = this.patchPriceData(portfolioData);
-                startTime = min(portfolioData.map(item => item[0]));
-                endTime = now + Math.min(Math.round((now - startTime) / 2), 120000);
-                if (endTime - startTime < 120000) {
-                    endTime = startTime + 120000;
+            let data = PortfolioGraphData.slice();
+
+            const { startTime, endTime } = this.getTimeEdges();
+
+            if (selectedTimeFilter) {
+                if (data.length) {
+                    if (data[0].x > startTime) {
+                        data.unshift({ x: startTime, y: data[0].y });
+                    }
+                    if (data[data.length - 1].x < endTime) {
+                        data.push({ x: endTime, y: data[data.length - 1].y });
+                    }
+                } else {
+                    data = [{ x: startTime, y: 0 }, { x: endTime, y: 0 }];
                 }
             }
 
+            const coinSymbol = isDefaultCrypto ? 'B' : defaultFiatSymbol;
+
             this.chart = new LineChart({
                 el: this.el,
-                maxDataLength: MAX_PRICES_LENGTH,
                 data,
                 config: {
-                    yAxesOffset: true,
-                    steppedLine: true,
+                    liveMode: !selectedTimeFilter,
                     startTime,
                     endTime,
-                    minRangeForZoom: startTime,
-                    timeLimitWhenShift: (endTime - startTime) * 0.1,
+                    // this is added to make grid lines be aligned with rows in the left block
+                    maxTicksLimit: 9,
+                    yAxesOffset: true,
+                    steppedLine: true,
+                    removeRecurringPricesAtTheEnd: true,
+                    maxDataLength: MAX_PRICES_LENGTH,
+                    coinSymbol,
+                    isPortfolio: true,
                 },
             });
 
-            // make the chart dynamic
-            this.drawDummyLine();
+            if (!selectedTimeFilter) {
+                // make the chart dynamic
+                this.drawDummyLine();
+            }
         }
 
-        this.prevDataLength = portfolioData.length;
+        this.prevDataLength = PortfolioGraphData.length;
+    };
+
+    handleChartState = () => {
+        const {
+            [STORE_KEYS.YOURACCOUNTSTORE]: { selectedCoin },
+            [STORE_KEYS.SETTINGSSTORE]: { defaultFiat, defaultCrypto },
+            [STORE_KEYS.ORDERHISTORY]: { PortfolioGraphData },
+        } = this.props;
+
+        const { selectedTimeFilter } = this.state;
+
+        if (
+            // if any coin changed
+            this.defaultFiat !== defaultFiat ||
+            this.defaultCrypto !== defaultCrypto ||
+            this.selectedCoin !== selectedCoin ||
+            // if time filter changed
+            this.selectedTimeFilter !== selectedTimeFilter ||
+            // if new data comes
+            (this.prevDataLength && !PortfolioGraphData.length) ||
+            (!this.prevDataLength && PortfolioGraphData.length)
+        ) {
+            // destroy and save the state
+            this.destroyChart();
+            this.defaultFiat = defaultFiat;
+            this.selectedCoin = selectedCoin;
+            this.defaultCrypto = defaultCrypto;
+            this.selectedTimeFilter = selectedTimeFilter;
+            this.prevDataLength = PortfolioGraphData.length;
+        }
     };
 
     destroyChart = () => {
@@ -148,24 +196,25 @@ class PortfolioChartCanvas extends Component {
         }
     };
 
-    patchPriceData = priceData => priceData.map(item => ({ x: item[0], y: item[1] }));
-
     updateChart = forcedItem => {
+        const { selectedTimeFilter } = this.state;
+        if (selectedTimeFilter) {
+            return;
+        }
+
         const timeSinceLastDraw = Date.now() - (this.dummyLineDrawnAt || 0);
         let timeoutBeforeNextDraw = Math.max(DUMMY_LINE_TIMEOUT - timeSinceLastDraw, 0);
 
         let nextItem = forcedItem;
         if (!forcedItem) {
             const {
-                [STORE_KEYS.PORTFOLIODATASTORE]: { portfolioData },
+                [STORE_KEYS.ORDERHISTORY]: { PortfolioGraphData },
             } = this.props;
-
-            if (!portfolioData.length) {
+            if (!PortfolioGraphData.length) {
                 return;
             }
 
-            const nextItemArray = portfolioData[portfolioData.length - 1];
-            nextItem = { x: nextItemArray[0], y: nextItemArray[1] };
+            nextItem = PortfolioGraphData[PortfolioGraphData.length - 1];
 
             clearTimeout(this.drawDummyLineTimer);
             this.drawDummyLineTimer = setTimeout(this.drawDummyLine, DUMMY_LINE_TIMEOUT);
@@ -178,10 +227,10 @@ class PortfolioChartCanvas extends Component {
 
     drawDummyLine = () => {
         const {
-            [STORE_KEYS.PORTFOLIODATASTORE]: { portfolioData },
+            [STORE_KEYS.ORDERHISTORY]: { PortfolioGraphData, lastPortfolioValue },
         } = this.props;
 
-        const lastPrice = portfolioData.length ? portfolioData[portfolioData.length - 1][1] : 0;
+        const lastPrice = PortfolioGraphData.length ? Number(PortfolioGraphData[PortfolioGraphData.length - 1].y) : lastPortfolioValue;
         const dateNow = Date.now();
 
         this.updateChart({ x: dateNow, y: lastPrice });
@@ -190,34 +239,66 @@ class PortfolioChartCanvas extends Component {
         this.drawDummyLineTimer = setTimeout(this.drawDummyLine, DUMMY_LINE_TIMEOUT);
     };
 
+    onChangeTimeFilter = selectedTimeFilter => {
+        this.setState({
+            selectedTimeFilter,
+        });
+    };
+
+    toggleBillPopup = () => {
+        const {
+            [STORE_KEYS.SETTINGSSTORE]: { isDefaultCrypto, defaultFiat, defaultCryptoSymbol },
+            [STORE_KEYS.BILLSMODALSTORE]: { showBillChips },
+        } = this.props;
+        const coin = isDefaultCrypto ? defaultCryptoSymbol : (defaultFiat === 'USD' ? 'USDT' : defaultFiat);
+        showBillChips(coin);
+    };
+
     render() {
         const {
-            [STORE_KEYS.PORTFOLIODATASTORE]: { portfolioData },
-            [STORE_KEYS.YOURACCOUNTSTORE]: { selectedCoin },
-            [STORE_KEYS.SETTINGSSTORE]: { defaultFiat, defaultCrypto },
+            [STORE_KEYS.ORDERHISTORY]: { PortfolioGraphData, lastPortfolioValue },
+            [STORE_KEYS.SETTINGSSTORE]: { defaultFiatSymbol, isDefaultCrypto, defaultCryptoSymbol },
+            [STORE_KEYS.CONVERTSTORE]: { convertState },
             isLowerSectionOpened,
+            isBorderHidden,
+            noBorder,
         } = this.props;
-
-        if (
-            this.defaultFiat !== defaultFiat ||
-            this.defaultCrypto !== defaultCrypto ||
-            this.selectedCoin !== selectedCoin
-        ) {
-            this.destroyChart();
-            this.defaultFiat = defaultFiat;
-            this.selectedCoin = selectedCoin;
-            this.defaultCrypto = defaultCrypto;
-        }
+        const { selectedTimeFilter } = this.state;
+        this.handleChartState();
+        const minTime = PortfolioGraphData.length && PortfolioGraphData[0].x;
 
         return (
-            <ChartWrapper isLowerSectionOpened={isLowerSectionOpened}>
+            <ChartWrapper isLowerSectionOpened={isLowerSectionOpened} isBorderHidden={isBorderHidden} noBorder={noBorder}>
                 <canvas ref={el => (this.el = el)} />
-                {this.getPortfolioInfo()}
+                {/*
+                <ChartInfoWrapper>
+                    <PortfolioLabels>
+                        <PortfolioValue
+                            lastPortfolioValue={lastPortfolioValue}
+                            isDefaultCrypto={isDefaultCrypto}
+                            defaultCryptoSymbol={defaultCryptoSymbol}
+                            defaultFiatSymbol={defaultFiatSymbol}
+                            onClickDeposit={this.toggleBillPopup}
+                            onClickWithdraw={this.toggleBillPopup}
+                            isLoading={convertState === STATE_KEYS.submitOrder || convertState === STATE_KEYS.orderDone}
+                        />
+                    </PortfolioLabels>
+                    <GraphControlWrapper>
+                        <PieChartIcon onClick={this.onClickPieChartIcon} onMouseEnter={this.handleFocus} onMouseLeave={this.handleLeave}/>
+                        <TimeFilters onChange={this.onChangeTimeFilter} selected={selectedTimeFilter} minTime={minTime} />
+                    </GraphControlWrapper>
+                </ChartInfoWrapper>
+                */}
             </ChartWrapper>
         );
     }
 }
 
-export default inject(STORE_KEYS.PORTFOLIODATASTORE, STORE_KEYS.YOURACCOUNTSTORE, STORE_KEYS.SETTINGSSTORE)(
-    observer(PortfolioChartCanvas)
-);
+export default inject(
+    STORE_KEYS.YOURACCOUNTSTORE,
+    STORE_KEYS.SETTINGSSTORE,
+    STORE_KEYS.ORDERHISTORY,
+    STORE_KEYS.VIEWMODESTORE,
+    STORE_KEYS.BILLSMODALSTORE,
+    STORE_KEYS.CONVERTSTORE,
+)(observer(PortfolioChartCanvas));

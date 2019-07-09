@@ -1,5 +1,5 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 
 import COIN_DATA_MAP from '../../mock/coin-data-map';
 
@@ -7,7 +7,7 @@ const IconStyleWrapper = styled.div.attrs({ className: 'exch-dropdown__icon' })`
     width: ${props => props.size || '20'}px;
     height: ${props => props.size || '20'}px;
     padding: 0;
-    margin: 0 ${props => props.hasMarginRight ? '4px' : 0} 0 ${props => props.hasMarginRight ? 0 : '4px'};
+    margin: ${props => props.hasMarginRight ? '0 12px 0 0' : '0'};
     flex-shrink: 0;
     display: flex;
     align-items: center;
@@ -23,7 +23,20 @@ const IconStyleWrapper = styled.div.attrs({ className: 'exch-dropdown__icon' })`
     }
 `;
 
-const CoinIcon = ({ value, size, hasMarginRight }) => {
+const IconFiat = styled.img`
+    width: ${props => props.width}px;
+    height: ${props => props.height}px;
+`;
+
+export const CoinIcon = ({
+    value, size, hasMarginRight, isFiat,
+}) => {
+    if (isFiat) {
+        return (
+            <IconFiat src={`/img/icons-coin/${(value || '').toLowerCase()}.png`} className="flag" alt="" width={size}/>
+        );
+    }
+
     if (typeof value === 'string') {
         return (COIN_DATA_MAP[value] && COIN_DATA_MAP[value].file)
             ? (
@@ -62,4 +75,9 @@ const CoinIcon = ({ value, size, hasMarginRight }) => {
 
 };
 
-export default CoinIcon;
+const BTCFontIconWrapper = styled.span`
+    font-family: BTC, sans-serif;
+`;
+export const BTCFontIcon = () => (
+    <BTCFontIconWrapper className="CurrencySymbol">BTC</BTCFontIconWrapper>
+);

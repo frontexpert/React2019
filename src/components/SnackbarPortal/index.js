@@ -4,10 +4,13 @@ import { inject, observer } from 'mobx-react';
 import SimpleSnackbar from '../../components-generic/Snackbar';
 import { STORE_KEYS } from '../../stores';
 
-const SnackbarPortal = inject(STORE_KEYS.SNACKBARSTORE)(observer(
-    ({ [STORE_KEYS.SNACKBARSTORE]: { SnackBarProps, open, onClose } }) => {
+const SnackbarPortal = inject(STORE_KEYS.SNACKBARSTORE, STORE_KEYS.VIEWMODESTORE)(observer(
+    ({
+        [STORE_KEYS.SNACKBARSTORE]: { SnackBarProps, open, onClose },
+        [STORE_KEYS.VIEWMODESTORE]: { isPayApp },
+    }) => {
         return (
-            <React.Fragment>
+            !isPayApp && <React.Fragment>
                 {Object.keys(SnackBarProps).length > 0 && (
                     ReactDOM.createPortal(
                         <SimpleSnackbar

@@ -2,7 +2,7 @@ import React from 'react';
 import Snackbar from '@material-ui/core/Snackbar';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 
 const StyledSnackbar = styled(Snackbar)`
     margin-left: 50px;

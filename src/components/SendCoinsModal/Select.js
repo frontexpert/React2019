@@ -1,5 +1,5 @@
 import React, { Component, Fragment } from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import { FormattedMessage } from 'react-intl';
 
 import { format2DigitString } from '../../utils';
@@ -211,7 +211,7 @@ class Select extends Component {
 
         return (
             <StyleWrapper
-                innerRef={ref => {
+                ref={ref => {
                     this.wrapperRef = ref;
                 }}
                 onClick={() => {
@@ -239,7 +239,7 @@ class Select extends Component {
                 </div>
 
                 <div className="select__amount-wrapper">
-                    {!isOpened && [
+                    {!isOpened &&
                         <Fragment>
                             <input
                                 ref={ref => {
@@ -263,7 +263,7 @@ class Select extends Component {
                                 onChange={(e) => this.handleAmountChange(e.target.value)}
                             />
                         </Fragment>
-                    ]}
+                    }
                 </div>
 
                 <div className="select__addon">

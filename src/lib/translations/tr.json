@@ -9,6 +9,7 @@
   "settings.label_access_level": "Erişim Seviyesi",
   "settings.label_balance_includes_credit": "Bakiye Kredi içerir",
   "settings.label_google_2fa": "Google 2FA",
+  "settings.label_email_2fa": "E-posta 2FA",
   "settings.label_arbitrage_mode": "Tahkim Modu",
   "settings.label_private_vpn": "Özel VPN",
   "settings.label_store_credit": "Kredi yükleme",
@@ -187,7 +188,6 @@
   "data_loader_done.label_done": "TAMAMLANDI",
   "sms_verification.label_enter_mobile_number": "Cep telefonu numarasını girin",
   "sms_verification.label_what_code": "Kod nedir?",
-  "switch_custom.label_off": "KAPALI",
 
   "button.save": "Kayıt etmek",
   "button.confirm": "Onaylamak",
@@ -216,5 +216,6 @@
   "order_book.buy_book.label_max_order_size": "MAX SİPARİŞ BOYUTU: ",
   "settings.label_auto_flip": "Otomatik Çevir",
   "settings.label_swaps": "takas",
-  "settings.label_is_auto_convert": "Otomatik Dönüştürme"
+  "settings.label_is_auto_convert": "Otomatik Dönüştürme",
+  "settings.label_support_center": "Platform Destek Merkezi"
 }

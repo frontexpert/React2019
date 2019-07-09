@@ -9,6 +9,7 @@
   "settings.label_access_level": "Zugriffsebene",
   "settings.label_balance_includes_credit": "Guthaben beinhaltet Kredit",
   "settings.label_google_2fa": "Google 2FA",
+  "settings.label_email_2fa": "E-Mail 2FA",
   "settings.label_arbitrage_mode": "Arbitrage-Modus",
   "settings.label_private_vpn": "Privates VPN",
   "settings.label_store_credit": "Einkaufskredit",
@@ -187,7 +188,6 @@
   "data_loader_done.label_done": "ERLEDIGT",
   "sms_verification.label_enter_mobile_number": "Handynummer eingeben",
   "sms_verification.label_what_code": "Was ist der Code?",
-  "switch_custom.label_off": "AUS",
 
   "button.save": "sparen",
   "button.confirm": "Bestätigen",
@@ -216,5 +216,6 @@
   "order_book.buy_book.label_max_order_size": "MAX. BESTELLGRÖSSE: ",
   "settings.label_auto_flip": "Auto Flip",
   "settings.label_swaps": "Wechsel",
-  "settings.label_is_auto_convert": "Auto konvertieren"
+  "settings.label_is_auto_convert": "Auto konvertieren",
+  "settings.label_support_center": "Platform Support Center"
 }

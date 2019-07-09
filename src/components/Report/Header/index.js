@@ -1,16 +1,21 @@
 import React from 'react';
-import styled from 'styled-components';
-import { inject, observer } from 'mobx-react/index';
+import styled from 'styled-components/macro';
+import { inject, observer } from 'mobx-react';
 
+import SubHeader from './SubHeader';
 import CloseIcon from '@material-ui/icons/Close';
-import { STORE_KEYS } from '../../../stores';
+import { STORE_KEYS } from '@/stores';
+import { orderHistoryDropdowns, gbxUtilizationDropdowns, paymentHistoryDropdowns, navReportDropdowns, } from '../constants';
 
 const Wrapper = styled.div`
+    display: flex;
+    justify-content: space-between;
     width: 100%;
     text-align: center;
-    padding-bottom: 27px;
-    background: #e4e2e5;
+    background-color: ${props => props.theme.palette.clrMainWindow};
     position: relative;
+    color: ${props => props.theme.palette.clrPurple};
+    border: 1px solid #454c73;
 `;
 
 const CloseIconWrapper = styled.div`
@@ -24,17 +29,19 @@ const TabItem = styled.div`
     font-size: 13px;
     padding: 15px 20px;
     cursor: pointer;
-    
+    color: ${props => props.theme.palette.clrPurple};
+
     &:hover::after {
         width: 80%;
+        color: ${props => props.theme.palette.clrHighContrast};
     }
-    
+
     &::after {
         display: block;
         content: "";
         width: 0%;
         height: 1px;
-        background: #09f;
+        background: #fff;
         margin: 0 auto;
         -webkit-transition: .2s ease-in-out;
         transition:  .2s ease-in-out;
@@ -42,8 +49,7 @@ const TabItem = styled.div`
 `;
 
 const TabItemSelected = styled(TabItem)`
-    color: #09f;
-    
+    color: ${props => props.theme.palette.clrHighContrast};
     &::after {
         width: 80%;
     }
@@ -52,14 +58,19 @@ const TabItemSelected = styled(TabItem)`
 const TabList = styled.div`
     display: flex;
     justify-content: center;
-    background-color: #fff;
+    font-weight: 700;
+    font-family: 'open_sans',sans-serif;
+    color: ${props => props.theme.palette.clrPurple};
+    background-color: ${props => props.theme.palette.clrMainWindow};
 `;
 
 const Title = styled.div`
     font-size: 22px;
-    font-weight: 100;
+    font-weight: 700;
+    font-family: 'open_sans',sans-serif;
     padding-top: 10px;
-    background-color: #fff;
+    color: ${props => props.theme.palette.clrHighContrast};
+    background-color: ${props => props.theme.palette.clrMainWindow};
 `;
 
 const tabs = [
@@ -79,36 +90,45 @@ class Header extends React.Component {
         };
     }
 
-    handleClickClose = () => {
-        const { setReportMode } = this.props[STORE_KEYS.VIEWMODESTORE];
-
-        setReportMode(false);
-    };
-
     handleClickTabItem = (tabIndex) => {
         this.props.onTabChange(tabIndex);
     };
+
+    subHeader = () => {
+        const { activeTabIndex } = this.props;
+        switch (activeTabIndex) {
+            case 0:
+                return <SubHeader tab="orderHistory"/>
+            case 1:
+                return <SubHeader tab="tradeHistory"/>
+            case 2:
+                return <SubHeader tab="gbxUtilizationHistory"/>
+            case 3:
+                return <SubHeader tab="paymentHistory"/>
+            case 4:
+                return <SubHeader tab="navReport"/>
+            default:
+                break;
+        }
+    }
 
     render() {
         const { activeTabIndex } = this.props;
 
         return (
             <Wrapper>
-                <Title>Reports</Title>
                 <TabList>
                     {
                         tabs.map((tab, i) => {
                             if (activeTabIndex === i) {
-                                return <TabItemSelected onClick={() => this.handleClickTabItem(i)}>{tab}</TabItemSelected>;
+                                return <TabItemSelected onClick={() => this.handleClickTabItem(i)} key={i}>{tab}</TabItemSelected>;
                             }
 
-                            return <TabItem onClick={() => this.handleClickTabItem(i)}>{tab}</TabItem>;
+                            return <TabItem onClick={() => this.handleClickTabItem(i)} key={i}>{tab}</TabItem>;
                         })
                     }
                 </TabList>
-                <CloseIconWrapper onClick={this.handleClickClose}>
-                    <CloseIcon/>
-                </CloseIconWrapper>
+                {this.subHeader()}
             </Wrapper>
         );
     }

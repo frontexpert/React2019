@@ -28,6 +28,8 @@ class PayWindowStore {
     GetClaimedTransferNotification$ = null;
     __subscriptionInited = false;
 
+    handleIncomingClaimedNotificationTimeout = null;
+
     constructor() {
         this.contentViewMode = contentModeKeys.numPadModeKey;
         // this.GetClaimedTransferNotification$ = GetClaimedTransferNotification({ throttleMs });

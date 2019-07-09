@@ -1,83 +1,49 @@
-## Blockchain Terminal UI
+# Blockchain Terminal UI
 
-# Tech:
+## Tech:
 
-## Project:
+#### Project:
 
 - yarn
-- webpack
+- create-react-app
+- customize-cra
 - jest
 - eslint
-- aws s3
 
-## App:
+#### App:
 
 - react
 - mobx
 - styled-components
 - material-ui
 - recompose
-- bct-ui-satori
 
-# Basic Dev Setup:
+## Basic Dev Setup:
 
-## Prerequisites:
-
-- docker (tested with 18.09.1)
-- docker-compose ~> 1.23
-
-Put dev.bct.trade entry into `/etc/hosts`, the result should be similar to:
-
-```sh
-$ cat /etc/hosts
-##
-# Host Database
-#
-# localhost is used to configure the loopback interface
-# when the system is booting.  Do not change this entry.
-##
-127.0.0.1	localhost
-255.255.255.255	broadcasthost
-::1             localhost
-127.0.0.1	dev.bct.trade
-```
-
-Then just run `./dev.sh` script. It will ensure that self-signed certificate for `dev.bct.trade` domain generated, than will run `nodejs sdk` for the project and `nginx` for terminate tls-traffic using certificate.
-
-Starting could take time, because it checks if all `npm` present in the `.cache` and installed correctly, then builds the whole site.
-
-When it finished - you can see the message in the terminal:
-
-```
-bct-development                      | Starting the development server...
-bct-development                      |
-bct-development                      | Compiled successfully!
-bct-development                      |
-bct-development                      | You can now view blockchain-terminal-ui in the browser.
-bct-development                      |
-bct-development                      |   Local:            http://localhost:80/
-bct-development                      |   On Your Network:  http://172.18.0.2:80/
-bct-development                      |
-bct-development                      | Note that the development build is not optimized.
-bct-development                      | To create a production build, use yarn build.
-```
+1. Clone the repo
+2. Add `127.0.0.1   dev.bct.trade` to `/etc/hosts`
+3. To build and run inside docker (easy, slow): install docker, run `./dev.sh`
+4. Otherwise: install `yarn`
+5. Run `sudo HOST=dev.bct.trade HTTPS=true PORT=443 yarn start` (or set these env variables another way). It may be possible to use other ports, but you may have issues with server connectivity.
+6. Launch the app: `yarn start` (it may take 1-2 minutes to build the app)
+7. If yarn complains about missing packages (e.g. customize-cra), install them using `yarn add package-name` - do not use npm install to add the packages
+8. When switching between yarn build and docker build: delete `node_modules` folder and `package-lock.json` (if present)
 
 When you open https://dev.bct.trade/ in your browser - it will notify you, that the certificate is self-signed and authority could be checked - just add exception.
 
-# Contributing
+## Tests
 
-We use gitflow (https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow).
+#### Unit tests
 
-How it works:
+- Add tests to `src/__tests__/unit`
+- Execute tests `yarn test:unit`
 
-- All work is done on `feature` branches that are branched off `develop`.
-- `feature` branches are merged back into `develop`.
-- `feature` branches must be reviewed/approved before they are merged.
-- `feature` branches must be frequently rebased on to remote `develop` branch (hard requirement). You will need to do a `git push --force` after a rebase since your history will have diverged.
+#### Integration tests
 
-Tips:
+- Add tests to `src/__tests__/integration`
+- Launch the app with "coverage" flag `yarn start:coverage`
+- Execute tests `yarn test:integration`
 
-- Make sure your local `develop` branch is in sync with remote `develop` before creating your feature branch.
-- Features are developed in parallel. Anytime a feature is merged to `develop` all other `feature` branch owners should rebase ASAP (to minimize conflicts).
-- On your `feature` branch use `git pull --rebase origin develop` to rebase onto latest remote `develop`.
-- Don't assume that resolved conflicts means the code works. Run the code and check the console before submitting your rebased branch for review.
+## Contributing
+
+https://gitlab.com/cryptoems/blockchain-terminal-ui/wikis/Branching-Flow

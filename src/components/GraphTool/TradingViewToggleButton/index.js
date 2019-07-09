@@ -1,6 +1,6 @@
 import React from 'react';
 import { inject, observer } from 'mobx-react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import { compose, withProps } from 'recompose';
 
 import { Tooltip } from 'react-tippy';

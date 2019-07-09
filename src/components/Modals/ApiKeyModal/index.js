@@ -1,13 +1,15 @@
 import React, { Component } from 'react';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import { compose, withProps } from 'recompose';
 import { inject, observer } from 'mobx-react';
+import { withSafeTimeout } from '@hocs/safe-timers';
 
 import { InnerWrapper, Wrapper, Label } from './Components';
 import { STORE_KEYS } from '../../../stores';
 import InputField from './InputField';
 import GradientButton from '../../../components-generic/GradientButtonSquare';
 import DataLoader from '../../../components-generic/DataLoader';
+import { TransferHistoryRequest } from '../../../lib/bct-ws';
 
 const InputOuterWrapper = styled.div`
     width: 100%;
@@ -17,7 +19,8 @@ const InputOuterWrapper = styled.div`
     align-items: space-between;
 `;
 
-const withStores = compose(
+const enhanced = compose(
+    withSafeTimeout,
     inject(STORE_KEYS.MODALSTORE, STORE_KEYS.EXCHANGESSTORE),
     observer,
     withProps(
@@ -34,7 +37,7 @@ const withStores = compose(
             updateExchange,
             setApiKeyModalOpenState,
         })
-    )
+    ),
 );
 
 class ApiKeyModal extends Component {
@@ -44,12 +47,17 @@ class ApiKeyModal extends Component {
         isInProgress: false,
     };
 
+    clearConfirmButtonTimeout = null;
+
     componentDidMount() {
         if (this.props.setApiKeyModalOpenState) this.props.setApiKeyModalOpenState(true);
     }
 
     componentWillUnmount() {
         if (this.props.setApiKeyModalOpenState) this.props.setApiKeyModalOpenState(false);
+        if (this.clearConfirmButtonTimeout) {
+            this.clearConfirmButtonTimeout();
+        }
     }
 
     handleChange = field => value => {
@@ -63,7 +71,10 @@ class ApiKeyModal extends Component {
             isInProgress: true,
         });
 
-        setTimeout(() => {
+        if (this.clearConfirmButtonTimeout) {
+            this.clearConfirmButtonTimeout();
+        }
+        this.clearConfirmButtonTimeout = this.props.setSafeTimeout(() => {
             this.props.updateExchange(this.props.exchange, {
                 apiKey: this.state.apiKey,
                 apiSecret: this.state.apiSecret,
@@ -131,4 +142,4 @@ class ApiKeyModal extends Component {
     }
 }
 
-export default withStores(ApiKeyModal);
+export default enhanced(ApiKeyModal);

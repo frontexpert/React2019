@@ -2,14 +2,14 @@ import React from 'react';
 import { compose } from 'recompose';
 import { inject, observer } from 'mobx-react';
 import { FormattedMessage } from 'react-intl';
-import styled from 'styled-components';
+import styled from 'styled-components/macro';
 import { Tooltip } from 'react-tippy';
 
 import { STORE_KEYS } from '../../../stores';
 import { LimitOrderRows } from './LimitOrderRows';
 import OrderButton from '../OrderButton';
 import SliderInput from '../SliderInputWithColor';
-import { formatTotalDigitString } from '../../../utils';
+import { customDigitFormat } from '../../../utils';
 
 const Wrapper = styled.div`
     display: flex;
@@ -40,6 +40,8 @@ const LimitOrderContainer = ({
     priceCoin,
     total,
     totalCoin,
+    rate,
+    sliderCurrency,
     isBuy,
     orderButtonText,
     handleOrder,
@@ -47,6 +49,8 @@ const LimitOrderContainer = ({
     handlePriceChange,
     orderButtonDisabled,
 }) => {
+    let currentBalance = isBuy ? total : amount;
+
     return (
         <Wrapper>
             <LimitOrderRows
@@ -60,8 +64,13 @@ const LimitOrderContainer = ({
                 totalCoin={totalCoin}
             />
 
-            {/* <SliderInput value={amount} max={sliderMax} showTooltip={true} tooltipValue={`$${formatTotalDigitString(total, 5)}`} onChange={handleAmountChange}/> */}
-            <SliderInput value={amount} max={sliderMax} showTooltip={true} tooltipValue={`${formatTotalDigitString(amount, 5)} ${amountCoin}`} onChange={handleAmountChange}/>
+            <SliderInput
+                value={amount}
+                max={sliderMax}
+                showTooltip={true}
+                tooltipValue={`${customDigitFormat(currentBalance)} ${sliderCurrency}`}
+                onChange={handleAmountChange}
+            />
 
             {isLoggedIn && (
                 <OrderButton

@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from 'react';
 import { compose, withProps } from 'recompose';
-import { withStyles } from '@material-ui/core/styles';
+import { withStyles } from '@material-ui/styles';
 import { inject, observer } from 'mobx-react';
 
 import { STORE_KEYS } from '../../stores';
@@ -8,10 +8,7 @@ import { STORE_KEYS } from '../../stores';
 import {
     // ToggleBtn,
     FormHeader,
-    Label,
-    GlobalIcon,
-    Logo,
-    // TabsWrapper,
+    TabsWrapper,
     // Tabs,
     // Tab,
     // MarketStatusItem,
@@ -21,6 +18,7 @@ import {
     Dropdown,
     Item
 } from './Components';
+import ExchangesLabel from './ExchangesLabel';
 
 const styles = (theme) => {
     return {
@@ -37,9 +35,12 @@ const styles = (theme) => {
 
 class OrderTabs extends Component {
     state = {
-        tabIndex: 1,
+        tabIndice: [0, 1],
         isOpened: false,
+        selectedTab: 0,
     };
+
+    wrapperRef = [];
 
     componentDidMount() {
         document.addEventListener('mousedown', this.handleClickOutside);
@@ -50,60 +51,40 @@ class OrderTabs extends Component {
     }
 
     handleClickOutside = (event) => {
-        if (this.state.isOpened && this.wrapperRef && this.wrapperRef.contains && !this.wrapperRef.contains(event.target)) {
+        if (this.state.isOpened && this.wrapperRef && this.wrapperRef[this.state.selectedTab].contains && !this.wrapperRef[this.state.selectedTab].contains(event.target)) {
             this.setState({
                 isOpened: false,
             });
         }
     };
 
-    handleTabChange = (tabIndex, tab) => {
+    handleTabChange = (tabIndex, menuIndex, tab) => () => {
+        let currentTabIndice = this.state.tabIndice;
+        currentTabIndice[tabIndex] = menuIndex;
         this.setState({
-            tabIndex,
+            tabIndice: currentTabIndice,
             isOpened: false,
         });
-        if (tab === 'API') {
-            this.props.setAdvancedAPIMode(true);
-        } else {
+        if (tab === 1) {
             this.props.setAdvancedAPIMode(false);
+        } else {
+            /** TBD */
         }
     };
 
-    toggleDropdown = () => {
+    toggleDropdown = (tabIndex) => {
         this.setState(prevState => ({
             isOpened: !prevState.isOpened,
+            selectedTab: tabIndex,
         }));
     };
 
     render() {
-        const { tabIndex, isOpened } = this.state;
+        const { selectedTab, tabIndice, isOpened } = this.state;
         const {
             toggleViewMode, depthChartMode, showDepthChartMode, toggleOrderHistoryMode, classes, children,
-            selectedExchange, exchanges, marketExchanges, getActiveExchanges, orderHistoryMode, tabs, handleTabChange, baseSymbol, quoteSymbol,
+            orderHistoryMode, tabs, handleTabChange, baseSymbol, quoteSymbol,
         } = this.props;
-
-        let selectedTableItem = null;
-        let activeExchanges = 0;
-        let activeExchange = '';
-        for (let i = 0; i < marketExchanges.length; i++) {
-            if (marketExchanges[i].name !== 'Global' && exchanges[marketExchanges[i].name] && exchanges[marketExchanges[i].name].active) {
-                activeExchanges++;
-                activeExchange = marketExchanges[i].name;
-                selectedTableItem = marketExchanges[i];
-            }
-        }
-        const activeMarketExchanges = marketExchanges.filter(m => m.status === 'active');
-        const countExchange = (activeExchanges === 0) ? activeMarketExchanges.length : activeExchanges;
-        if (this.props.value === 'Global' && activeExchanges === 0 && activeMarketExchanges.length === 1) {
-            for (let i = 0; i < marketExchanges.length; i++) {
-                if (marketExchanges[i].name !== 'Global' && marketExchanges[i].status === 'active') {
-                    selectedTableItem = marketExchanges[i];
-                }
-            }
-        }
-
-        const selectedIcon = (selectedTableItem && selectedTableItem.icon) || null;
-        const selectedName = (selectedTableItem && selectedTableItem.name) || null;
 
         return (
             <Fragment>
@@ -118,16 +99,7 @@ class OrderTabs extends Component {
                 {/* </ToggleBtn> */}
 
                 <FormHeader id="form-header">
-                    {/* <Label id="form-label">Order Form</Label> */}
-                    <Label id="form-label">
-                        {countExchange !== 1 ? (
-                            <GlobalIcon />
-                        ) : (
-                            <Logo src={`/img/exchange/${selectedIcon}`} alt="" />
-                        )}
-                        {getActiveExchanges(exchanges)}
-                        <span>{`(${baseSymbol}/${quoteSymbol})`}</span>
-                    </Label>
+                    <ExchangesLabel id="form-label" />
 
                     {/*
                     <TabsWrapper id="tabs-wrapper">
@@ -143,56 +115,34 @@ class OrderTabs extends Component {
                         </Tabs>
                     </TabsWrapper>
                     */}
+                    <TabsWrapper>
+                        {
+                            tabs.map((tab, index) => (
+                                <DropdownWrapper ref={ref => { this.wrapperRef[index] = ref; }} key={index}>
+                                    <SelectedItem onClick={() => this.toggleDropdown(index)}>
+                                        <span>{tabs[index][tabIndice[index]]}</span>
+                                        <ArrowIcon open={isOpened} />
+                                    </SelectedItem>
 
-                    <DropdownWrapper innerRef={ref => { this.wrapperRef = ref; }}>
-                        <SelectedItem onClick={this.toggleDropdown}>
-                            <span>{tabs[tabIndex]}</span>
-                            <ArrowIcon open={isOpened} />
-                        </SelectedItem>
-
-                        {isOpened && (
-                            <Dropdown>
-                                {tabs.map((tab, index) => (
-                                    <Item
-                                        key={index}
-                                        active={tabIndex === index}
-                                        onClick={() => this.handleTabChange(index, tab)}
-                                    >
-                                        {tab}
-                                    </Item>
-                                ))}
-                            </Dropdown>
-                        )}
-                    </DropdownWrapper>
-
-                    {/*
-                    <MarketStatusItem
-                        current={orderHistoryMode ? false : depthChartMode}
-                        onClick={() => {
-                            if (depthChartMode && orderHistoryMode) {
-                                toggleOrderHistoryMode(!orderHistoryMode);
-                            } else if (!depthChartMode && orderHistoryMode) {
-                                toggleOrderHistoryMode(!orderHistoryMode);
-                                showDepthChartMode(!depthChartMode);
-                            } else {
-                                showDepthChartMode(!depthChartMode);
-                            }
-                        }}
-                    >
-                        <MarketIcon />
-                    </MarketStatusItem>
-
-                    <MarketStatusItem
-                        current={orderHistoryMode}
-                        onClick={() => {
-                            toggleOrderHistoryMode(!orderHistoryMode);
-                        }}
-                    >
-                        <MarketHistoryIcon/>
-                    </MarketStatusItem>
-                    */}
+                                    {isOpened && (selectedTab === index) && (
+                                        <Dropdown>
+                                            {tab.map((item, mIndex) => (
+                                                <Item
+                                                    key={`${index}-${mIndex}`}
+                                                    active={tabIndice[index] === mIndex}
+                                                    onClick={this.handleTabChange(index, mIndex, item)}
+                                                >
+                                                    {item}
+                                                </Item>
+                                            ))}
+                                        </Dropdown>
+                                    )}
+                                </DropdownWrapper>
+                            ))
+                        }
+                    </TabsWrapper>
                 </FormHeader>
-                {children[tabIndex] || <div/>}
+                {children[tabIndice[1]] || <div/>}
             </Fragment>
         );
     }
@@ -200,7 +150,7 @@ class OrderTabs extends Component {
 
 export default compose(
     inject(
-        STORE_KEYS.ORDERFORMTOGGLE,
+        STORE_KEYS.MARKETMAKER,
         STORE_KEYS.VIEWMODESTORE,
         STORE_KEYS.INSTRUMENTS,
         STORE_KEYS.ORDERBOOKBREAKDOWN,
@@ -209,7 +159,7 @@ export default compose(
     observer,
     withProps(
         ({
-            [STORE_KEYS.ORDERFORMTOGGLE]: {
+            [STORE_KEYS.MARKETMAKER]: {
                 toggleViewMode,
             },
             [STORE_KEYS.VIEWMODESTORE]: {
@@ -223,12 +173,6 @@ export default compose(
                 base : baseSymbol,
                 quote : quoteSymbol,
             },
-            [STORE_KEYS.EXCHANGESSTORE]: {
-                exchanges,
-                marketExchanges,
-                getActiveExchanges,
-                selectedExchange,
-            },
         }) => {
             return ({
                 toggleViewMode,
@@ -239,10 +183,6 @@ export default compose(
                 setAdvancedAPIMode,
                 baseSymbol,
                 quoteSymbol,
-                exchanges,
-                marketExchanges,
-                getActiveExchanges,
-                selectedExchange,
             });
         }
     ),

@@ -9,6 +9,7 @@
   "settings.label_access_level": "Nivel de acces",
   "settings.label_balance_includes_credit": "Soldul include Credit",
   "settings.label_google_2fa": "Google 2FA",
+  "settings.label_email_2fa": "Trimiteți prin e-mail 2FA",
   "settings.label_arbitrage_mode": "Mod Arbitraj",
   "settings.label_private_vpn": "VPN privată",
   "settings.label_store_credit": "Magazin de credit",
@@ -23,9 +24,9 @@
   "settings.tooltip_affiliate": "BCT (“the Licensor”) pays the affiliate (“Licensee”) $20 per month per referral. In the event that a referred user does not purchase a minimum of $20 a month on various app store applications, then, at the discretion of the licensor, the referred user shall be removed from the referral program. Affiliates will receive payments via direct deposit of bitcoin into the Telegram Group Admin’s wallet daily for the lifetime of the referred account.",
   "telegram.btn_login": "Conectați-vă cu telegramă",
   "settings.preferences": "Preferințe",
-  "settings.privacy": "intimitate",
+  "settings.privacy": "Intimitate",
   "settings.history": "Istorie",
-  "settings.affiliate": "afilia",
+  "settings.affiliate": "Afilia",
   "settings.advanced": "Avansat",
   "settings.search_placeholder": "Căutare...",
 
@@ -187,7 +188,6 @@
   "data_loader_done.label_done": "TERMINAT",
   "sms_verification.label_enter_mobile_number": "Introduceți numărul de telefon mobil",
   "sms_verification.label_what_code": "Care este codul?",
-  "switch_custom.label_off": "OFF",
 
   "button.save": "Salvați",
   "button.confirm": "A confirma",
@@ -216,5 +216,6 @@
   "order_book.buy_book.label_max_order_size": "Dimensiunea maximă a comenzii: ",
   "settings.label_auto_flip": "Auto Flip",
   "settings.label_swaps": "schimb",
-  "settings.label_is_auto_convert": "Convertire automată"
+  "settings.label_is_auto_convert": "Convertire automată",
+  "settings.label_support_center": "Centrul de asistență pentru platforme"
 }

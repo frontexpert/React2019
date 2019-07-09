@@ -170,12 +170,37 @@ export const WS = {
     },
 };
 
-// export const WS_MARKET_URL = window.REACT_APP_WS_MARKET_URL || process.env.REACT_APP_WS_MARKET_URL;
-export const WS_MARKET_URL = 'wss://market-data.bct.trade:443/ws';
+export const WS_MARKET_URL = window.REACT_APP_WS_MARKET_URL || process.env.REACT_APP_WS_MARKET_URL;
+
+// market endpoint serves rest end points also
+// keeping the default value in line what was hardcoded in existing code.
+let rest_market = 'https://market-data.bct.trade';
+if(WS_MARKET_URL){
+    let marketURL = '';
+    // just in case, a wrong URL set in env
+    try{
+        marketURL = new URL(WS_MARKET_URL);
+    }catch(wrongUrlPat){}
+    if(marketURL){
+        // map wss -> https, ws -> http
+        const marketRestProtocol = marketURL.protocol && marketURL.protocol === 'wss:' ? 'https:' : 'http:';
+        // host will have any custom port numbers also, just in case a developer is using a custom port
+        rest_market = `${marketRestProtocol}//${marketURL.host}`;
+    }
+
+}
+export const REST_MARKET = rest_market;
+
+
+
 
 export const HISTORICAL_DATA_URL = window.REACT_APP_HISTORICAL_DATA_URL || process.env.REACT_APP_HISTORICAL_DATA_URL;
 
 export const AUTH_SERVER_URL = window.REACT_APP_AUTH_SERVER_URL || process.env.REACT_APP_AUTH_SERVER_URL;
+
+export const REACT_APP_PUBLIC_QR_CODE_URL = window.REACT_APP_PUBLIC_QR_CODE_URL || process.env.REACT_APP_PUBLIC_QR_CODE_URL;
+
+export const REACT_APP_PRIVATE_QR_CODE_URL = window.REACT_APP_PRIVATE_QR_CODE_URL || process.env.REACT_APP_PRIVATE_QR_CODE_URL;
 
 export const TELEGRAM_AUTH_URL = window.REACT_APP_TELEGRAM_AUTH_URL || process.env.REACT_APP_TELEGRAM_AUTH_URL;
 
@@ -186,24 +211,26 @@ export const TV_CONFIG = {
 
     height: '100%',
     width: '100%',
-    theme: 'black',
+    theme: 'dark',
     debug: false,
-    toolbar_bg: '#17212C',
+    toolbar_bg: '#0d112b',
     custom_css_url: 'css/trading_view_override.css',
     disabled_features: [
-        'header_widget',
-        'header_symbol_search',
-        'delete_button_in_legend',
-        'header_compare',
+        // 'header_widget',
+        // 'header_symbol_search',
+        // 'delete_button_in_legend',
+        // 'header_compare',
         'adaptive_logo',
-        'show_logo_on_all_charts',
-        'compare_symbol',
-        'go_to_date',
-        'edit_buttons_in_legend',
-        'left_toolbar',
-        'timeframes_toolbar',
-        'border_around_the_chart',
-        'right_bar_stays_on_scroll',
+        // 'show_logo_on_all_charts',
+        // 'compare_symbol',
+        // 'go_to_date',
+        // 'edit_buttons_in_legend',
+        // 'left_toolbar',
+        // 'timeframes_toolbar',
+        // 'border_around_the_chart',
+        // 'right_bar_stays_on_scroll',
+        'volume_force_overlay',
+        'use_localstorage_for_settings'
     ],
     enabled_features: [
         'side_toolbar_in_fullscreen_mode',
@@ -228,24 +255,28 @@ export const TV_CONFIG = {
     ],
     studies_overrides: {
         // 'volume.volume.transparency': 30,
+        'volume.volume.color.0': '#68B168',
+        'volume.volume.color.1': '#09f',
+        // 'volume.show ma': true
         // 'Overlay.style': 2,
         // 'Overlay.lineStyle.linewidth': 2
     },
     overrides: {
-        'paneProperties.background': '#0D112B',
-        'paneProperties.vertGridProperties.color': '#0D112B',
-        'paneProperties.horzGridProperties.color': '#0D112B',
-        'paneProperties.crossHairProperties.color': '#0D112B',
+        'paneProperties.background': '#020517',
+        'paneProperties.vertGridProperties.color': '#020517',
+        'paneProperties.horzGridProperties.color': '#020517',
+        'paneProperties.crossHairProperties.color': '#020517',
         'paneProperties.gridProperties.color': '#ffffff',
 
         'paneProperties.topMargin': 6,
         'paneProperties.bottomMargin': 5,
 
-        'paneProperties.legendProperties.showStudyArguments': false,
-        'paneProperties.legendProperties.showStudyTitles': false,
-        'paneProperties.legendProperties.showStudyValues': false,
-        'paneProperties.legendProperties.showSeriesTitle': false,
-        'paneProperties.legendProperties.showSeriesOHLC': false,
+        'paneProperties.legendProperties.showStudyArguments': true,
+        'paneProperties.legendProperties.showStudyTitles': true,
+        'paneProperties.legendProperties.showStudyValues': true,
+        'paneProperties.legendProperties.showSeriesTitle': true,
+        'paneProperties.legendProperties.showSeriesOHLC': true,
+        'paneProperties.legendProperties.showLegend': true,
 
         // 'scalesProperties.lineColor' : "#0D112B",
         // 'scalesProperties.textColor' : "#0D112B",
@@ -287,12 +318,12 @@ export const TV_CONFIG = {
         'mainSeriesProperties.lineStyle.color': '#FFFFFF',
 
         //	Area styles
-        'mainSeriesProperties.areaStyle.color1': 'rgba(113, 42, 255, 0.2)',
-        'mainSeriesProperties.areaStyle.color2': 'rgba(98, 12, 255, 0.2)',
+        'mainSeriesProperties.areaStyle.color1': '#060824',
+        'mainSeriesProperties.areaStyle.color2': '#060824',
         // 'mainSeriesProperties.areaStyle.color1': 'rgba(36, 34, 156, 0.3)',
         // 'mainSeriesProperties.areaStyle.color2': 'rgba(70, 14, 203, 0.3)',
-        'mainSeriesProperties.areaStyle.linecolor': '#3D1E85',
-        'mainSeriesProperties.areaStyle.linewidth': 3,
+        'mainSeriesProperties.areaStyle.linecolor': '#d4d4d4',
+        'mainSeriesProperties.areaStyle.linewidth': 1,
         'mainSeriesProperties.areaStyle.priceSource': 'close',
         'mainSeriesProperties.hollowCandleStyle.drawWick': false,
         'mainSeriesProperties.haStyle.drawWick': false,
@@ -346,7 +377,7 @@ export const RANGE_OPTIONS = [
     }
 ];
 
-export const ROW_HEIGHT = 32;
+export const ORDER_BOOK_ROWS_COUNT = 10;
 
 export const PortfolioChartMarker = {
     enabled: true,
@@ -369,7 +400,11 @@ export const PortfolioChartMarker = {
 
 export const SETTING_TIPPY_INFO  = {
     ARBITRAGE_MODE: 'Turn On to automate selection of the lowest buy price and highest sell price from your approved exchanges.',
+    MARKET_MAKER_MODE: 'Market Maker Mode',
+    HEDGE_FUND_MODE: 'Hedge Fund Mode (Arbitrage)',
+    FOREX_TRADER_MODE: 'Forex Trader Mode',
     GOOGLE_2FA: 'Turn On to enable Google 2-factor-authentication on login.',
+    EMAIL_2FA: 'Turn On to enable Email 2-factor-authentication on login. (This option is not working at the moment.)',
     PRIVATE_VPN: 'Turn On to login using a VPN (Virtual Privacy Network).',
     BALANCE_CREDIT: 'Turn On to see Store Credit included in your balance.',
     STORE_CREDIT: 'Credits that can be used to pay for in-app purchases or sent to other users.',
@@ -380,8 +415,13 @@ export const SETTING_TIPPY_INFO  = {
     LANGUAGE: 'Select your preferred language.',
     DEFAULT_FIAT: 'Select the default fiat currency used to display your Portfolio Balance.',
     DEFAULT_CRYPTO: 'Select a default Crypto for trading pairs.',
+    DEFAULT_CURRENCY: 'Changing this will affect what to use by C1 in trade.',
     DEFAULT_URL: 'Enter your whitelabel URL.',
     REFERRED_BY: 'Enter the name of who referred you.',
-    AFFILIATE_LINK: 'Enter a link of who referred you.',
+    YOU_REFERRED: 'The count you referred',
+    AFFILIATE_LINK: 'Referr Other users to this site to increase your Level and earn a referral fee.',
     TIMER: 'Set count timer.',
+    TIMER_AFTER: 'Initiate timer.',
+    PAYAPP_LABEL: 'PayApp is only available fore mobile.',
+    FOREX_PROFIT_MARGIN: 'Select the default forex profit margin used to display in forex app.',
 };

@@ -3,18 +3,20 @@ import React, { Fragment } from 'react';
 import { inject, observer } from 'mobx-react';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import { Tooltip } from 'react-tippy';
+import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
+import { compose } from 'recompose';
+import { withSafeTimeout, withSafeInterval } from '@hocs/safe-timers';
 
 import { AutoSizer } from 'react-virtualized';
-import { STORE_KEYS } from '../../../stores';
-import { STATE_KEYS } from '../../../stores/ConvertStore';
+import { STORE_KEYS } from '@/stores';
+import { STATE_KEYS } from '@/stores/ConvertStore';
 import {
-    customDigitFormat,
     fillUntil,
-    unifyDigitString,
-    customDigitFormatWithNoTrim
-} from '../../../utils';
-import { viewModeKeys } from '../../../stores/ViewModeStore';
-import { HexColors, getChartColors } from './colors';
+    customDigitFormatWithNoTrim,
+    format2DigitStringForDonut
+} from '@/utils';
+import { BuyArrowIcon, SellArrowIcon } from '@/components-generic/ArrowIcon'
+import { HexColors, GreenHexColors, getChartColors } from './colors';
 
 // TODO mock data - plans
 import Plan from './mockPlan';
@@ -33,141 +35,19 @@ import {
     ExCellContainer,
     TopSwitchWrapper,
     StyleWrapper,
-    ExchangeInfoWrapper
+    ExchangeInfoWrapper,
+    ColumnObj,
+    TooltipContent,
+    TotalExchange
 } from './CellComponents';
-// import TopSwitch from '../../TopSwitch';
-// import SideHeader from '../../SideHeader';
-// import Header from '../../Telegram/Header';
-import WalletHeader from '../../PayApp/PayWindow/Header';
-import CoinIcon from '../../../components-generic/CoinIcon';
-import { Logo, LogoWrapper } from '../../PayApp/PayWindow/Header/Components';
-import { ListItem } from '../../../components-generic/SelectDropdown/Components';
+import WalletHeader from '@/components/WalletHeader';
+import WalletGroupButton from '@/components-generic/WalletGroupButton';
+import {
+    ArrowIcon, BTCIcon, WalletSideIcon
+} from '@/components/OrderHistory/OrderHistoryTable/Components';
+import {commafy} from "utils";
 
 const maxCells = 150;
-
-const ExchangeCell = ({
-    exchange, lowestExchange, price, baseSymbol, quoteSymbol, updateExchange, setExchange, marketExchanges, index, convertState, isProgressing,
-    swapBaseQuote, disabled, setTradingViewMode, setViewMode, isOrderBookStop, showOrderForm, viewMode, getLocalPrice, defaultFiat,
-}) => {
-    const coinSearchPrice = swapBaseQuote ? 1 / price : price;
-    let exchangeFileName = exchange.toLowerCase();
-    let includedInActiveMarkets = false;
-
-    for (let i = 0; i < marketExchanges.length; i++) {
-        if (marketExchanges[i].icon.toLowerCase() === exchange.toLowerCase() + '.png')  {
-            exchangeFileName = marketExchanges[i].icon.substr(0, marketExchanges[i].icon.length - 4);
-            break;
-        }
-
-        if (marketExchanges[i].name === exchange && marketExchanges[i].status === 'active') {
-            includedInActiveMarkets = true;
-        }
-    }
-
-    const isActive = exchange === lowestExchange;
-
-    return (
-        <ItemNormal
-            active={isActive}
-            coinSearch={convertState === STATE_KEYS.coinSearch}
-            last={index === 0}
-            planCell={false}
-            isPlan={false}
-            disabled={disabled || (!isActive && !includedInActiveMarkets)}
-            onClick={() => {
-                if ((convertState !== STATE_KEYS.submitOrder) && (convertState !== STATE_KEYS.orderDone)) {
-                    if (!disabled && (isActive || includedInActiveMarkets)) {
-                        setTradingViewMode(true);
-                        if (convertState === STATE_KEYS.amtInput) {
-                            if (exchange === lowestExchange) {
-                                // setViewMode(viewModeKeys.basicModeKey);
-                                // Reset if already selected
-                                setTimeout(() => {
-                                    updateExchange(-1, '');
-                                    setExchange('Global');
-                                }, 1000);
-                            } else {
-                                updateExchange(index, exchange);
-                                setExchange(exchange);
-                                // if (!isOrderBookStop) {
-                                //     setViewMode(viewModeKeys.advancedModeKey);
-                                // } else {
-                                //     setViewMode(viewModeKeys.exchangesModeKey);
-                                // }
-                            }
-                        } else {
-                            updateExchange(index, exchange);
-                            setExchange(exchange);
-                        }
-                    }
-                }
-            }}
-            className="exch-bar-item"
-        >
-            <ItemExchPair>
-                <ItemExchPairSimple active={exchange === lowestExchange} isProgress={false}>
-                    <ExchangeInfoWrapper active={convertState === STATE_KEYS.coinSearch}>
-                        <Tooltip
-                            animation="fade"
-                            arrow={true}
-                            position="bottom"
-                            followCursor
-                            distance={10}
-                            theme="bct"
-                            title={exchange.charAt(0).toUpperCase() + exchange.slice(1)}
-                        >
-                            <div className="display-flex">
-                                <ItemExchPairSideIcon
-                                    value={exchangeFileName}
-                                    type="ExchangeIcon"
-                                    size={38}
-                                    className={exchange + 'exch'}
-                                    isOpen={false}
-                                    isSearchState={false}
-                                    defaultFiat={defaultFiat}
-                                />
-                                {!isProgressing && (
-                                    <div className="exchange-name">
-                                        {exchange.charAt(0).toUpperCase() + exchange.slice(1)}
-                                    </div>
-                                )}
-                            </div>
-                        </Tooltip>
-                    </ExchangeInfoWrapper>
-
-                    <ItemExchPairSideIcon
-                        value={baseSymbol}
-                        size={38}
-                        className={baseSymbol + 'base'}
-                        isOpen={false}
-                        isSearchState={false}
-                        defaultFiat={defaultFiat}
-                    />
-
-                    <div className="flex-1">
-                        <ItemExchPairRatioText active={convertState === STATE_KEYS.coinSearch}>
-                            <div className="flex-between">{coinSearchPrice < 1 ? customDigitFormatWithNoTrim(getLocalPrice(1 / coinSearchPrice, quoteSymbol).toFixed(5)) : 1}</div>
-                            <ExchangeWrapper>
-                                {/* <div>{exchange}</div> */}
-                                <ArrowIcon1/>
-                            </ExchangeWrapper>
-                            <div className="flex-between">{coinSearchPrice < 1 ? 1 : customDigitFormatWithNoTrim(getLocalPrice(coinSearchPrice, quoteSymbol).toFixed(5))}</div>
-                        </ItemExchPairRatioText>
-                    </div>
-
-                    <ItemExchPairSideIcon
-                        value={quoteSymbol}
-                        size={38}
-                        className={quoteSymbol + 'quote'}
-                        isOpen={false}
-                        isSearchState={false}
-                        defaultFiat={defaultFiat}
-                    />
-                </ItemExchPairSimple>
-            </ItemExchPair>
-        </ItemNormal>
-    );
-};
 
 class ExchangePlanCell extends React.Component {
     state = {
@@ -201,26 +81,21 @@ class ExchangePlanCell extends React.Component {
         this.props.updateHoverExchange('');
     };
 
-    getColor = index => {
-        /*
-        if (this.state.CustomAmColors.length <= index) {
-            return '#000';
-        }
-        if (this.state.itemCount > 0) {
-            return this.state.CustomAmColors[index].hex;
-        }
-        */
-        return HexColors[index >= HexColors.length ? HexColors.length - 1 : index];
+    getColor = (index, isCoinPairInversed) => {
+        if (isCoinPairInversed)  return GreenHexColors[index >= GreenHexColors.length ? GreenHexColors.length - 1 : index];
+        return HexColors[index >= HexColors.length ? 0 : HexColors.length - 1 - index];
     };
 
     render() {
         const {
-            exchange, hoverExchange, hoverExchangeFromDonut, price, quoteSymbol, baseSymbol, amount, spentAmount, index, convertState, percentage, isProgressing,
-            setViewMode, isOrderBookStop, showOrderForm, viewMode, updateExchange, setExchange, marketExchanges, lowestExchange, setTradingViewMode,
-            confirmed, partial, getLocalPrice, defaultFiat, length,
+            exchange, hoverExchange, price, quoteSymbol, amount, spentAmount, index,
+            convertState, percentage, isProgressing,
+            updateExchange, setExchange, marketExchanges,
+            lowestExchange, setTradingViewMode,
+            startPercentage, partial, getLocalPrice, defaultFiat, length,
+            defaultFiatSymbol, selectedQuote, hoveredCellIndex, setSafeTimeout,
         } = this.props;
 
-        const details = Plan.data[0].details;
         const { isOpen, itemCount } = this.state;
         if (length && length !== 0 && itemCount !== length) {
             this.setState({
@@ -237,10 +112,22 @@ class ExchangePlanCell extends React.Component {
             }
         }
 
+        const isCoinPairInversed =  (spentAmount < amount);
+        const realPrice = price < 1 ? 1 / price : price;
+        let realAmount = Math.max(spentAmount, amount);
+        let realTotal = Math.min(spentAmount, amount);
+
+        const baseAmount = Number.parseFloat(getLocalPrice(realAmount, quoteSymbol));
+        const quoteAmount = Number.parseFloat(getLocalPrice(realTotal, selectedQuote));
+        const c1Amount = quoteAmount;
+        const c2Amount = baseAmount;
+        const c2TotalAmount = Number.parseFloat(realPrice);
+        const percentLabel = !partial || partial === 0 ? 0 : format2DigitStringForDonut(partial);
+
         return (
             <ItemNormal
-                color={percentage === 0 ? this.getColor(index) : ''}
-                hover={exchange === hoverExchange || exchange === hoverExchangeFromDonut}
+                color={percentage === 0 ? this.getColor(index, false) : ''}
+                hover={index === hoveredCellIndex}
                 planCell={convertState === STATE_KEYS.submitOrder}
                 active={exchange === lowestExchange}
                 isOpen={isOpen}
@@ -248,31 +135,122 @@ class ExchangePlanCell extends React.Component {
                 coinSearch={false}
                 onMouseEnter={this.onMouseEnter}
                 onMouseLeave={this.onMouseLeave}
+                isRealExchange={true}
+                isProgressing={isProgressing}
                 onClick={() => {
                     setTradingViewMode(true);
                     if (exchange === lowestExchange) {
-                        // setViewMode(viewModeKeys.basicModeKey);
-                        setTimeout(() => {
+                        setSafeTimeout(() => {
                             updateExchange(-1, '');
                             setExchange('Global');
                         }, 1000);
                     } else {
                         updateExchange(index, exchange);
                         setExchange(exchange);
-                        // showOrderForm();
-                        /*
-                        if (!isOrderBookStop) {
-                            setViewMode(viewModeKeys.advancedModeKey);
-                        } else {
-                            setViewMode(viewModeKeys.basicModeKey);
-                        }
-                        */
                     }
                 }}
             >
-                <ItemProgressBar color={this.getColor(index)} progress={percentage}/>
-                <ItemExchPairSimple hover={this.state.itemHover || (exchange === hoverExchange)} isProgress={true}>
-                    <ExchangeInfoWrapper active>
+                <ItemExchPairSimple
+                    hover={this.state.itemHover || (exchange === hoverExchange)}
+                    isProgress={true}
+                    isRealExchange={true}
+                    isProgressing={isProgressing}
+                >
+                    <ColumnObj>
+                        <ItemExchPairSideIcon
+                            value={exchangeFileName}
+                            type="ExchangeIcon"
+                            size={38}
+                            className={exchange + 'exch'}
+                            isOpen={isOpen}
+                            isSearchState={false}
+                            hover={(exchange === hoverExchange) || percentage > 0}
+                            defaultFiat={defaultFiat}
+                        />
+                        <Tooltip
+                            followCursor
+                            className="exch-name-tooltip"
+                            animation="fade"
+                            arrow={true}
+                            position="bottom"
+                            distance={10}
+                            theme="bct"
+                            title={exchange}
+                        >
+                            <div className="c1Symbol">
+                                {exchange}
+                            </div>
+                        </Tooltip>
+                        <div className={`c1Amount ${isCoinPairInversed && 'expRight'}`}>
+                            <WalletGroupButton
+                                masterColor={this.getColor(index, false)}
+                                isShouldOneAnim
+                                inProgress={isCoinPairInversed}
+                                isLeft={false}
+                                isBuy={true}
+                                progress={isCoinPairInversed && isProgressing}
+                                isWhite={false}
+                                position={false}
+                            >
+                                <WalletSideIcon/>
+                                <span>
+                                    {c1Amount > 1 ? commafy(c1Amount.toPrecision(8)) : c1Amount.toFixed(7)}
+                                </span>
+                                <span className="infoIcon">
+                                    <BTCIcon/>
+                                </span>
+                            </WalletGroupButton>
+                        </div>
+                    </ColumnObj>
+
+                    <ExchangeWrapper isActive={true} isCoinPairInversed={false}>
+                        <div className="info-arrow-directional">
+                            <div className="wrapper_arrow">
+                                <SellArrowIcon width={35} withText />
+                            </div>
+                        </div>
+                    </ExchangeWrapper>
+
+                    <ColumnObj right>
+                        <div className={`c1Amount ${!isCoinPairInversed && 'expRight'}`}>
+                            <WalletGroupButton
+                                masterColor={this.getColor(index, false)}
+                                isShouldOneAnim
+                                inProgress={!isCoinPairInversed}
+                                isLeft={false}
+                                isBuy={false}
+                                progress={!isCoinPairInversed && isProgressing}
+                                isWhite={false}
+                                position={false}
+                            >
+                                <WalletSideIcon isRight/>
+                                <span>
+                                    {commafy(c2Amount.toPrecision(8))}
+                                </span>
+                                <span className="infoIcon">
+                                    <span>{defaultFiatSymbol}</span>
+                                </span>
+                            </WalletGroupButton>
+                        </div>
+                        <div className="c1Symbol">
+                            <Tooltip
+                                animation="fade"
+                                arrow={true}
+                                position="bottom"
+                                followCursor
+                                distance={10}
+                                theme="bct"
+                                title={`1->${defaultFiatSymbol}${c2TotalAmount}`}
+                            >
+                                <span className="atSymbol">@</span>{c2TotalAmount}
+                            </Tooltip>
+                        </div>
+                    </ColumnObj>
+
+                    <ExchangeInfoWrapper
+                        active
+                        rotateDegree={startPercentage * 360 / 100}
+                    >
                         <Tooltip
                             animation="fade"
                             arrow={true}
@@ -280,279 +258,120 @@ class ExchangePlanCell extends React.Component {
                             followCursor
                             distance={10}
                             theme="bct"
-                            title={exchange.charAt(0).toUpperCase() + exchange.slice(1)}
+                            html={(
+                                <TooltipContent value={exchangeFileName}>
+                                    <div className="tooltip-icon"/>
+                                    <span>{exchange.charAt(0).toUpperCase() + exchange.slice(1)}</span>
+                                </TooltipContent>
+                            )}
                         >
                             <div className="display-flex">
-                                <ItemExchPairSideIcon
-                                    value={exchangeFileName}
-                                    type="ExchangeIcon"
-                                    size={38}
-                                    className={exchange + 'exch'}
-                                    isOpen={isOpen}
-                                    isSearchState={false}
-                                    hover={(exchange === hoverExchange) || percentage > 0}
-                                    defaultFiat={defaultFiat}
+                                <CircularProgressbar
+                                    strokeWidth={10}
+                                    value={!partial || partial === 0 ? 0 : partial}
+                                    maxValue={100}
+                                    text={`${percentLabel}%`}
+                                    background={true}
+                                    styles={buildStyles({
+                                        textSize: '33px',
+                                        textColor: '#6ac6de',
+                                        pathColor: '#6ac6de',
+                                        trailColor: '#2c3133',
+                                        backgroundColor: '#0000',
+                                    })}
                                 />
-                                {!isProgressing && (
-                                    <div className="exchange-name">
-                                        {exchange.charAt(0).toUpperCase() + exchange.slice(1)}
-                                    </div>
-                                )}
                             </div>
                         </Tooltip>
                     </ExchangeInfoWrapper>
-                    <ItemExchPairSideIcon
-                        value={baseSymbol}
-                        size={38}
-                        className={baseSymbol + 'base'}
-                        isOpen={isOpen}
-                        isSearchState={false}
-                        hover={(exchange === hoverExchange) || percentage > 0}
-                        defaultFiat={defaultFiat}
-                    />
-
-                    <div className="flex-1">
-                        {/*
-                        <ItemTitle hover={exchange === hoverExchange}>{exchange}</ItemTitle>
-                        <div className="d-flex">
-                            {
-                                (exchange === hoverExchange || this.state.itemHover)
-                                    ? (
-                                        <Fragment>
-                                            <span>{customDigitFormat(spentAmount)}</span>
-                                            <span className="gray">&#8811;</span>
-                                            <span>{customDigitFormat(amount)}</span>
-                                        </Fragment>
-                                    )
-                                    : (
-                                        <ItemExchPairRatioText>
-                                            <span>1 =&ensp;</span>{unifyDigitString(price)}
-                                        </ItemExchPairRatioText>
-                                    )
-                            }
-                        </div>
-                        */}
-                        {/*
-                        {
-                            (exchange === hoverExchange || this.state.itemHover)
-                                ? (
-                                    <div className="d-flex">
-                                        <span>{customDigitFormat(spentAmount)}</span>
-                                        <Tooltip
-                                            arrow={true}
-                                            position="top"
-                                            distance={10}
-                                            theme="bct"
-                                            title={exchange}
-                                        >
-                                            <span className="gray">&#8811;</span>
-                                        </Tooltip>
-                                        <span>{customDigitFormat(amount)}</span>
-                                    </div>
-                                )
-                                : (
-                                    <ItemExchPairRatioText>
-                                        <div>{price < 1 ? customDigitFormat(getLocalPrice(1 / price, quoteSymbol)) : 1}</div>
-                                        <ExchangeWrapper>
-                                            <Tooltip
-                                                arrow={true}
-                                                position="top"
-                                                distance={10}
-                                                theme="bct"
-                                                title={exchange}
-                                            >
-                                                <ArrowIcon1/>
-                                            </Tooltip>
-                                        </ExchangeWrapper>
-                                        <div>{price < 1 ? 1 : customDigitFormat(getLocalPrice(price, quoteSymbol))}</div>
-                                    </ItemExchPairRatioText>
-                                )
-                        }
-                        */}
-                        <ItemExchPairRatioText active>
-                            <div className="flex-between">
-                                {isProgressing
-                                    ? customDigitFormat(spentAmount)
-                                    : (price < 1 ? customDigitFormatWithNoTrim(getLocalPrice(1 / price, quoteSymbol)) : 1)
-                                }
-                            </div>
-                            <ExchangeWrapper>
-                                <ArrowIcon1/>
-                            </ExchangeWrapper>
-                            <div className="flex-between">
-                                {isProgressing
-                                    ? customDigitFormat(amount)
-                                    : (price < 1 ? 1 : customDigitFormatWithNoTrim(getLocalPrice(price, quoteSymbol)))
-                                }
-                            </div>
-                        </ItemExchPairRatioText>
-                    </div>
-
-                    <ItemExchPairSideIcon
-                        value={quoteSymbol}
-                        size={38}
-                        className={quoteSymbol + 'quote'}
-                        isOpen={isOpen}
-                        isSearchState={false}
-                        hover={(exchange === hoverExchange) || percentage > 0}
-                        defaultFiat={defaultFiat}
-                    />
                 </ItemExchPairSimple>
             </ItemNormal>
         );
     }
 }
 
+const ExchangePlanCellWithSafeTimeout = withSafeTimeout(ExchangePlanCell);
+
 const ObservedExchangeCell = (observer(
     ({
         searchValue,
-        orderBookStore: { pricesByExchangeCCA, pricesByExchange, isOrderBookStop },
-        instrumentsStore: { selectedInstrumentPair: [baseSymbol, quoteSymbol] },
+        isCoinPairInversed = false,
+        instrumentsStore: { selectedInstrumentPair: [baseSymbol, quoteSymbol], selectedQuote },
         lowestExchangeStore: {
-            updateExchange, lowestExchange, hoverExchange, hoverExchangeFromDonut, updateHoverExchange, PlanForExchangesBar: Plan, confirmed,
+            updateExchange, lowestExchange, hoverExchange, hoverExchangeFromDonut, updateHoverExchange, PlanForExchangesBar: Plan, confirmed, totalPrice,
         },
-        convertStore: { convertState },
+        convertStore: { convertState, setCurrentProgress },
         orderFormToggle: { showOrderForm },
         viewModeStore: {
             setViewMode, viewMode, setTradingViewMode, isSearchEnabled,
         },
         settingsStore: {
-            getLocalPrice, defaultFiat,
+            getLocalPrice, defaultFiat, defaultFiatSymbol,
         },
         index,
         swapBaseQuote,
         setExchange,
         marketExchanges,
+        hoveredCellIndex,
+        isLeftTop,
     }) => {
         const isProgressing = (convertState === STATE_KEYS.submitOrder) || (convertState === STATE_KEYS.orderDone);
-        if (convertState === STATE_KEYS.amtInput || convertState === STATE_KEYS.submitOrder || convertState === STATE_KEYS.orderDone) {
-            if (Plan && Plan.length > index) {
-                return (
-                    <Fragment>
-                        <ExchangePlanCell
-                            // baseSymbol={Plan.get(index).Bid.toUpperCase()} Hacking, since backend is sending swapped
-                            length={Plan.length}
-                            baseSymbol={Plan.get(index).Ask.toUpperCase()}
-                            quoteSymbol={Plan.get(index).Bid.toUpperCase()}
-                            exchange={Plan.get(index).Exchange}
-                            marketExchanges={marketExchanges}
-                            lowestExchange={lowestExchange}
-                            hoverExchange={hoverExchange || ''}
-                            updateHoverExchange={updateHoverExchange}
-                            hoverExchangeFromDonut={hoverExchangeFromDonut || ''}
-                            price={Plan.get(index).Price}
-                            spentAmount={Plan.get(index).spentAmount}
-                            amount={Plan.get(index).Amount}
-                            convertState={convertState}
-                            index={index}
-                            partial={Plan.get(index).Percentage}
-                            percentage={Plan.get(index).progress}
-                            details={Plan.get(index).details || []}
-                            confirmed={confirmed}
-                            setViewMode={setViewMode}
-                            setTradingViewMode={setTradingViewMode}
-                            isOrderBookStop={isOrderBookStop}
-                            showOrderForm={showOrderForm}
-                            viewMode={viewMode}
-                            updateExchange={updateExchange}
-                            setExchange={setExchange}
-                            getLocalPrice={getLocalPrice}
-                            defaultFiat={defaultFiat}
-                            isProgressing={isProgressing}
-                        />
-                    </Fragment>
-                );
+
+        if (Plan && Plan.length > index) {
+            if (index === 0) {
+                setCurrentProgress(Plan.get(0).progress);
             }
-
-            const planLength = Plan ? Plan.length : 0;
-            const secondIndex = index - planLength;
-            const lowestPrice = Plan[planLength - 1] ? Plan[planLength - 1].Price : 0;
-
-            if (pricesByExchangeCCA.has(secondIndex)) {
-                const exchangeName = (pricesByExchangeCCA.get(secondIndex)[0] || '').toLowerCase();
-                const exchangePrice = pricesByExchangeCCA.get(secondIndex)[1] || 0;
-
-                for (let i = 0; i < Plan.length; i++) {
-                    if ((exchangeName === Plan.get(i).Exchange.toLowerCase()) || (exchangePrice > lowestPrice && lowestPrice !== 0)) {
-                        return (
-                            <Fragment/>
-                        );
-                    }
-                }
+            let startPercentage = 0;
+            for (let i = 0; i < index; i++) {
+                startPercentage += Plan.get(i).Percentage;
             }
-
             return (
                 <Fragment>
-                    {pricesByExchangeCCA.has(secondIndex) && (
-                        <ExchangeCell
-                            baseSymbol={baseSymbol}
-                            quoteSymbol={quoteSymbol}
-                            exchange={pricesByExchangeCCA.get(secondIndex)[0]}
-                            lowestExchange={lowestExchange}
-                            price={pricesByExchangeCCA.get(secondIndex)[1]}
-                            updateExchange={updateExchange}
-                            setExchange={setExchange}
-                            marketExchanges={marketExchanges}
-                            index={secondIndex}
-                            convertState={convertState}
-                            swapBaseQuote={swapBaseQuote}
-                            disabled={false}
-                            setTradingViewMode={setTradingViewMode}
-                            setViewMode={setViewMode}
-                            isOrderBookStop={isOrderBookStop}
-                            showOrderForm={showOrderForm}
-                            viewMode={viewMode}
-                            getLocalPrice={getLocalPrice}
-                            defaultFiat={defaultFiat}
-                            isProgressing={isProgressing}
-                        />
-                    )}
+                    <ExchangePlanCellWithSafeTimeout
+                        length={Plan.length}
+                        baseSymbol={Plan.get(index).Ask.toUpperCase()}
+                        quoteSymbol={Plan.get(index).Bid.toUpperCase()}
+                        exchange={Plan.get(index).Exchange}
+                        marketExchanges={marketExchanges}
+                        lowestExchange={lowestExchange}
+                        hoverExchange={hoverExchange || ''}
+                        updateHoverExchange={updateHoverExchange}
+                        hoverExchangeFromDonut={hoverExchangeFromDonut || ''}
+                        price={Plan.get(index).Price}
+                        spentAmount={Plan.get(index).spentAmount}
+                        amount={Plan.get(index).Amount}
+                        convertState={convertState}
+                        index={index}
+                        partial={Plan.get(index).Percentage}
+                        startPercentage={startPercentage}
+                        percentage={Plan.get(index).progress}
+                        details={Plan.get(index).details || []}
+                        confirmed={confirmed}
+                        setViewMode={setViewMode}
+                        setTradingViewMode={setTradingViewMode}
+                        showOrderForm={showOrderForm}
+                        viewMode={viewMode}
+                        updateExchange={updateExchange}
+                        setExchange={setExchange}
+                        getLocalPrice={getLocalPrice}
+                        defaultFiat={defaultFiat}
+                        isProgressing={isProgressing}
+                        isCoinPairInversed={isCoinPairInversed}
+                        defaultFiatSymbol={defaultFiatSymbol}
+                        totalPrice={totalPrice}
+                        selectedquote={selectedQuote}
+                        hoveredCellIndex={hoveredCellIndex}
+                        isLeftTop={isLeftTop}
+                    />
                 </Fragment>
             );
         }
-
-        if (convertState === STATE_KEYS.coinSearch) {
-            let includes = pricesByExchangeCCA.has(index);
-            if (includes) {
-                const exchangeName = pricesByExchangeCCA.get(index)[0].toLowerCase();
-                if (isSearchEnabled && searchValue && !exchangeName.includes(searchValue)) {
-                    includes = false;
-                }
-            }
-
-            return (
-                <Fragment>
-                    {includes && (
-                        <ExchangeCell
-                            baseSymbol={baseSymbol}
-                            quoteSymbol={quoteSymbol}
-                            exchange={pricesByExchangeCCA.get(index)[0]}
-                            lowestExchange={lowestExchange}
-                            price={pricesByExchangeCCA.get(index)[1]}
-                            updateExchange={updateExchange}
-                            setExchange={setExchange}
-                            marketExchanges={marketExchanges}
-                            index={index}
-                            convertState={convertState}
-                            swapBaseQuote={swapBaseQuote}
-                            disabled={false}
-                            setTradingViewMode={setTradingViewMode}
-                            setViewMode={setViewMode}
-                            isOrderBookStop={isOrderBookStop}
-                            showOrderForm={showOrderForm}
-                            viewMode={viewMode}
-                            getLocalPrice={getLocalPrice}
-                            defaultFiat={defaultFiat}
-                            isProgressing={isProgressing}
-                        />
-                    )}
-                </Fragment>
-            );
-        }
+        return null;
     }
 ));
 
 class ExchangeCellsContent extends React.PureComponent {
+    clearScrollTopTimeout = null
+
     constructor() {
         super();
 
@@ -564,11 +383,11 @@ class ExchangeCellsContent extends React.PureComponent {
     }
 
     componentDidMount() {
-        setTimeout(this.updateScroll);
+        this.props.setSafeTimeout(this.updateScroll);
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
-        setTimeout(this.updateScroll);
+        this.props.setSafeTimeout(this.updateScroll);
     }
 
     handleScrollReachedStart = () => {
@@ -587,7 +406,10 @@ class ExchangeCellsContent extends React.PureComponent {
         const difference = this.perfectScrollRef.scrollTop || 0;
         const perTick = (difference / duration) * 10;
 
-        setTimeout(() => {
+        if (this.clearScrollTopTimeout) {
+            this.clearScrollTopTimeout();
+        }
+        this.clearScrollTopTimeout = this.props.setSafeTimeout(() => {
             if (!this.perfectScrollRef) { return; }
             this.perfectScrollRef.scrollTop = this.perfectScrollRef.scrollTop - perTick;
             if (this.perfectScrollRef.scrollTop === 0) {
@@ -612,7 +434,6 @@ class ExchangeCellsContent extends React.PureComponent {
             searchValue,
             instrumentsStore,
             convertStore,
-            orderBookStore,
             lowestExchangeStore,
             orderFormToggle,
             convertState,
@@ -621,6 +442,8 @@ class ExchangeCellsContent extends React.PureComponent {
             settingsStore,
             setExchange,
             marketExchanges,
+            hoveredCellIndex,
+            isLeftTop,
         } = this.props;
 
         return (
@@ -643,7 +466,7 @@ class ExchangeCellsContent extends React.PureComponent {
                     containerRef={element => {
                         this.perfectScrollRef = element;
                     }}
-                    option={{ minScrollbarLength: 40, maxScrollbarLength: 60 }}
+                    options={{ minScrollbarLength: 40, maxScrollbarLength: 60 }}
                     onYReachStart={this.handleScrollReachedStart}
                     onScrollY={this.handleScrollY}
                 >
@@ -653,7 +476,6 @@ class ExchangeCellsContent extends React.PureComponent {
                             i => (
                                 <ObservedExchangeCell
                                     searchValue={searchValue}
-                                    orderBookStore={orderBookStore}
                                     instrumentsStore={instrumentsStore}
                                     lowestExchangeStore={lowestExchangeStore}
                                     setExchange={setExchange}
@@ -665,6 +487,8 @@ class ExchangeCellsContent extends React.PureComponent {
                                     settingsStore={settingsStore}
                                     index={i}
                                     key={i}
+                                    hoveredCellIndex={hoveredCellIndex}
+                                    isLeftTop={isLeftTop}
                                 />
                             )
                         )}
@@ -675,107 +499,173 @@ class ExchangeCellsContent extends React.PureComponent {
     }
 }
 
+const ExchangeCellsContentWithSafeTimeout = withSafeTimeout(ExchangeCellsContent);
+
 class ExchangeCells extends React.Component {
     state = {
         swapBaseQuote: false,
         searchValue: '',
+        hoveredCellIndex: -1,
     };
 
-    handleChangeSearchValue = ({ target: { value: searchValue } }) => {
-        this.setState({
-            searchValue,
-        });
-    };
     render() {
         const {
             [STORE_KEYS.INSTRUMENTS]: instrumentsStore,
             [STORE_KEYS.CONVERTSTORE]: convertStore,
-            [STORE_KEYS.ORDERBOOK]: orderBookStore,
             [STORE_KEYS.LOWESTEXCHANGESTORE]: lowestExchangeStore,
             [STORE_KEYS.EXCHANGESSTORE]: { setExchange, marketExchanges },
-            [STORE_KEYS.ORDERFORMTOGGLE]: orderFormToggle,
+            [STORE_KEYS.MARKETMAKER]: orderFormToggle,
             [STORE_KEYS.VIEWMODESTORE]: viewModeStore,
-            [STORE_KEYS.TELEGRAMSTORE]: telegramStore,
             [STORE_KEYS.SETTINGSSTORE]: settingsStore,
+            [STORE_KEYS.ARBITRAGESTORE]: { hStep1, hStep2 },
+            [STORE_KEYS.YOURACCOUNTSTORE]: { getPriceOf },
             isDonutMode,
+            isLeftTop = false,
+            isArbitrageMonitorMode,
+            isCoinPairInversed = false,
         } = this.props;
-
-        const { isLoggedIn } = telegramStore;
-        const { isRealTrading } = settingsStore;
-        const { pricesByExchangeCCA } = orderBookStore;
+        const {
+            defaultFiatSymbol,
+        } = settingsStore;
         const {
             PlanForExchangesBar: Plan,
         } = lowestExchangeStore;
+        const { swapBaseQuote, searchValue, hoveredCellIndex } = this.state;
 
-        const { swapBaseQuote, searchValue } = this.state;
-
-        let itemSize = (Plan.length || 0) + (pricesByExchangeCCA.size || 0);
-        if (convertStore.convertState === STATE_KEYS.coinSearch && viewModeStore.isSearchEnabled && searchValue) {
-            itemSize = 0;
-            for (let i = 0; i < pricesByExchangeCCA.size; i++) {
-                if (pricesByExchangeCCA.has(i) && pricesByExchangeCCA.get(i)[0].toLowerCase().includes(searchValue)) {
-                    itemSize += 1;
-                }
-            }
+        let leftAmount = hStep1 || 0;
+        let rightAmount = hStep2 || 0;
+        if (leftAmount === 0 && rightAmount === 0) {
+            leftAmount = 1;
+            rightAmount = getPriceOf('BTC');
         }
 
+        const averagePriceCalc = hStep2 > 0 ? rightAmount / leftAmount : 0;
+        rightAmount = Number.parseFloat(rightAmount);
+        leftAmount = Number.parseFloat(leftAmount);
         return (
             <ExCellTable isDonutMode={isDonutMode}>
                 <AutoSizer>
                     {({ width, height }) => (
-                        <StyleWrapper width={width} height={height}>
-                            {/*
-                                viewModeStore.isSearchEnabled
-                                ? (
-                                    <Header
-                                        sidebar
-                                        type="search"
-                                        value={searchValue}
-                                        onSearch={this.handleChangeSearchValue}
-                                        hasBorder
-                                    />
-                                )
-                                : (
-                                    <SideHeader isWorldBook={!isLoggedIn || (isLoggedIn && isRealTrading)}/>
-                                )
-                            */}
+                        <StyleWrapper width={width} height={height} isLeftTop={isLeftTop}>
                             {
                                 !isDonutMode &&
-                                <WalletHeader isExchange isSeparate />
+                                <WalletHeader isExchange isSeparate isMenuOpened={viewModeStore.isUserDropDownOpen} />
                             }
-
-                            <ExCellContainer id="exchange-cells-container" isDonutMode={isDonutMode} /* hasPadding={itemSize * 111 > height - 74} */>
-                                <ExchangeCellsContent
-                                    searchValue={searchValue}
-                                    instrumentsStore={instrumentsStore}
-                                    convertStore={convertStore}
-                                    orderBookStore={orderBookStore}
-                                    lowestExchangeStore={lowestExchangeStore}
-                                    setExchange={setExchange}
-                                    marketExchanges={marketExchanges}
-                                    viewModeStore={viewModeStore}
-                                    convertState={convertStore.convertState}
-                                    swapBaseQuote={swapBaseQuote}
-                                    orderFormToggle={orderFormToggle}
-                                    settingsStore={settingsStore}
-                                />
-                            </ExCellContainer>
+                            {
+                                !isArbitrageMonitorMode &&
+                                <ExCellContainer id="exchange-cells-container" isDonutMode={isDonutMode}>
+                                    <ExchangeCellsContentWithSafeTimeout
+                                        searchValue={searchValue}
+                                        instrumentsStore={instrumentsStore}
+                                        convertStore={convertStore}
+                                        lowestExchangeStore={lowestExchangeStore}
+                                        setExchange={setExchange}
+                                        marketExchanges={marketExchanges}
+                                        viewModeStore={viewModeStore}
+                                        convertState={convertStore.convertState}
+                                        swapBaseQuote={swapBaseQuote}
+                                        orderFormToggle={orderFormToggle}
+                                        settingsStore={settingsStore}
+                                        hoveredCellIndex={hoveredCellIndex}
+                                        isLeftTop={isLeftTop}
+                                    />
+                                </ExCellContainer>
+                            }
                         </StyleWrapper>
                     )}
                 </AutoSizer>
+                {!isLeftTop &&
+                    <TotalExchange isCoinPairInversed={isCoinPairInversed}>
+                        <ItemExchPairSimple
+                            isProgress={true}
+                            isRealExchange={true}
+                        >
+                            <ColumnObj>
+                                <div className="c1Symbol">
+                                    {Plan && Plan.length > 0 ? Plan.length > 1 ? `${Plan.length} Exchanges` : '1 Exchange' : '0 Exchange'}
+                                </div>
+                                <div className={`c1Amount ${isCoinPairInversed && 'expRight'}`}>
+                                    <WalletGroupButton
+                                        isShouldOneAnim
+                                        inProgress={isCoinPairInversed}
+                                        isLeft={true}
+                                        isBuy={false}
+                                        isWhite={false}
+                                        position={false}
+                                    >
+                                        <WalletSideIcon/>
+                                        <span>
+                                            {leftAmount === 0 ? 0 : (
+                                              leftAmount > 1 ? commafy(leftAmount.toPrecision(8)) : leftAmount.toFixed(7)
+                                            )}
+                                        </span>
+                                        <span className="infoIcon">
+                                            <BTCIcon/>
+                                        </span>
+                                    </WalletGroupButton>
+                                </div>
+                            </ColumnObj>
+
+                            <ExchangeWrapper isActive={true} isCoinPairInversed={isCoinPairInversed}>
+                                <div className="info-arrow-directional">
+                                    <div className="wrapper_arrow">
+                                        {isCoinPairInversed ? <BuyArrowIcon width={35} withText /> : <SellArrowIcon width={35} withText />}
+                                    </div>
+                                </div>
+                            </ExchangeWrapper>
+
+                            <ColumnObj right>
+                                <div className={`c1Amount ${!isCoinPairInversed && 'expRight'}`}>
+                                    <WalletGroupButton
+                                        isShouldOneAnim
+                                        inProgress={!isCoinPairInversed}
+                                        isLeft={false}
+                                        isBuy={false}
+                                        isWhite={false}
+                                        position={false}
+                                    >
+                                        <WalletSideIcon isRight/>
+                                        <span>
+                                            {rightAmount === 0 ? 0 : commafy(rightAmount.toPrecision(8))}
+                                        </span>
+                                        <span className="infoIcon">
+                                            <span>{defaultFiatSymbol}</span>
+                                        </span>
+                                    </WalletGroupButton>
+                                </div>
+                                <div className="c1Symbol">
+                                    <span>{averagePriceCalc === 0 ? '' : `@${customDigitFormatWithNoTrim(averagePriceCalc, 6)}`}</span>
+                                </div>
+                            </ColumnObj>
+
+                            <ExchangeInfoWrapper
+                                active
+                            >
+                                <span>{Plan && Plan.length > 0 ? '100%' : '0%'}</span>
+                            </ExchangeInfoWrapper>
+                        </ItemExchPairSimple>
+                    </TotalExchange>
+                }
             </ExCellTable>
         );
     }
 }
 
-export default inject(
-    STORE_KEYS.INSTRUMENTS,
-    STORE_KEYS.CONVERTSTORE,
-    STORE_KEYS.ORDERBOOK,
-    STORE_KEYS.LOWESTEXCHANGESTORE,
-    STORE_KEYS.EXCHANGESSTORE,
-    STORE_KEYS.ORDERFORMTOGGLE,
-    STORE_KEYS.VIEWMODESTORE,
-    STORE_KEYS.TELEGRAMSTORE,
-    STORE_KEYS.SETTINGSSTORE,
-)(observer(ExchangeCells));
+const enhanced = compose(
+    withSafeInterval,
+    withSafeTimeout,
+    inject(
+        STORE_KEYS.INSTRUMENTS,
+        STORE_KEYS.CONVERTSTORE,
+        STORE_KEYS.LOWESTEXCHANGESTORE,
+        STORE_KEYS.EXCHANGESSTORE,
+        STORE_KEYS.MARKETMAKER,
+        STORE_KEYS.VIEWMODESTORE,
+        STORE_KEYS.SETTINGSSTORE,
+        STORE_KEYS.ARBITRAGESTORE,
+        STORE_KEYS.YOURACCOUNTSTORE,
+    ),
+    observer,
+);
+
+export default enhanced(ExchangeCells);

@@ -9,6 +9,7 @@
   "settings.label_access_level": "Nível de acesso",
   "settings.label_balance_includes_credit": "Saldo inclui crédito",
   "settings.label_google_2fa": "Google 2FA",
+  "settings.label_email_2fa": "Email 2FA",
   "settings.label_arbitrage_mode": "Modo de Arbitragem",
   "settings.label_private_vpn": "VPN privada",
   "settings.label_store_credit": "Crédito da loja",
@@ -187,7 +188,6 @@
   "data_loader_done.label_done": "FEITO",
   "sms_verification.label_enter_mobile_number": "Digite o número do celular",
   "sms_verification.label_what_code": "Qual é o código?",
-  "switch_custom.label_off": "FORA",
 
   "button.save": "Salve",
   "button.confirm": "confirme",
@@ -216,5 +216,6 @@
   "order_book.buy_book.label_max_order_size": "TAMANHO DA ORDEM MÁXIMA: ",
   "settings.label_auto_flip": "Auto Flip",
   "settings.label_swaps": "Troca",
-  "settings.label_is_auto_convert": "Conversão Automática"
+  "settings.label_is_auto_convert": "Conversão Automática",
+  "settings.label_support_center": "Centro de suporte de plataforma"
 }

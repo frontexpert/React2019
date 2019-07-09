@@ -23,44 +23,38 @@ class CoinPriceStore {
     //     }
     // }
 
-    constructor(instrumentStore) {
-        instrumentStore.instrumentsReaction(
-            async (base, quote) => {
+    constructor(priceChartStore) {
+        priceChartStore.priceChartReaction(
+            (base, quote, rates) => {
                 this.price = 0;
-                this.fetchPrice(base, quote);
+                this.updatePrice(base, quote, rates);
             },
             true
         );
     }
 
-    async fetchPrice(base, quote) {
+    updatePrice(base, quote, rates) {
         base = (base || '').replace('F:', '');
         quote = (quote || '').replace('F:', '');
-        const url = `https://rest.qa.bct.trade/api/best-conversion-rate/${base}-${quote}`;
 
-        fetch(url)
-            .then(response => response.json())
-            .then(Data => {
-                try {
-                    this.price = Number(Data.data.rate) || 0;
-                } catch(err) {
-                    this.price = 0;
-                }
+        try {
+            this.price = Number(rates.data.rate) || 0;
+        } catch(err) {
+            this.price = 0;
+        }
 
-                try {
-                    this.maxAmount = Data.data.amounts[base + '-' + quote].maxAmount || 0;
-                } catch(err) {
-                    this.maxAmount = 0;
-                }
+        try {
+            this.maxAmount = rates.data.amounts[base + '-' + quote].maxAmount || 0;
+        } catch(err) {
+            this.maxAmount = 0;
+        }
 
-                try {
-                    this.arbitrageAmount = Data.data.amounts[base + '-' + quote].arbitrageAmount || 0;
-                } catch(err) {
-                    this.arbitrageAmount = 0;
-                }
-            })
-            .catch(console.log);
+        try {
+            this.arbitrageAmount = rates.data.amounts[base + '-' + quote].arbitrageAmount || 0;
+        } catch(err) {
+            this.arbitrageAmount = 0;
+        }
     }
 }
 
-export default (instrumentStore) => new CoinPriceStore(instrumentStore);
+export default (priceChartStore) => new CoinPriceStore(priceChartStore);

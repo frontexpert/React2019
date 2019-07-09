@@ -2,16 +2,18 @@ import React from 'react';
 import { observable, action } from 'mobx';
 import {
     InitTransferRequest,
+    TransferNotification,
     TransferInfoDetailedRequest,
     TransferInfoRequest,
     ClaimTransfer,
     TransferHistoryRequest,
-    CancelTransferRequest
+    CancelTransferRequest,
+    RejectUserTransferRequest
 } from '../lib/bct-ws';
 
 class SendCoinStore {
     @observable uniqueAddress = '';
-
+    @observable historyCurrency = 'eth';
     @observable transferHistory = [];
     @observable isFetchingTransferHistory = false;
 
@@ -23,8 +25,18 @@ class SendCoinStore {
         this.uniqueAddress = '';
         return new Promise((resolve, reject) => {
             InitTransferRequest(coin, amount, currency).then(res => {
+                console.log('unique address: ' + res.TrId);
                 this.uniqueAddress = res.TrId || '';
-                resolve({});
+                resolve(res.TrId || '');
+            });
+        });
+    }
+
+    @action.bound transferNotification() {
+        return new Promise((resolve, reject) => {
+            TransferNotification().then(res => {
+                console.log(res);
+                resolve(res);
             });
         });
     }
@@ -38,6 +50,7 @@ class SendCoinStore {
                     DefaultCurrency: res.DefaultCurrency || '',
                     FullName: res.FullName || '',
                     Status: res.Status || '',
+                    IsOwner: res.IsOwner,
                 });
             });
         });
@@ -58,35 +71,41 @@ class SendCoinStore {
     }
 
     @action.bound claimTransfer(uniqueId) {
-        if (uniqueId !== '') {
-            return new Promise((resolve, reject) => {
-                ClaimTransfer(uniqueId).then(res => {
-                    // console.log('[claim res]', res);
-                    resolve({
-                        status: res.Status,
-                        msg: res.Message,
+        return new Promise((resolve, reject) => {
+            if (uniqueId !== '') {
+                ClaimTransfer(uniqueId)
+                    .then(res => {
+                        this.requestTransferHistory('eth');
+                        resolve(res);
                     });
-                });
-            });
-        }
+            } else {
+                reject(new Error('uniqueId is empty'));
+            }
+        });
     }
 
     @action.bound requestTransferHistory() {
         this.isFetchingTransferHistory = true;
 
-        return TransferHistoryRequest()
+        const payload = {
+            CurrencyId: 'ETH',
+        };
+
+        return TransferHistoryRequest(payload)
             .then(res => {
                 this.isFetchingTransferHistory = false;
-                try {
-                    res.sort(function compare(a, b) {
-                        let dateA = new Date(a.CreatedAt);
-                        let dateB = new Date(b.CreatedAt);
-                        return dateB - dateA;
-                    });
-                    this.transferHistory = res;
-                    return Promise.resolve(this.transferHistory);
-                } catch (e) {
-                    return Promise.resolve([]);
+                if(res.Status === 'success') {
+                    try {
+                        res.UserTransfers.sort(function compare(a, b) {
+                            let dateA = new Date(a.CreatedAt).getTime();
+                            let dateB = new Date(b.CreatedAt).getTime();
+                            return dateB - dateA;
+                        });
+                        this.transferHistory = res.UserTransfers.filter(item => item.Status !== 'expired' && item.Coin === this.historyCurrency);
+                        return Promise.resolve(this.transferHistory);
+                    } catch (e) {
+                        return Promise.resolve([]);
+                    }
                 }
             })
             .catch(e => {
@@ -108,18 +127,40 @@ class SendCoinStore {
     }
 
     @action.bound requestCancelTransferRequest(uniqueId) {
-        CancelTransferRequest(uniqueId)
+        return CancelTransferRequest(uniqueId)
             .then(res => {
-                if (res && res.Success === true) {
+                if (res && res.Success) {
                     this.showCoinSendState('Successfully canceled payment');
+                    this.requestTransferHistory();
                 } else {
                     this.showCoinSendState('Payment cancellation is failed');
                 }
                 this.requestTransferHistory();
-            })
-            .catch(e => {
-                console.log(e);
+                return {
+                    success: res && res.Success,
+                };
             });
+    }
+
+    @action.bound requestRejectUserTransferRequest(uniqueId) {
+        console.log('reject start');
+        return RejectUserTransferRequest(uniqueId)
+            .then(res => {
+                console.log('reject result: ', res);
+                if (res && res.Status === 'success') {
+                    this.showCoinSendState('Successfully canceled payment');
+                    this.requestTransferHistory();
+                } else {
+                    this.showCoinSendState('Payment cancellation is failed');
+                }
+                this.requestTransferHistory();
+                return {
+                    success: res && res.Status === 'success',
+                };
+            })
+            .catch(err => {
+                console.log(err);
+            })
     }
 }
 
