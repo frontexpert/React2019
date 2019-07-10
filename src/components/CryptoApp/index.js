@@ -32,6 +32,7 @@ import FadeScreen from './FadeScreen';
 import { STORE_KEYS } from '../../stores';
 import PaymentData from './PaymentData/index';
 import Congratulations from './Congratulations';
+import Wallet from './Wallet';
 
 import USD_1 from './DollarBills/USDT/USDT_1.jpg';
 import USD_10 from './DollarBills/USDT/USDT_10.jpg';
@@ -58,6 +59,8 @@ class CryptoApp extends Component {
         isDollarBillShowing: false,
         isPublicKeyShowing: false,
         isPrivateKeyShowing: false,
+        isWalletShowing: false,
+        coinAddress: '',
         isScanned: false,
         isBalanceLoaded: !this.props[STORE_KEYS.SMSAUTHSTORE].isLoggedIn,
         isPayFormShowing: false,
@@ -158,6 +161,11 @@ class CryptoApp extends Component {
             }
         }).catch(err => {
         });
+
+        if(isLoggedIn) {
+            this.setCoinAddress();
+            this.props.requestTransferHistory();
+        }
     }
 
     componentWillReceiveProps(nextProps) {
@@ -203,6 +211,15 @@ class CryptoApp extends Component {
         if (this.clearSwipeHandlerTimeout) {
             this.clearSwipeHandlerTimeout();
         }
+    }
+
+    setCoinAddress = () => {
+        this.props.createDepositAddress('BTC')
+            .then(address => {
+                this.setState({
+                    coinAddress: address,
+                });
+            });
     }
 
     toggleHistory = (isReset = false) => {
@@ -272,7 +289,6 @@ class CryptoApp extends Component {
     }
 
     handleQRImageClick = (value) => {
-        const { isPublicKeyShowing } = this.state;
         const {
             [STORE_KEYS.SMSAUTHSTORE]: {
                 isLoggedIn,
@@ -284,10 +300,9 @@ class CryptoApp extends Component {
         if(value) {
             this.savePrevAmount();
         }
-        if (!isPublicKeyShowing) {
-            if (!isLoggedIn) this.setState({ isBalanceShowing: true });
-            else this.setState({ isBalanceShowing: value });
-        }
+
+        if (!isLoggedIn) this.setState({ isBalanceShowing: true });
+        else this.setState({ isBalanceShowing: value });
     }
 
     savePrevAmount = () => {
@@ -581,19 +596,19 @@ class CryptoApp extends Component {
     }
 
     swipeHandler = (event) => {
-        const {
-            [STORE_KEYS.VIEWMODESTORE]: { pageIndexOfSmart, setPageIndexOfSmart, setIsPayApp },
-        } = this.props;
+        // const {
+        //     [STORE_KEYS.VIEWMODESTORE]: { pageIndexOfSmart, setPageIndexOfSmart, setIsPayApp },
+        // } = this.props;
         
-        if (event.dir === 'Left' && pageIndexOfSmart === 0) {
-            setIsPayApp(true);
-            setPageIndexOfSmart(1);
-        }
+        // if (event.dir === 'Left' && pageIndexOfSmart === 0) {
+        //     setIsPayApp(true);
+        //     setPageIndexOfSmart(1);
+        // }
         
-        if (event.dir === 'Right' && pageIndexOfSmart === 1) {
-            setIsPayApp(false);
-            setPageIndexOfSmart(0);
-        }
+        // if (event.dir === 'Right' && pageIndexOfSmart === 1) {
+        //     setIsPayApp(false);
+        //     setPageIndexOfSmart(0);
+        // }
     }
 
     handlePayFormShowing = (value) => {
@@ -676,6 +691,32 @@ class CryptoApp extends Component {
         this.setFadeStatus('fade');
     }
 
+    getBillStyle = (value) => {
+        let amount = Math.round(value);
+        if(amount < 10) return 'usd_1';
+        if(amount < 100) return 'usd_10';
+        if(amount < 1000) return 'usd_100';
+        if(amount < 10000) return 'usd_1000';
+        return 'usd_10000';
+    }
+
+    onClickCurrencyHead = (e) => {
+        const {
+            [STORE_KEYS.SMSAUTHSTORE]: {
+                isLoggedIn,
+            },
+        } = this.props;
+
+        if(isLoggedIn) {
+            if(e) e.stopPropagation();
+            this.setState({ isWalletShowing: true });
+        }
+    }
+
+    onWalletBack = () => {
+        this.setState({ isWalletShowing: false });
+    }
+
     render() {
         const {
             isFirstLoad,
@@ -684,11 +725,9 @@ class CryptoApp extends Component {
             isHistoryShowing,
             isCongratsShowing,
             isSMSVerificationShowing,
-            isPublicKeyShowing,
-            isPrivateKeyShowing,
             isBalanceLoaded,
             isPayFormShowing,
-            privateKeyURL,
+            isWalletShowing,
             verifyResultMsg,
             amount : amountFromState,
             logoutAmount,
@@ -707,6 +746,7 @@ class CryptoApp extends Component {
             countryCode,
             currencyCode,
             isTransferLoaded,
+            coinAddress,
         } = this.state;
 
         const {
@@ -749,7 +789,10 @@ class CryptoApp extends Component {
                                     onClose={this.toggleHistory}
                                     billHeight={billHeight}
                                 />
-                                <CurrencyHead />
+                                <CurrencyHead
+                                    className={this.getBillStyle(amount)}
+                                    onClick={this.onClickCurrencyHead}
+                                />
                             </BackCurrencyDataContainer>
                         </BackCurrencyContainer>
                         {isSMSVerificationShowing && fadeStatus === '' && (
@@ -761,6 +804,7 @@ class CryptoApp extends Component {
                                     verify={this.handleVerification}
                                     onBack={this.handleBack}
                                     setFadeStatus={this.setFadeStatus}
+                                    setCoinAddress={this.setCoinAddress}
                                     placeholderText={isScanned ? smsPlaceHolder : null}
                                     scanned={isScanned ? 'scanned' : 'failed'}
                                     scannedStatus={scannedStatus}
@@ -790,7 +834,6 @@ class CryptoApp extends Component {
                                     amount={amount}
                                     prevAmount={this.state.prevAmount}
                                     repayAmount={repayAmount}
-                                    isPublicKeyShowing={isPublicKeyShowing}
                                     balance={PortfolioUSDTValue}
                                     uniqueId={scannedUniqueId}
                                     scannedAmount={scannedAmount}
@@ -805,14 +848,15 @@ class CryptoApp extends Component {
                             </QRWrapper>
                         )}
                     </BillWrapper>
-                    {isPublicKeyShowing && (
+
+                    {/* {isPublicKeyShowing && (
                         <Controller onClick={this.checkPrivateKey}>
                             <div>
                                 <span className="private-shadow"/>
                                 <PrivateIcon src={isPrivateKeyShowing ? privateKeyURL : process.env.PUBLIC_URL + '/img/scanner_icon2.png'} />
                             </div>
                         </Controller>
-                    )}
+                    )} */}
 
                     {isCongratsShowing && (
                         <Congratulations
@@ -830,11 +874,13 @@ class CryptoApp extends Component {
                     )}
                 </Wrapper>
 
-                {/* <LoadingScreen isVisible={isLoadingShowing}>
-                    <LoadingSpinner>
-                        <p/>
-                    </LoadingSpinner>
-                </LoadingScreen> */}
+                {isWalletShowing && (
+                    <Wallet
+                        onBack={this.onWalletBack}
+                        billHeight={billHeight}
+                        coinAddress={coinAddress}
+                    />
+                )}
 
                 <LoadingWrapper isVisible={(isLoadingShowing || !isBlurLoaded || !isTransferLoaded || (isLoggedIn && !isBalanceLoaded)) && !isForexApp}>
                     <LoadingBill src={LoadingImg} onLoad={this.handleBlurLoad} alt="" />
@@ -864,6 +910,7 @@ export default compose(
         STORE_KEYS.PAYAPPSTORE,
         STORE_KEYS.VIEWMODESTORE,
         STORE_KEYS.FOREXSTORE,
+        STORE_KEYS.COINADDRESSSTORE,
     ),
     observer,
     withProps(
@@ -882,8 +929,18 @@ export default compose(
                     getUniqueId,
                     removeUniqueId,
                 },
+                [STORE_KEYS.SENDCOINSTORE]: {
+                    requestTransferHistory,
+                },
+                [STORE_KEYS.SMSAUTHSTORE]: {
+                    isLoggedIn,
+                },
+                [STORE_KEYS.COINADDRESSSTORE]: {
+                    createDepositAddress,
+                },
             }
         ) => ({
+            isLoggedIn,
             PortfolioData,
             requestPosition,
             PortfolioUSDTValue,
@@ -891,6 +948,8 @@ export default compose(
             setUniqueId,
             getUniqueId,
             removeUniqueId,
+            requestTransferHistory,
+            createDepositAddress,
         })
     )
 )(CryptoApp);

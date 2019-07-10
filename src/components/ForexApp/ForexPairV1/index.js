@@ -82,7 +82,7 @@ class ForexPairV1 extends React.Component {
 
         const {
             gridHeight,
-        } = getScreenInfo();
+        } = getScreenInfo(true);
 
         return (
             <StyleWrapper

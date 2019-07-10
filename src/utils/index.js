@@ -825,29 +825,28 @@ export const imageExists = (url, callback) => {
 //     console.log('RESULT: url=' + imageUrl + ', exists=' + exists);
 // });
 
-export const getScreenInfo = () => {
-    let GridElement = document.getElementById('grid');
-    let LeftSidebarElement = document.getElementById('left-sidebar');
-    const screenWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-    const screenHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
-
-    if (!GridElement) {
-        GridElement = document.getElementById('grid');
-    }
-
-    if (!LeftSidebarElement) {
-        LeftSidebarElement = document.getElementById('left-sidebar');
-    }
+export const getScreenInfo = (withGridDimensions) => {
+    // DON'T ADD NEW CODE HERE
+    // Create a separate function and use it
+    const { width: screenWidth, height: screenHeight } = getScreenDimensions();
 
     const isMobileDevice = isMobile({ tablet: true });
     const isMobilePortrait = isMobileDevice ? screenWidth < screenHeight : false;
     const isMobileLandscape = isMobileDevice ? screenWidth >= screenHeight : false;
+    const isSmallWidth = screenWidth < 850 && !isMobileDevice;
 
-    const gridWidth = (GridElement && GridElement.clientWidth) || screenWidth;
-    const gridHeight = (GridElement && GridElement.clientHeight) || screenHeight;
-
-    const leftSidebarWidth = (LeftSidebarElement && LeftSidebarElement.clientWidth) || screenWidth;
-    const leftSidebarHeight = (LeftSidebarElement && LeftSidebarElement.clientHeight) || screenHeight;
+    let gridWidth;
+    let gridHeight;
+    let leftSidebarWidth;
+    let leftSidebarHeight;
+    if (withGridDimensions) {
+        const GridElement = document.getElementById('grid');
+        const LeftSidebarElement = document.getElementById('left-sidebar');
+        gridWidth = (GridElement && GridElement.clientWidth) || screenWidth;
+        gridHeight = (GridElement && GridElement.clientHeight) || screenHeight;
+        leftSidebarWidth = (LeftSidebarElement && LeftSidebarElement.clientWidth) || screenWidth;
+        leftSidebarHeight = (LeftSidebarElement && LeftSidebarElement.clientHeight) || screenHeight;
+    }
 
     return {
         screenWidth,
@@ -855,6 +854,7 @@ export const getScreenInfo = () => {
         isMobileDevice,
         isMobilePortrait,
         isMobileLandscape,
+        isSmallWidth,
         gridWidth,
         gridHeight,
         leftSidebarWidth,
@@ -1021,35 +1021,17 @@ export const commafyDigitFormat = (num, digitLength) => {
     return str.join(catenateSymbol);
 };
 
-export const getOrderBookColumnWidth = (rowWidth, column) => {
-    const isWidthOverThreshold = rowWidth > 530;
-
-    switch (column) {
-        case 'exchange':
-            return rowWidth * (isWidthOverThreshold ? 0.4 : 0.33);
-        case 'amount':
-            return rowWidth * (isWidthOverThreshold ? 0.2 : 0.23);
-        case 'amountQuote':
-            return rowWidth * (isWidthOverThreshold ? 0.22 : 0.24);
-        case 'price':
-            return rowWidth * (isWidthOverThreshold ? 0.18 : 0.2);
-        default:
-            return rowWidth * 0.25;
-    }
-}
-
 export const noop = () => {};
 
 const getLeadingExtraZeroes = (onlyDigitsIntegerPart, fractionalPart, trailingZeros, maxNumberOfDigits) => {
     const numberOfDigits = onlyDigitsIntegerPart.length + fractionalPart.length + trailingZeros.length;
     const numberOfLeadingExtraZeroes = maxNumberOfDigits - numberOfDigits;
     if (numberOfLeadingExtraZeroes > 0) {
-        return '0'.repeat(numberOfLeadingExtraZeroes)
-            .split('')
+        return Array(numberOfLeadingExtraZeroes).fill('0')
             .map((item, i) => {
                 const position = numberOfLeadingExtraZeroes - (i + 1) + onlyDigitsIntegerPart.length;
                 if (position % 3 === 0) {
-                    return `${item} `;
+                    return `${item},`;
                 }
                 return item;
             })
@@ -1058,37 +1040,16 @@ const getLeadingExtraZeroes = (onlyDigitsIntegerPart, fractionalPart, trailingZe
     return '';
 }
 
-const getLeadingExtraHiddenZeroes = (leadingExtraZeroes, onlyDigitsIntegerPart) => {
-    const preparedExtra = leadingExtraZeroes.split(' ')
-            .map((group, i, array) => {
-                if (
-                    onlyDigitsIntegerPart === '0' ||
-                    i !== array.length - 1
-                ) {
-                    return group;
-                }
-                return '';
-            })
-            .join(' ');
-        return preparedExtra;
-}
-
+const decimalSeparator = getSeparator();
 export const getSplittedNumber = (priceString, maxNumberOfDigits) => {
-    const leadingZerosRegex = priceString.match(/^[0, .]+/);
-    let leadingZeros = leadingZerosRegex && leadingZerosRegex[0];
-
-    const decimalSeparator = getSeparator();
-
-    if (leadingZeros && leadingZeros.length === priceString.length) {
+    if (!parseFloat(priceString)) {
         // only zeroes
         return {
             integerPart: '',
             fractionalPart: '',
             resultNumber: '',
             trailingZeros: '',
-            leadingZeros,
             leadingExtraZeroes: '',
-            leadingExtraHiddenZeroes: '',
             showDecimalSeparator: false,
             decimalSeparator,
         };
@@ -1105,23 +1066,23 @@ export const getSplittedNumber = (priceString, maxNumberOfDigits) => {
     }
 
     const showDecimalSeparator = !!fractionalPart || !!trailingZeros;
-
     const onlyDigitsIntegerPart = integerPart.split(',').join('');
-    let leadingExtraZeroes = getLeadingExtraZeroes(onlyDigitsIntegerPart, fractionalPart, trailingZeros, maxNumberOfDigits);
-    const leadingExtraHiddenZeroes = getLeadingExtraHiddenZeroes(leadingExtraZeroes, onlyDigitsIntegerPart);
-    if (leadingExtraHiddenZeroes) {
-        leadingExtraZeroes = leadingExtraZeroes.slice(leadingExtraHiddenZeroes.length, leadingExtraZeroes.length);
-    }
+    const leadingExtraZeroes = getLeadingExtraZeroes(onlyDigitsIntegerPart, fractionalPart, trailingZeros, maxNumberOfDigits);
 
     return {
         integerPart,
         fractionalPart,
         resultNumber,
         trailingZeros,
-        leadingZeros,
         leadingExtraZeroes,
-        leadingExtraHiddenZeroes,
         showDecimalSeparator,
         decimalSeparator,
     };
 };
+
+export const getScreenDimensions = () => {
+    return {
+        width: window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth,
+        height: window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight,
+    };
+}

@@ -45,7 +45,6 @@ class ViewModeStore {
     @observable isFullScreen = false;
     @observable depthChartMode = true;
     @observable orderHistoryMode = false;
-    @observable isSidebarOpen = false;
     @observable tradingViewMode = false;
     @observable isSearchEnabled = false;
     @observable isGBExistMonitor = false; // TRUE: state of checking if data stream exists; FALSE: state of unchecking.
@@ -136,14 +135,6 @@ class ViewModeStore {
 
     @action.bound toggleOrderHistoryMode(mode) {
         this.orderHistoryMode = mode;
-    }
-
-    @action.bound toggleSidebarOpen(isSidebarOpen) {
-        if (typeof isSidebarOpen === 'boolean') {
-            this.isSidebarOpen = isSidebarOpen;
-        } else {
-            this.isSidebarOpen = !this.isSidebarOpen;
-        }
     }
 
     @action.bound setTradingViewMode(mode) {

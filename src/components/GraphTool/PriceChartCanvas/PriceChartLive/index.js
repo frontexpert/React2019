@@ -63,12 +63,8 @@ class PriceChartLive extends Component {
 
         const { loading } = this.state;
 
-        if (loading) {
+        if (loading || forexSymbol !== prevProps.forexSymbol) {
             return this.destroyChart();
-        }
-
-        if (forexSymbol !== prevProps.prevProps) {
-            this.destroyChart();
         }
 
         if (this.chartInitialized) {
@@ -76,10 +72,10 @@ class PriceChartLive extends Component {
         }
 
         const startTime = moment()
-            .subtract(90, 'seconds')
+            .subtract(120, 'seconds')
             .valueOf();
         const endTime = moment()
-            .add(90, 'seconds')
+            .add(60, 'seconds')
             .valueOf();
         const data = priceData.map(item => ({ x: item[0], y: item[1] }));
 
@@ -126,11 +122,7 @@ class PriceChartLive extends Component {
     };
 
     render() {
-        const {
-            [STORE_KEYS.PRICECHARTSTORE]: { priceData },
-            isArbitrageMode,
-        } = this.props;
-
+        const { isArbitrageMode } = this.props;
         const { loading } = this.state;
 
         return (

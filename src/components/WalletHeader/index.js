@@ -166,13 +166,11 @@ class WalletHeader extends React.Component {
             [STORE_KEYS.CONVERTSTORE]: { convertState },
             isOrderbook,
             isSeparate,
-            width,
         } = this.props;
 
         const isArbitrageMonitorMode = isArbitrageMode && (convertState !== STATE_KEYS.coinSearch);
         const {
             isMobileDevice,
-            isMobilePortrait,
         } = getScreenInfo();
 
         const languagesArray = [];
@@ -274,7 +272,6 @@ class WalletHeader extends React.Component {
                                         isLoggedIn={isLoggedIn}
                                         toggleDropDown={this.toggleDropDown}
                                         onLogin={this.handleLogin}
-                                        width={width || 0}
                                         isMenuOpened={isUserDropDownOpen}
                                     />
                                 )}

@@ -4,14 +4,11 @@ import { inject, observer } from 'mobx-react';
 import { FormattedMessage } from 'react-intl';
 import { compose } from 'recompose';
 
-import { STORE_KEYS } from '../../../stores';
-import { withValueFromEvent } from '../../../utils';
+import { STORE_KEYS } from '@/stores';
+import { withValueFromEvent } from '@/utils';
 import { MarketOrderContainer } from './MarketOrderContainer';
 
 const MarketOrderSideBySideContainer = ({
-    // [STORE_KEYS.INSTRUMENTS]: {
-    //     selectedInstrumentPair: [baseSymbol, quoteSymbol],
-    // },
     [STORE_KEYS.ORDERBOOK]: {
         base: baseSymbol, quote: quoteSymbol,
     },
@@ -22,7 +19,6 @@ const MarketOrderSideBySideContainer = ({
             total: buyTotal,
             setAmount: setMarketBuyAmount,
             enabled: marketOrderFormBuyEnabled,
-            submitOrder: marketOrderFormBuySubmit,
             marketOrderPrice: buyEstimatedAmount,
             sliderMax: buySliderMax,
         },
@@ -32,7 +28,6 @@ const MarketOrderSideBySideContainer = ({
             total: sellTotal,
             setAmount: setMarketSellAmount,
             enabled: marketOrderFormSellEnabled,
-            submitOrder: marketOrderFormSellSubmit,
             marketOrderPrice: sellEstimatedAmount,
             sliderMax: sellSliderMax,
         },
@@ -59,7 +54,6 @@ const MarketOrderSideBySideContainer = ({
                                 handleAmountChange={partial(withValueFromEvent, setMarketBuyAmount)}
                                 orderButtonDisabled={!marketOrderFormBuyEnabled}
                                 handleOrder={showModal}
-                                // handleOrder={marketOrderFormBuySubmit}
                                 orderButtonText={`${value1} ${baseSymbol}`}
                                 amountCoin={baseSymbol}
                                 baseSymbol={baseSymbol}
@@ -96,7 +90,6 @@ const MarketOrderSideBySideContainer = ({
                                 quoteSymbol={quoteSymbol}
                                 sliderCurrency={baseSymbol}
                                 handleOrder={showModal}
-                                // handleOrder={marketOrderFormSellSubmit}
                                 isBuy={false}
                                 priceLabel={value2}
                                 estimatedAmountReceived={sellAmount * sellEstimatedAmount}
@@ -112,7 +105,6 @@ const MarketOrderSideBySideContainer = ({
 export default compose(
     inject(
         STORE_KEYS.ORDERENTRY,
-        STORE_KEYS.INSTRUMENTS,
         STORE_KEYS.ORDERBOOK,
     ),
     observer,

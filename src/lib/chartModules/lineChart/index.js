@@ -311,10 +311,6 @@ export default class LineChart {
         if (this.config.isPortfolio === true) {
             const {
                 chart: { ctx },
-                chartArea: { left },
-                scales: {
-                    price: { width },
-                },
             } = this.chart;
             const label = ` ₿ ${formatTotalDigitString(valueAtCursor, 7)} `;
 
@@ -463,11 +459,20 @@ export default class LineChart {
     };
 
     updateChartThrottled = throttle(() => {
-        if (this.config.liveMode || !this.chart) {
+        if (!this.chart) {
             return;
         }
+
+        if (this.config.liveMode) {
+            const elapsed = Date.now() - this.lineAnimationStartedAt;
+            if (elapsed < ANIMATION_DURATION) {
+                // line animation is in progress
+                // no need to update chart manually
+                return;
+            }
+        }
         this.chart.update({ duration: 0 });
-    }, 100);
+    }, 150);
 
     onChangeVisibility = status => {
         this.tabStatus = status;
@@ -521,11 +526,11 @@ export default class LineChart {
                 this.chart.data.datasets[0].data.pop();
             }
             this.chart.data.datasets[0].data.push(coordinates);
-            this.chart.update();
+            this.chart.update({ duration: 0 });
         }
 
         if (elapsed < ANIMATION_DURATION) {
-            setTimeout(() => this.animateLine(lastItem, nextItem, timestamp, itemAdded), ANIMATION_DURATION / 50);
+            setTimeout(() => this.animateLine(lastItem, nextItem, timestamp, itemAdded), ANIMATION_DURATION / 20);
         }
     };
 

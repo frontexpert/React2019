@@ -28,6 +28,24 @@ const keyFrameShake = keyframes`
     100%{ -webkit-transform:     translate(4px, -0px) rotate(-0deg); }
 }`;
 
+const keyFrameDrop = keyframes`
+    from {
+        top: 22%;
+    }
+    20% {
+        top: 105%;
+        animation-timing-function: ease-in;
+    }
+    80% {
+        top: 105%;
+        animation-timing-function: ease-in;
+    }
+    to {
+        top: 22%;
+        animation-timing-function: ease-out;
+    }
+}`;
+
 export const PayText = styled.div.attrs({ className: 'pay-text' })`
     position: absolute;
     background-color: black;
@@ -85,6 +103,89 @@ export const CircleText = styled.span.attrs({ className: 'circle-text' })`
     }
 
     opacity: 1;
+`;
+
+export const Promotion = styled.div`
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 75%;
+    margin: auto;
+    height: 100px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 2px solid grey;
+    font-size: 24px;
+    font-weight: 600;
+    color: white;
+    border: 1.7px solid white;
+    border-radius: 10px;
+
+    -webkit-animation-name:              ${keyFrameDrop};
+    -webkit-animation-duration:          6s;
+    -webkit-animation-iteration-count:   infinite;
+    -webkit-animation-timing-function:   linear;
+    -webkit-transform-origin:            50% 100%;
+    animation-iteration-count:           1;
+
+    ${props => props.isActive ? `
+        border-bottom: 1px solid ${props.theme.palette.clrBorder};
+    ` : ''};
+
+    .prefix{
+        display: inline-flex;
+    }
+
+    .circleText{
+        width: 40px;
+        height: 40px;
+        border-radius: 100%;
+        background-color: #4080FF;
+        color: white;
+        text-align: center;
+        margin-right: 10px;
+        display: flex;
+
+        &.transparent {
+            background-color: transparent;
+            img {
+                position: absolute;
+                width: 40px;
+                height: 40px;
+            }
+            canvas {
+                margin: auto;
+            }
+        }
+    }
+
+    .circleContent{
+        margin: auto;
+    }
+
+    .containerText{
+        justify-content: center;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .titleText{
+        color: white;
+        font-size: 16px;
+    }
+
+    .descText{
+        color: grey;
+        font-size: 12px;
+        font-weight: 400;
+        text-align: right;
+    }
+
+    .grey {
+        color: grey !important;
+    }
 `;
 
 export const SMLoadingSpinner = styled.div`
@@ -432,7 +533,11 @@ export const Main = styled.div`
             box-shadow: 0 0 11.8px #ED1C24 !important;
             border: 1px solid #ED1C24 !important;
 
-            .number-input {
+            .number-input-hide {
+                color: #ED1C24 !important;
+            }
+
+            .number-input-currency {
                 color: #ED1C24 !important;
             }
 

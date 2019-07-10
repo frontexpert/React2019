@@ -28,6 +28,7 @@ import rejectIcon from '../asset/img/reject.png';
 import acceptIcon from '../asset/img/accept.png';
 import receiveIcon from '../asset/img/receive.png';
 import receiveErrorIcon from '../asset/img/receive_error.png';
+import arrowIcon from '../asset/img/pay.png';
 
 const PAY_QR_VIEW_STEPS = {
     VIEW_QR: 'view-qr',
@@ -58,6 +59,7 @@ class SMSVerificationForm extends React.Component {
         countryCode: '',
         claimStatus: (this.props.scannedStatus !== 'pending' ? 'error' : ''),
         isBlured: -1,
+        isPhoneNumberSendAvailable: false,
         egNumber: '',
         selectionStart: 0,
     };
@@ -77,6 +79,7 @@ class SMSVerificationForm extends React.Component {
             codeInputAnimation: 'initial',
             unloadPhoneInput: false,
             unloadCodeInput: false,
+            isPhoneNumberSendAvailable: false,
         });
         let phoneInput = document.getElementById('phoneInput');
         if(phoneInput) {
@@ -111,6 +114,12 @@ class SMSVerificationForm extends React.Component {
             return;
         }
 
+        if(phoneSubmitStatus === 'submitting') {
+            if (this.phoneInputRef) this.phoneInputRef.blur();
+            if (this.codeInputRef) this.codeInputRef.focus();
+            return;
+        }
+
         if (isBlured > 0) {
             if (this.phoneInputRef) this.phoneInputRef.blur();
             if (this.codeInputRef) this.codeInputRef.blur();
@@ -120,6 +129,10 @@ class SMSVerificationForm extends React.Component {
         if (phoneSubmitStatus === 'submitted' && codeSubmitStatus !== 'submitted' && codeSubmitStatus !== 'submitting') {
             if (this.codeInputRef) this.codeInputRef.focus();
             if (this.phoneInputRef) this.phoneInputRef.blur();
+        }
+        
+        if(phoneSubmitStatus === 'submitted' && codeSubmitStatus === 'submitting') {
+            if (this.codeInputRef) this.codeInputRef.blur();
         }
         // else if (phoneSubmitStatus === 'submitted' && codeSubmitStatus === 'submitting') {
         //     if (this.phoneInputRef) this.phoneInputRef.blur();
@@ -215,6 +228,7 @@ class SMSVerificationForm extends React.Component {
             isBlured: -1,
             loaded: false,
             smsCode: '',
+            isPhoneNumberSendAvailable: false,
         });
 
         if (phoneSubmitStatus === 'submitted') {
@@ -238,7 +252,11 @@ class SMSVerificationForm extends React.Component {
         let phoneNumberTrimed;
 
         if (this.state.loaded && parsePhoneNumberFromString(phoneNumber)) {
-            this.setState({ phoneSubmitStatus: 'submitting' });
+            this.setState({
+                phoneSubmitStatus: 'submitting',
+            });
+            document.getElementById('phoneInput').blur();
+            document.getElementById('codeInput').focus();
 
             phoneNumberTrimed = parsePhoneNumberFromString(phoneNumber).format('INTERNATIONAL');
             phoneNumberTrimed = phoneNumberTrimed.split(' ').join('');
@@ -316,16 +334,19 @@ class SMSVerificationForm extends React.Component {
     }
 
     onSendCode() {
-        const { verify } = this.props;
         const { confirmAuthCode } = this.props[STORE_KEYS.SMSAUTHSTORE];
         const { smsCode, scanned } = this.state;
         this.setState({ codeSubmitStatus: 'submitting' });
+        document.getElementById('codeInput').blur();
 
         confirmAuthCode(smsCode)
             .then(() => {
                 const {
+                    setCoinAddress,
                     [STORE_KEYS.YOURACCOUNTSTORE]: yourAccountStore,
                 } = this.props;
+
+                setCoinAddress();
 
                 setTimeout(() => yourAccountStore.requestPositionWithReply(), 500);
 
@@ -388,30 +409,30 @@ class SMSVerificationForm extends React.Component {
     }
 
     onScanReject() {
-        const { isLoggedIn, setFadeStatus } = this.props;
-        if (isLoggedIn) {
-            const { cancelTransfer } = this.props;
-            this.setState({
-                claimStatus: 'rejecting',
-            });
-            cancelTransfer().then(res => {
-                if(res) {
-                    this.setState({
-                        claimStatus: 'rejected',
-                    });
-                    setTimeout(() => setFadeStatus('rejecting'), 1000);
-                } else {
-                    this.onResetReceivePayment();
-                }
-            }).catch(err => {
-                console.log(err);
-            });
-        } else {
-            this.setState({
-                claimStatus: 'rejected',
-            });
-            setTimeout(() => setFadeStatus('rejecting'), 1000);
-        }
+        const { isLoggedIn, setFadeStatus, cancelTransfer } = this.props;
+        // if (isLoggedIn) {
+        //     this.setState({
+        //         claimStatus: 'rejecting',
+        //     });
+        //     cancelTransfer().then(res => {
+        //         if(res) {
+        //             this.setState({
+        //                 claimStatus: 'rejected',
+        //             });
+        //             setTimeout(() => setFadeStatus('rejecting'), 1000);
+        //         } else {
+        //             this.onResetReceivePayment();
+        //         }
+        //     }).catch(err => {
+        //         console.log(err);
+        //     });
+        // } else {
+        cancelTransfer();
+        this.setState({
+            claimStatus: 'rejected',
+        });
+        setTimeout(() => setFadeStatus('rejecting'), 1000);
+        // }
     }
 
     resendPhoneNumber(e) {
@@ -421,7 +442,11 @@ class SMSVerificationForm extends React.Component {
         let phoneNumberTrimed;
 
         if (parsePhoneNumberFromString(phoneNumber)) {
-            this.setState({ phoneSubmitStatus: 'submitting' });
+            this.setState({
+                phoneSubmitStatus: 'submitting',
+            });
+            document.getElementById('phoneInput').blur();
+            document.getElementById('codeInput').focus();
 
             phoneNumberTrimed = parsePhoneNumberFromString(phoneNumber).format('INTERNATIONAL');
             phoneNumberTrimed = phoneNumberTrimed.split(' ').join('');
@@ -513,9 +538,12 @@ class SMSVerificationForm extends React.Component {
                         isBlured: -1,
                     });
 
-                    if(originNumber.countryCallingCode === '86' && originNumber.nationalNumber.length !== 11) return;
-
-                    this.onQRCode();
+                    if(originNumber.countryCallingCode === '86' && originNumber.nationalNumber.length !== 11) {
+                        this.setState({ isPhoneNumberSendAvailable: false });
+                    } else {
+                        // this.onQRCode();
+                        this.setState({ isPhoneNumberSendAvailable: true });
+                    }
                     return;
                 }
             }
@@ -529,12 +557,16 @@ class SMSVerificationForm extends React.Component {
         });
 
         const phoneNumber = parsePhoneNumberFromString(this.getFormattedPhoneNumber(inputNumber));
-        if (phoneNumber) {
+        if (phoneNumber && phoneNumber.isValid()) {
             if (phoneNumber.isValid()) {
-                if(phoneNumber.countryCallingCode === '86' && phoneNumber.nationalNumber.length !== 11) return;
-                this.onQRCode();
+                if(!(phoneNumber.countryCallingCode === '86' && phoneNumber.nationalNumber.length !== 11)) {
+                    // this.onQRCode();
+                    this.setState({ isPhoneNumberSendAvailable: true });
+                    return;
+                }
             }
         }
+        this.setState({ isPhoneNumberSendAvailable: false });
     };
 
     handleChangeSmsCode = e => {
@@ -732,6 +764,7 @@ class SMSVerificationForm extends React.Component {
             isSMSShowing,
             isScanShowing,
             isCountrySelectShowing,
+            isPhoneNumberSendAvailable,
         } = this.state;
 
         const {
@@ -816,13 +849,15 @@ class SMSVerificationForm extends React.Component {
                 )}
 
                 {isSMSShowing && error && (
-                    <div className="input-bar-containers error">
+                    <div
+                        className="input-bar-containers error"
+                        onClick={e => this.onBoxClick(e)}
+                    >
                         <div className="input-bar-container">
                             <div className="input-bar load error-form">
                                 <InputCircle
                                     className="mid"
                                     borderColor="rgba(237, 28, 36, 0.5)"
-                                    onClick={() => this.onResetReceivePayment()}
                                 >
                                     <img src={receiveErrorIcon} alt="" style={{ width: '60%', paddingBottom: '5px' }} />
                                 </InputCircle>
@@ -861,7 +896,7 @@ class SMSVerificationForm extends React.Component {
                                     onClick={e => this.onClickPhoneNumber(e)}
                                     onKeyUp={(e) => {
                                         if (e.key === 'Enter') {
-                                            this.onSend(e);
+                                            this.resendPhoneNumber(e);
                                         }
                                     }}
                                     onKeyPress={(e) => this.onInputChange(e)}
@@ -906,7 +941,7 @@ class SMSVerificationForm extends React.Component {
                                     ref={ref => {
                                         this.codeInputRef = ref;
                                     }}
-                                    disabled={phoneSubmitStatus !== 'submitted' && phoneSubmitStatus !== 'resend' }
+                                    disabled={(phoneSubmitStatus !== 'submitted' && phoneSubmitStatus !== 'submitting' && phoneSubmitStatus !== 'resend')}
                                 />
                             </div>
 
@@ -924,9 +959,18 @@ class SMSVerificationForm extends React.Component {
                                 </div>
                             )}
                             {this.phoneSubmitIconUrl() !== 'spinner' && phoneSubmitStatus !== 'submitted' && phoneSubmitStatus !== 'resend' && (
-                                <div className="flag" onClick={e => this.onCountrySelect(e)}>
-                                    <ReactCountryFlag code={countryCode} svg></ReactCountryFlag>
-                                </div>
+                                (isPhoneNumberSendAvailable ? (
+                                    <div className="to-sms-icon" onClick={e => this.resendPhoneNumber(e)}>
+                                        <img
+                                            src={arrowIcon}
+                                            alt=""
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="flag" onClick={e => this.onCountrySelect(e)}>
+                                        <ReactCountryFlag code={countryCode} svg></ReactCountryFlag>
+                                    </div>
+                                ))
                             )}
                         </div>
                     </div>

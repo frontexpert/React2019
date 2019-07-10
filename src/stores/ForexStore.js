@@ -1,7 +1,7 @@
 import { action, observable, reaction, runInAction } from 'mobx';
 
-import { customDigitFormat } from '../utils';
-import { mockCountries } from '../mock/countries';
+import { customDigitFormat } from '@/utils';
+import { mockCountries } from '@/mock/countries';
 import { viewModeKeys } from './ViewModeStore';
 
 export const INITIAL_PRICES_LENGTH = 91;
@@ -60,6 +60,17 @@ class ForexStore {
                 if(viewModeObj.viewMode === viewModeKeys.forexModeKey) {
                     this.setForexCurrency(this.defaultCurr);
                 }
+            }
+        );
+
+        reaction(
+            () => {
+                return {
+                    price: settingsStore.price,
+                };
+            },
+            ({ price }) => {
+                this.fiatPrice = price;
             }
         );
     }

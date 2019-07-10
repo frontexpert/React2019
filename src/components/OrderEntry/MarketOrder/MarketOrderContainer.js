@@ -52,6 +52,7 @@ export const MarketOrderContainer = ({
                 estimatedAmountReceived={estimatedAmountReceived}
             />
             <SliderInput
+                isBuy={isBuy}
                 value={amount}
                 max={sliderMax}
                 showTooltip={true}

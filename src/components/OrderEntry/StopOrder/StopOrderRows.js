@@ -33,7 +33,7 @@ export const StopOrderRows = ({
                 defaultMessage="Amount"
             >
                 {value =>
-                    <Row header={value} amount={amount} coin={amountCoin} onChange={handleAmountChange}/>
+                    <Row header={value} amount={amount} coin={amountCoin} onChange={handleAmountChange} darkBg/>
                 }
             </FormattedMessage>
             <FormattedMessage
@@ -41,7 +41,7 @@ export const StopOrderRows = ({
                 defaultMessage="Stop"
             >
                 {value =>
-                    <Row header={value} amount={stopPrice} coin={priceCoin} onChange={handleStopPriceChange}/>
+                    <Row header={value} amount={stopPrice} coin={priceCoin} onChange={handleStopPriceChange} darkBg/>
                 }
             </FormattedMessage>
             <FormattedMessage
@@ -49,7 +49,7 @@ export const StopOrderRows = ({
                 defaultMessage="Price"
             >
                 {value =>
-                    <Row header={value} amount={price} coin={priceCoin} onChange={handlePriceChange}/>
+                    <Row header={value} amount={price} coin={priceCoin} onChange={handlePriceChange} darkBg/>
                 }
             </FormattedMessage>
             <FormattedMessage
@@ -57,7 +57,7 @@ export const StopOrderRows = ({
                 defaultMessage="Total"
             >
                 {value =>
-                    <Row header={value} readOnly={true} amount={total} coin={totalCoin} darkBg/>
+                    <Row header={value} readOnly={true} amount={total} coin={totalCoin}/>
                 }
             </FormattedMessage>
         </Wrapper>

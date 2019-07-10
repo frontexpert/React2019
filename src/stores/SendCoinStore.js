@@ -16,6 +16,7 @@ class SendCoinStore {
     @observable historyCurrency = 'eth';
     @observable transferHistory = [];
     @observable isFetchingTransferHistory = false;
+    @observable isEmpty = null;
 
     constructor(snackBar) {
         this.snackBar = snackBar;
@@ -102,6 +103,7 @@ class SendCoinStore {
                             return dateB - dateA;
                         });
                         this.transferHistory = res.UserTransfers.filter(item => item.Status !== 'expired' && item.Coin === this.historyCurrency);
+                        this.isEmpty = this.transferHistory.length === 0;
                         return Promise.resolve(this.transferHistory);
                     } catch (e) {
                         return Promise.resolve([]);

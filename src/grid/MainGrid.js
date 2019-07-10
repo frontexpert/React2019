@@ -1,15 +1,15 @@
-import React from 'react';
+import React, { PureComponent } from 'react';
 import ReactDOM from 'react-dom';
 import styled from 'styled-components/macro';
 import { inject, observer } from 'mobx-react';
 import { compose, withProps } from 'recompose';
 import { BrowserRouter as Router, Route } from 'react-router-dom';
+import throttle from 'lodash.throttle';
 
 // Child Components
 import LeftTopSectionGrid from './LeftTopSectionGrid';
 import RightTopSectionGridV2 from './RightTopSectionGridV2';
 import RightTopSectionGrid from './RightTopSectionGrid';
-import { NotFound } from '../components/Pages';
 import InitialLoaderContainer from '../components/InitialLoaderContainer';
 import LoginOrderModalV2 from '../components/LoginOrderModalV2';
 import ConnectionLost from '../components-generic/ConnectionLost';
@@ -98,13 +98,14 @@ const GridWrapper = styled.div`
     }};
 `;
 
-class Trading extends React.Component {
+class Trading extends PureComponent {
     componentDidMount() {
         const { setRouterCoin } = this.props;
         if (this.props && this.props.match && this.props.match.params && this.props.match.params.coin !== '') {
             setRouterCoin(this.props.match.params.coin.toUpperCase());
         }
-        window.addEventListener('resize', this.updateDimensions);
+
+        window.addEventListener('resize', throttle(this.updateDimensions), 100);
     }
 
     refresh = () => {
@@ -122,6 +123,7 @@ class Trading extends React.Component {
             isMobileDevice,
             isMobilePortrait,
             isMobileLandscape,
+            isSmallWidth,
         } = getScreenInfo();
 
         const {
@@ -132,7 +134,6 @@ class Trading extends React.Component {
             isLoggedIn,
         } = this.props;
 
-        const isSmallWidth = screenWidth < 850 && !isMobileDevice;
         const sizeRatio = screenWidth / screenHeight * 100;
 
         if (isMobilePortrait) {
@@ -186,20 +187,12 @@ class Trading extends React.Component {
 
 const MainGrid = props => {
     return (
-        <Router defaultComponent={NotFound}>
+        <Router>
             <Route exact path="/cointransfer/:id" component={({ match }) => <Trading {...props} isCoinTransfer={true} id={match.params.id}/>} />
             <Route exact path="/transfer/:id" component={({ match }) => <Trading {...props} isCoinTransfer={true} id={match.params.id}/>} />
             <Route exact path="/index.html" component={() => <Trading {...props} />} />
             <Route exact path="/" component={() => <Trading {...props} />} />
             <Route exact path="/:coin" component={({ match }) => <Trading {...props} match={match}/>} />
-            {/*
-            <Route path="/ico" component={() => <ICO themeType={props.themeType}/>}/>
-            <Route path="/charts" component={() => <Charts themeType={props.themeType}/>}/>
-            <Route path="/stats" component={() => <Stats themeType={props.themeType}/>}/>
-            <Route path="/news" component={() => <News themeType={props.themeType}/>}/>
-            <Route path="/other" component={() => <Other themeType={props.themeType}/>}/>
-            <Route path="/trading" component={() => <Trading {...props} />}/>
-            */}
         </Router>
     );
 };

@@ -425,3 +425,6 @@ export const SETTING_TIPPY_INFO  = {
     PAYAPP_LABEL: 'PayApp is only available fore mobile.',
     FOREX_PROFIT_MARGIN: 'Select the default forex profit margin used to display in forex app.',
 };
+
+// Makes OrderBook update slower in development
+export const ORDER_BOOK_THROTTLE = process.env.NODE_ENV === 'production' ? 100 : process.env.REACT_APP_ORDER_BOOK_THROTTLE;

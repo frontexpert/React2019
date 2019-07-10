@@ -1,34 +1,31 @@
 import React, { Component } from 'react';
 import { inject, observer } from 'mobx-react';
+import { compose, withProps } from 'recompose';
 import moment from 'moment';
 
 import DataLoader from '@/components-generic/DataLoader';
 import LineChart from '@/lib/chartModules/lineChart';
-import { ChartCanvasWrapper } from '../styles';
 import { STORE_KEYS } from '@/stores';
 import { MAX_PRICES_LENGTH } from '@/stores/ForexStore';
+import { ChartWrapper } from './styles';
 
-class ForexChartLive extends Component {
+class ForexChart extends Component {
+    state = {
+        loading: true,
+        defaultFiat: undefined,
+        c1: undefined,
+        c2: undefined,
+    };
+
     forexCurrency = '';
-
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            loading: true,
-            defaultFiat: undefined,
-            c1: undefined,
-            c2: undefined,
-        };
-
-        this.chartInitialized = false;
-    }
+    chartInitialized = false;
 
     static getDerivedStateFromProps(nextProps, prevState) {
         const {
-            [STORE_KEYS.YOURACCOUNTSTORE]: { selectedCoin, quoteSelectedCoin },
-            [STORE_KEYS.SETTINGSSTORE]: { defaultFiat },
-            [STORE_KEYS.FOREXSTORE]: { priceData },
+            selectedCoin,
+            quoteSelectedCoin,
+            defaultFiat,
+            priceData
         } = nextProps;
 
         if (
@@ -52,13 +49,11 @@ class ForexChartLive extends Component {
 
     componentDidUpdate() {
         const {
-            [STORE_KEYS.FOREXSTORE]: {
-                priceData,
-                forexCurrency,
-                forexCurrencySymbol: coinSymbol,
-                forexCurrency: forexSymbol,
-                rate
-            },
+            priceData,
+            forexCurrency,
+            coinSymbol,
+            forexSymbol,
+            rate
         } = this.props;
 
         const { loading } = this.state;
@@ -117,10 +112,7 @@ class ForexChartLive extends Component {
     };
 
     updateChart = () => {
-        const {
-            [STORE_KEYS.SETTINGSSTORE]: { getDefaultPrice },
-            [STORE_KEYS.FOREXSTORE]: { forexUSD },
-        } = this.props;
+        const { getDefaultPrice, forexUSD } = this.props;
 
         const nextItem = { x: new Date().getTime(), y: getDefaultPrice(forexUSD) };
 
@@ -128,20 +120,56 @@ class ForexChartLive extends Component {
     };
 
     render() {
-        const { [STORE_KEYS.FOREXSTORE]: { priceData } } = this.props;
+        const { isLowerSectionOpened, isBorderHidden } = this.props;
         const { loading } = this.state;
 
         return (
-            <ChartCanvasWrapper>
+            <ChartWrapper isLowerSectionOpened={isLowerSectionOpened} isBorderHidden={isBorderHidden}>
                 <canvas ref={el => (this.el = el)} />
                 {loading && <DataLoader width={100} height={100} />}
-            </ChartCanvasWrapper>
+            </ChartWrapper>
         );
     }
 }
 
-export default inject(
-    STORE_KEYS.FOREXSTORE,
-    STORE_KEYS.YOURACCOUNTSTORE,
-    STORE_KEYS.SETTINGSSTORE
-)(observer(ForexChartLive));
+export default compose(
+    inject(
+        STORE_KEYS.FOREXSTORE,
+        STORE_KEYS.YOURACCOUNTSTORE,
+        STORE_KEYS.SETTINGSSTORE
+    ),
+    observer,
+    withProps(
+        ({
+            [STORE_KEYS.FOREXSTORE]: {
+                forexUSD,
+                priceData,
+                forexCurrency,
+                forexCurrencySymbol: coinSymbol,
+                forexCurrency: forexSymbol,
+                rate
+            },
+            [STORE_KEYS.YOURACCOUNTSTORE]: {
+                selectedCoin,
+                quoteSelectedCoin
+            },
+            [STORE_KEYS.SETTINGSSTORE]: {
+                defaultFiat,
+                getDefaultPrice
+            },
+        }) => {
+            return {
+                forexUSD,
+                priceData,
+                forexCurrency,
+                coinSymbol,
+                forexSymbol,
+                rate,
+                selectedCoin,
+                quoteSelectedCoin,
+                defaultFiat,
+                getDefaultPrice
+            }
+        }
+    )
+)(ForexChart);

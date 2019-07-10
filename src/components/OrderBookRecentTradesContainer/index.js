@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React, { PureComponent, Fragment } from 'react';
 import { AutoSizer } from 'react-virtualized';
 import styled from 'styled-components/macro';
 import { withOrderFormToggleData } from '@/hocs/OrderFormToggleData';
@@ -12,13 +12,16 @@ import { getScreenInfo } from '@/utils';
 
 const AdvancedDropdownGrid = styled.div`
     position: relative;
-    height: ${props => props.height}px;
+    height: 100%;
     display: grid;
     grid-template-areas:
-        ${props => (props.isUserDropDownOpen || props.isArbitrageMonitorMode || !props.isLoggedIn) ? "'walletheader'" : ''}
+        ${props =>
+            props.isUserDropDownOpen || props.isArbitrageMonitorMode || !props.isLoggedIn ? "'walletheader'" : ''}
         'ordercontent'
-        ${props => !props.open ? "'leftlowersection'" : ''};
-    grid-template-rows: ${props => (props.isUserDropDownOpen || props.isArbitrageMonitorMode || !props.isLoggedIn) ? '60px' : ''} auto ${props => !props.open ? props.lowerSectionHeight + 'px' : ''};
+        ${props => (!props.open ? "'leftlowersection'" : '')};
+    grid-template-rows: ${props =>
+            props.isUserDropDownOpen || props.isArbitrageMonitorMode || !props.isLoggedIn ? '60px' : ''} auto ${props =>
+            !props.open ? props.lowerSectionHeight : ''};
     grid-template-columns: 100%;
     grid-gap: 12px;
 `;
@@ -26,50 +29,15 @@ const AdvancedDropdownGrid = styled.div`
 const OrderBookWrapper = styled.div.attrs({ className: 'order-book-wrapper' })`
     position: relative;
     grid-area: ordercontent;
-    // padding-top: 14px;
     background: ${props => props.theme.palette.clrChartBackground};
     border: 1px solid ${props => props.theme.palette.orderBookHeaderBorder};
-    // border-top: none;
-    // border-radius: 0 0 ${props => props.theme.palette.borderRadius} ${props => props.theme.palette.borderRadius};
     border-radius: ${props => `${props.theme.palette.borderRadius}`};
     overflow: hidden;
-    // margin-bottom: ${props => !props.open ? '12px' : '0'};
-    
+
     .wallet-header {
         border-top: 0 !important;
         border-left: 0 !important;
         border-right: 0 !important;
-    }
-`;
-
-const ToggleBtn = styled.div.attrs({ className: 'order-form-toggle-btn' })`
-    position: absolute;
-    bottom: 0; // ${props => props.open ? '0px' : '-14px'};
-    left: 0;
-    display: flex; // ${props => props.open ? 'flex' : 'none'};
-    align-items: center;
-    justify-content: center;
-    border-top: 1px solid ${props => props.theme.palette.orderBookAddonBorder};
-    border-radius: 0 0 ${props => props.theme.palette.borderRadius} ${props => props.theme.palette.borderRadius};
-    padding: 0 5px;
-    width: 100%;
-    height: 15px;
-    background-color: ${props => props.theme.palette.orderBookAddonBg};
-    
-    svg {
-        &, & * {
-            fill: ${props => props.theme.palette.orderBookAddonFill};
-        }
-    }
-    
-    &:hover {
-        cursor: pointer;
-        
-        svg {
-            &, & * {
-                fill: ${props => props.theme.palette.orderBookAddonHoverFill} !important;
-            }
-        }
     }
 `;
 
@@ -100,78 +68,47 @@ const ScanIcon = styled.div.attrs({ className: 'scan-icon' })`
 
 const IS_MOBILE = getScreenInfo().isMobileDevice;
 
-class DropdownsGridAreaContainer extends React.Component {
+class OrderBookRecentTradesContainer extends PureComponent {
     render() {
-        const {
-            toggleMode,
-            selectedBase,
-            selectedQuote,
-            isMobileDevice,
-            isUserDropDownOpen,
-            isLoggedIn,
-        } = this.props;
+        const { toggleMode, selectedBase, selectedQuote, isMobileDevice, isUserDropDownOpen, isLoggedIn } = this.props;
         const open = toggleMode === orderFormToggleKeys.offToggleKey;
 
-        const {
-            isArbitrageMode,
-            tradeColStatus,
-            convertState,
-        } = this.props;
-        const isArbitrageMonitorMode = isArbitrageMode && (convertState !== STATE_KEYS.coinSearch);
+        const { isArbitrageMode, tradeColStatus, convertState } = this.props;
+        const isArbitrageMonitorMode = isArbitrageMode && convertState !== STATE_KEYS.coinSearch;
         const showOrderForm = !isArbitrageMonitorMode && !open;
 
         return (
-            <AutoSizer>
-                {({ width, height }) => {
-                    // Todo: This needs to be exported and shared thorugh the app.
-                    let lowerSectionHeight = 263;
-                    if (IS_MOBILE) {
-                        lowerSectionHeight = Math.round(height / 3);
-                    }
-                    return (
-                        <AdvancedDropdownGrid
-                            open={open}
-                            height={height}
-                            isMobileDevice={isMobileDevice}
-                            lowerSectionHeight={lowerSectionHeight}
-                            isUserDropDownOpen={isUserDropDownOpen}
-                            isLoggedIn={isLoggedIn}
-                        >
-                            <WalletHeader
-                                isOrderbook
-                                isSeparate
-                                width={width}
-                                height={!open ? (height - 277) : height}
-                            />
+            <AdvancedDropdownGrid
+                open={open}
+                isMobileDevice={isMobileDevice}
+                lowerSectionHeight={IS_MOBILE ? '33%' : '263px'}
+                isUserDropDownOpen={isUserDropDownOpen}
+                isLoggedIn={isLoggedIn}
+            >
+                <WalletHeader isOrderbook isSeparate />
 
-                            {(!isArbitrageMonitorMode || (isArbitrageMonitorMode && tradeColStatus === 'open')) &&
-                            <OrderBookWrapper open={open} isMobileDevice={isMobileDevice}>
-                                {(selectedBase && selectedQuote) ? (
-                                    <OrderBook wrapperWidth={width} wrapperHeight={!open ? (height - 277) : height} openOrderBook={open}/>
-                                ) : (
-                                    <DataLoader width={100} height={100}/>
-                                )}
-                            </OrderBookWrapper>
-                            }
+                {(!isArbitrageMonitorMode || (isArbitrageMonitorMode && tradeColStatus === 'open')) && (
+                    <OrderBookWrapper open={open} isMobileDevice={isMobileDevice}>
+                        {selectedBase && selectedQuote ? <OrderBook /> : <DataLoader width={100} height={100} />}
+                    </OrderBookWrapper>
+                )}
 
-                            {showOrderForm && !isUserDropDownOpen && <LeftLowerSectionGrid/>}
-                            {isMobileDevice &&
-                                <ScanContainer>
-                                    {convertState === STATE_KEYS.coinSearch &&
-                                        <Fragment>
-                                            <ScanIcon className="off" />
-                                            <ScanIcon className="on" />
-                                            <ScanIcon className="off" />
-                                        </Fragment>
-                                    }
-                                </ScanContainer>
-                            }
-                        </AdvancedDropdownGrid>
-                    );
-                }}
-            </AutoSizer>
+                {showOrderForm && !isUserDropDownOpen && <LeftLowerSectionGrid />}
+
+                {isMobileDevice && (
+                    <ScanContainer>
+                        {convertState === STATE_KEYS.coinSearch && (
+                            <Fragment>
+                                <ScanIcon className="off" />
+                                <ScanIcon className="on" />
+                                <ScanIcon className="off" />
+                            </Fragment>
+                        )}
+                    </ScanContainer>
+                )}
+            </AdvancedDropdownGrid>
         );
     }
 }
 
-export default withOrderFormToggleData()(DropdownsGridAreaContainer);
+export default withOrderFormToggleData()(OrderBookRecentTradesContainer);

@@ -121,6 +121,22 @@ export const CurrencyHead = styled.div`
     z-index: 101;
     opacity: 0;
     position: absolute;
+
+    &.usd_1 {
+        left: 13%;
+    }
+    &.usd_10 {
+        left: 18%;
+    }
+    &.usd_100 {
+        left: 15%;
+    }
+    &.usd_1000 {
+        left: 22%;
+    }
+    &.usd_10000 {
+        left: 12%;
+    }
 `;
 
 export const Controller = styled.div.attrs({ className: 'private-container' })`

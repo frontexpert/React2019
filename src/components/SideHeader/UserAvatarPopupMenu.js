@@ -535,7 +535,7 @@ class UserAvatarPopupMenu extends React.Component {
         const { storeCredit } = this.props[STORE_KEYS.YOURACCOUNTSTORE];
         const storeCreditStr = formatNegativeNumber(format7DigitString(storeCredit)).replace('+', '');
 
-        const { gridHeight, leftSidebarWidth, isMobileDevice } = getScreenInfo();
+        const { gridHeight, leftSidebarWidth, isMobileDevice } = getScreenInfo(true);
 
         const appStoreList = (
             <Fragment >

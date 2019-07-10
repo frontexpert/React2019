@@ -88,7 +88,7 @@ class RightLowerSectionGridV2 extends React.Component {
                         {depthChartMode && !showDepthChart && (
                             <DataLoader/>
                         )}
-                        <DepthChart showDepthChart={true} />
+                        <DepthChart />
                         <ActiveStatusCircle/>
                     </Fragment>
                 ) : (!tradingViewMode ? (

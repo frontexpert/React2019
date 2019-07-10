@@ -259,6 +259,24 @@ export const Main = styled.div`
             }
         }
 
+        .to-sms-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 58px;
+            height: 58px;
+            background-color: black;
+            border-radius: 50%;
+            box-shadow: 0 0 9.07px rgba(0,112,235,0.5);
+
+            img {
+                height: 60%;
+            }
+        }
+
         .flag {
             display: flex;
             align-items: center;

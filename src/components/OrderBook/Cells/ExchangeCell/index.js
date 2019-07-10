@@ -1,12 +1,13 @@
 import React, { memo } from 'react';
 
-import { Wrapper, DotSpan } from './styles';
+import { Wrapper, Inner } from './styles';
 
-const ExchangeCell = memo(({ isBuy, exchange }) => {
-    const sellExchanges = exchange.split(',');
-    const exchanges = isBuy ? sellExchanges.reverse() : sellExchanges;
-    const renderedExchanges = exchanges.map((item, index) => <DotSpan key={index}>{item}</DotSpan>)
-    return <Wrapper isBuy={isBuy}>{renderedExchanges}</Wrapper>;
+const ExchangeCell = memo(({ isBuy, exchange, cellWidth }) => {
+    return (
+        <Wrapper isBuy={isBuy} cellWidth={cellWidth}>
+            <Inner>{exchange.replace(/,/g, ' ● ')}</Inner>
+        </Wrapper>
+    );
 });
 
 export default ExchangeCell;

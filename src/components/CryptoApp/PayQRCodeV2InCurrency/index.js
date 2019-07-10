@@ -22,6 +22,7 @@ import {
     CountrySelect,
     CountrySelectItem,
     QRCodeWrapper,
+    Promotion,
 } from './Components';
 
 import coinImg from './img/coin.png';
@@ -48,6 +49,8 @@ class PayQRCodeViewV2 extends React.Component {
     _pressTimer = null;
     _blinkingTimer = null;
     _repeatPayTimer = null;
+    _promotionStartTimeout = null;
+    _promotionEndTimeout = null;
 
     state = {
         error: '',
@@ -55,10 +58,12 @@ class PayQRCodeViewV2 extends React.Component {
         payAmount: this.props.amount,
         usdAmount: this.props.amount,
         isPayAmountShowing: false,
+        isCurrencyShowing: false,
+        isSpinnerShowing: false,
+        isPromotionShowing: false,
+        isQRShowing: true,
         isSendingPayAmount: false,
         isPayAmountSent: false,
-        isCurrencyShowing: false,
-        isQRShowing: true,
         isChanged: false,
         isFirstOpen: true,
         loading: false,
@@ -68,8 +73,7 @@ class PayQRCodeViewV2 extends React.Component {
         phoneNumber: '',
         codeInputAnimation: 'initial',
         unloadPhoneInput: false,
-        unloadCodeInput: false,
-        isSpinnerShowing: false,
+        unloadCodeInput: false,        
         qrCodeValue: this.props.uniqueId || ('https://' + window.location.hostname),
         firstLoad: true,
         keyboardStatus: 0,         // 0: Form closed, 1: Keyboard closed, 2: Keyboard Showing
@@ -96,6 +100,7 @@ class PayQRCodeViewV2 extends React.Component {
             payAmount: Math.ceil(this.props.amount * this.state.currencyPrice),
             usdAmount: this.props.amount,
         });
+        // setTimeout(() => this.setState({ isPromotionShowing: true }), 10000);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -226,7 +231,19 @@ class PayQRCodeViewV2 extends React.Component {
         }
     }
 
+    onPromotion = e => {
+        e.stopPropagation();
+        this.setState({ isPromotionShowing: false });
+    }
+
     onQRCode = (e, type = null) => {
+        const {
+            [STORE_KEYS.SMSAUTHSTORE]: {
+                isLoggedIn,
+            },
+            isNewUser,
+            isEmpty,
+        } = this.props;
         this.onBoxClick(e);
         this.props.zoomQRCode();
         this.setState({
@@ -234,12 +251,26 @@ class PayQRCodeViewV2 extends React.Component {
             isZoomIn: false,
             isCurrencyShowing: false,
         });
+
+        if ((isNewUser === true && isEmpty === true) || !isLoggedIn) {
+            if (this._promotionStartTimeout) clearTimeout(this._promotionStartTimeout);
+            this._promotionStartTimeout = setTimeout(() => this.setState({ isPromotionShowing: true }), 3000);
+
+            if (this._promotionEndTimeout) clearTimeout(this._promotionEndTimeout);
+            this._promotionEndTimeout = setTimeout(() => this.setState({ isPromotionShowing: false }), 9000);
+        }
+
         if(this._zoomTimer) clearTimeout(this._zoomTimer);
-        if(this.props.isPublicKeyShowing || this.state.unloadPhoneInput) {
+        // if(this.props.isPublicKeyShowing) {
+        //     return;
+        // }
+        if(this.state.unloadPhoneInput) {
             return;
         }
         this.props.onQRImageClick(!this.state.loaded);
         if (this.state.loaded) {
+            this.cancelPromotionTimer();
+            this.setState({ isPromotionShowing: false });
             this.onSend(type);
             return;
         }
@@ -269,15 +300,20 @@ class PayQRCodeViewV2 extends React.Component {
             phoneSubmitStatus,
             isCurrencyShowing
         } = this.state;
+        this.cancelPromotionTimer();
         if(e) e.stopPropagation();
         if (!loading || phoneSubmitStatus === 'submitting' || phoneSubmitStatus === 'submitted') return;
         if (isCurrencyShowing) {
-            this.setState({ isCurrencyShowing: false, keyboardStatus: 2 });
+            this.setState({
+                isCurrencyShowing: false,
+                keyboardStatus: 2,
+                isPromotionShowing: false,
+            });
             if(this.inputRef) this.inputRef.focus();
             return;
         }
         if (keyboardStatus === 2) {
-            this.setState({ keyboardStatus: 1 });
+            this.setState({ keyboardStatus: 1, isPromotionShowing: false });
             if(this.inputRef) this.inputRef.blur();
             return;
         }
@@ -285,6 +321,7 @@ class PayQRCodeViewV2 extends React.Component {
         this.props.onBack(false);
         this.setState({
             isSpinnerShowing: false,
+            isPromotionShowing: false,
             phoneSubmitStatus: 'none',
             keyboardStatus: 0,
         });
@@ -309,14 +346,15 @@ class PayQRCodeViewV2 extends React.Component {
             PortfolioUSDTValue,
         } = this.props;
 
-        if(Math.round(this.state.usdAmount) < 1) {
+        const amount = (this.state.isFirstOpen ? Math.floor(1 / this.state.currencyPrice) : Math.round(this.state.usdAmount));
+        if(amount < 1) {
             this.setState({ keyboardStatus: 1 });
             setTimeout(() => this.onBack(), 200);
             return;
         }
 
         if (!isLoggedIn) {
-            this.props.onBack(type !== null, this.state.usdAmount);
+            this.props.onBack(type !== null, amount);
             return;
         }
         if (this.state.loaded) {
@@ -394,6 +432,11 @@ class PayQRCodeViewV2 extends React.Component {
             isFirstOpen: false,
         });
         this.onBack(e);
+    }
+
+    cancelPromotionTimer() {
+        if(this._promotionEndTimeout) clearTimeout(this._promotionEndTimeout);
+        if(this._promotionStartTimeout) clearTimeout(this._promotionStartTimeout);
     }
 
     getPayAmountText() {
@@ -677,10 +720,7 @@ class PayQRCodeViewV2 extends React.Component {
     }
 
     updateQRCode = (fiatPrice = 1, redirect = true) => {
-        const {
-            usdAmount: amount,
-        } = this.state;
-
+        const amount = (this.state.isFirstOpen ? Math.floor(1 / this.state.currencyPrice) : this.state.usdAmount);
         return this.payMoney(amount, fiatPrice, redirect, false);
     }
 
@@ -855,6 +895,7 @@ class PayQRCodeViewV2 extends React.Component {
             phoneSubmitStatus,
             showPhoneArrow,
             isCurrencyShowing,
+            isPromotionShowing,
             isZoomIn,
             currencySymbol,
             isFirstOpen,
@@ -1040,7 +1081,7 @@ class PayQRCodeViewV2 extends React.Component {
                                 </QRCodeWrapper>
                             </CertificateContainer>}
 
-                            {this.props.isPublicKeyShowing && (
+                            {/* {this.props.isPublicKeyShowing && (
                                 <PortalWrapper className={isClosing && 'close'}>
                                     <PortalInnerWrapper className={isClosing && 'close'}>
                                         <img src={coinImg} alt="" />
@@ -1053,22 +1094,38 @@ class PayQRCodeViewV2 extends React.Component {
                                         </WithdrawInfo>
                                     </PortalInnerWrapper>
                                 </PortalWrapper>
-                            )}
-                            {!this.props.isPublicKeyShowing && (
-                                isSpinnerShowing ? (
-                                    <SMLoadingSpinner>
-                                        <img src={`${process.env.PUBLIC_URL}/img/gold_certificate.png`} alt="" />
-                                    </SMLoadingSpinner>
-                                ) : (
-                                    <div className={this.phoneSubmitIconClass() + (isChanged ? ' changed' : '')} onClick={e => this.onQRCode(e, 'pay')}>
-                                        <PayText>
-                                            {error === '' && <img src={payIcon} alt="pay"/>}
-                                            {error === 'error' && <img src={payErrorIcon} alt="pay-error"/>}
-                                        </PayText>
-                                    </div>)
+                            )} */}
+                            {isSpinnerShowing ? (
+                                <SMLoadingSpinner>
+                                    <img src={`${process.env.PUBLIC_URL}/img/gold_certificate.png`} alt="" />
+                                </SMLoadingSpinner>
+                            ) : (
+                                <div className={this.phoneSubmitIconClass() + (isChanged ? ' changed' : '')} onClick={e => this.onQRCode(e, 'pay')}>
+                                    <PayText>
+                                        {error === '' && <img src={payIcon} alt="pay"/>}
+                                        {error === 'error' && <img src={payErrorIcon} alt="pay-error"/>}
+                                    </PayText>
+                                </div>
                             )}
                         </div>
                     </div>
+
+                    {isPromotionShowing && <Promotion style={{ backgroundColor: '#4080FF' }} onClick={e => this.onPromotion(e)}>
+                        <div className="prefix">
+                            <div className="containerText">
+                                <div style={{ fontSize: '36px', paddingRight: '10px' }}>
+                                    $5
+                                </div>
+                            </div>
+                        </div>
+                        <div className="prefix">
+                            <div className="containerText">
+                                <div style={{ fontSize: '12px' }}>
+                                    Send any amount to your friends and we'll send you both $5 when they try this App!
+                                </div>
+                            </div>
+                        </div>
+                    </Promotion>}
                 </div>
             </Main>
         );
@@ -1089,6 +1146,7 @@ export default compose(
         (
             {
                 [STORE_KEYS.SENDCOINSTORE]: {
+                    isEmpty,
                     initTransferRequest,
                     uniqueAddress,
                     requestDetailsPublic,
@@ -1102,6 +1160,7 @@ export default compose(
                     currencies,
                 },
                 [STORE_KEYS.YOURACCOUNTSTORE]: {
+                    isNewUser,
                     PortfolioData,
                     requestPosition,
                     PortfolioUSDTValue,
@@ -1120,6 +1179,8 @@ export default compose(
                 },
             }
         ) => ({
+            isEmpty,
+            isNewUser,
             initTransferRequest,
             getUSDPrice,
             defaultFiat,

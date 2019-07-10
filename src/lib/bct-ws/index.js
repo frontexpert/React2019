@@ -1017,10 +1017,10 @@ export const RejectUserTransferRequest = (uniqueId) => {
     };
 
     return new Promise((resolve, reject) => {
-        getClientTrade()
+        getClientLive()
             .then(cli => {
-                cli.emit('RejectUserTransferRequest', payload);
-                cli.on('RejectUserTransferResponse', data => {
+                cli.emit('RejectTransferRequest', payload);
+                cli.on('RejectTransferResponse', data => {
                     resolve(data);
                 });
             })

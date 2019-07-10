@@ -6,6 +6,7 @@ import PerfectScrollbar from 'react-perfect-scrollbar';
 import { AutoSizer, Column, Table } from 'react-virtualized';
 import QRCode from 'qrcode-react';
 import moment from 'moment';
+import { parsePhoneNumberFromString } from 'libphonenumber-js';
 
 import {
     format2DigitString,
@@ -25,7 +26,10 @@ import {
     InfoItem,
     ArrowIcon,
     InnerList,
-    BalanceRow
+    BalanceRow,
+    AddPhoto,
+    SettingItem,
+    OptionTransfer
 } from './Components';
 import logoutIcon from '../asset/img/logout.png';
 import settingIcon from '../asset/img/setting.png';
@@ -35,6 +39,7 @@ import rejectIcon from '../asset/img/reject.png';
 class AppHistory extends React.Component {
     state = {
         isLogoutScreen: false,
+        isSettingScreen: false,
         isAccept: null,
         loading: false,
         scrollTop: 0,
@@ -231,11 +236,22 @@ class AppHistory extends React.Component {
         }
     }
 
+    onSetting = (e) => {
+        e.stopPropagation();
+        this.setState({ isSettingScreen: true });
+    }
+
+    onSettingOut = e => {
+        e.stopPropagation();
+        this.setState({ isSettingScreen: false });
+    }
+
     render() {
         const {
             scrollTop,
             openedMenu,
             isLogoutScreen,
+            isSettingScreen,
         } = this.state;
 
         const {
@@ -256,121 +272,150 @@ class AppHistory extends React.Component {
             },
         } = this.props;
 
-        let totalBalance = 0;
-        for (let i = 0; i < PortfolioData.length; i++) {
-            totalBalance += PortfolioData[i].AmountUsd;
+        let phoneNumber;
+        try {
+            phoneNumber = parsePhoneNumberFromString(localStorage.getItem('phoneNumber'));
+            phoneNumber = phoneNumber.formatInternational();
+        } catch(e) {
+            phoneNumber = '';
         }
 
         return (
             <Wrapper onClick={this.handleClose}>
-                <ContentWrapper>
-                    {isLogoutScreen ? (
-                        <HeaderWrapper>
-                            <img src={rejectIcon} alt="reject" onClick={e => this.onLogout(e, false)}/>
-                            <BalanceRow isLogoutScreen={true}>
-                                Are you sure you want to sign out?
-                            </BalanceRow>
-                            <img src={acceptIcon} alt="accept" onClick={e => this.onLogout(e, true)} />
-                        </HeaderWrapper>
-                    ) : (
-                        <HeaderWrapper onClick={e => e.stopPropagation()}>
-                            <img src={settingIcon} alt="setting" />
-                            <BalanceRow>
-                                <div><p>$</p></div>
-                                {`${Number(PortfolioUSDTValue).toLocaleString()}`}
-                            </BalanceRow>
-                            <img src={logoutIcon} alt="setting" onClick={e => this.onLogout(e)} />
-                        </HeaderWrapper>
-                    )}
+                {isSettingScreen ? (
+                        <ContentWrapper>
+                            <HeaderWrapper justify={true} onClick={e => this.onSettingOut(e)}>
+                                <AddPhoto>Add Photo</AddPhoto>
+                            </HeaderWrapper>
+                            <InnerWrapper onClick={e => e.stopPropagation()}>
+                                <SettingItem>
+                                    <p>User</p>
+                                    <span> Display Name </span>
+                                </SettingItem>
 
-                    {!isLogoutScreen && <InnerWrapper onClick={e => e.stopPropagation()}>
-                        <List>
-                            {isLoggedIn ? (
-                                isFetchingTransferHistory ? (
-                                    <LoadingWrapper>
-                                        <DataLoader width={120} height={120} />
-                                    </LoadingWrapper>
-                                ) : (
-                                    <InnerList>
-                                        {(tableData && tableData.length) ? (
-                                            <AutoSizer>
-                                                {({ width, height }) => (
-                                                    <TableWrapper width={width} height={height}>
-                                                        <PerfectScrollbar
-                                                            containerRef={ref => {
-                                                                this.scrollRef = ref;
-                                                            }}
-                                                            ref={ref => {
-                                                                this.psRef = ref;
-                                                            }}
-                                                            options={{
-                                                                suppressScrollX: true,
-                                                            }}
-                                                            onScrollY={this.handleScroll}
-                                                        >
-                                                            <InfoItem style={{ backgroundColor: '#4080FF' }}>
-                                                                <div className="prefix">
-                                                                    <div className="containerText">
-                                                                        <div style={{ fontSize: '36px', paddingRight: '10px' }}>
-                                                                            $5
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="prefix">
-                                                                    <div className="containerText">
-                                                                        <div style={{ fontSize: '12px' }}>
-                                                                            Send any amount to your friends and we'll send you both $5 when they try this App!
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </InfoItem>
-                                                            <Table
-                                                                ref={ref => {
-                                                                    this.tableRef = ref;
+                                <SettingItem>
+                                    <p>{phoneNumber}</p>
+                                    <span> Your Phone</span>
+                                </SettingItem>
+
+                                <SettingItem>
+                                    <OptionTransfer>
+                                        <input type='checkbox' className='ios8-switch ios8-switch-sm' id='checkbox2' />
+                                        <label htmlFor='checkbox2'></label>
+                                    </OptionTransfer>
+                                    <span> Require PIN to transfer funds </span>
+                                </SettingItem>
+                            </InnerWrapper>
+                        </ContentWrapper>
+                    ) : <ContentWrapper>
+                        {isLogoutScreen ? (
+                            <HeaderWrapper>
+                                <img src={rejectIcon} alt="reject" onClick={e => this.onLogout(e, false)}/>
+                                <BalanceRow isLogoutScreen={true}>
+                                    Are you sure you want to sign out?
+                                </BalanceRow>
+                                <img src={acceptIcon} alt="accept" onClick={e => this.onLogout(e, true)} />
+                            </HeaderWrapper>
+                        ) : (
+                            <HeaderWrapper onClick={e => e.stopPropagation()}>
+                                <img src={settingIcon} alt="setting" onClick={e => this.onSetting(e)} />
+                                <BalanceRow>
+                                    <div><p>$</p></div>
+                                    {`${Number(PortfolioUSDTValue).toLocaleString()}`}
+                                </BalanceRow>
+                                <img src={logoutIcon} alt="setting" onClick={e => this.onLogout(e)} />
+                            </HeaderWrapper>
+                        )}
+
+                        {!isLogoutScreen && <InnerWrapper onClick={e => e.stopPropagation()}>
+                            <List>
+                                {isLoggedIn ? (
+                                    isFetchingTransferHistory ? (
+                                        <LoadingWrapper>
+                                            <DataLoader width={120} height={120} />
+                                        </LoadingWrapper>
+                                    ) : (
+                                        <InnerList>
+                                            {(tableData && tableData.length) ? (
+                                                <AutoSizer>
+                                                    {({ width, height }) => (
+                                                        <TableWrapper width={width} height={height}>
+                                                            <PerfectScrollbar
+                                                                containerRef={ref => {
+                                                                    this.scrollRef = ref;
                                                                 }}
-                                                                autoHeight
-                                                                width={width}
-                                                                height={height}
-                                                                disableHeader
-                                                                rowCount={tableData.length}
-                                                                rowGetter={({ index }) => tableData[index]}
-                                                                rowHeight={80}
-                                                                overscanRowCount={0}
-                                                                scrollTop={scrollTop}
+                                                                ref={ref => {
+                                                                    this.psRef = ref;
+                                                                }}
+                                                                options={{
+                                                                    suppressScrollX: true,
+                                                                }}
+                                                                onScrollY={this.handleScroll}
                                                             >
-                                                                <Column
+                                                                <InfoItem style={{ backgroundColor: '#4080FF' }}>
+                                                                    <div className="prefix">
+                                                                        <div className="containerText">
+                                                                            <div style={{ fontSize: '36px', paddingRight: '10px' }}>
+                                                                                $5
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="prefix">
+                                                                        <div className="containerText">
+                                                                            <div style={{ fontSize: '12px' }}>
+                                                                                Send any amount to your friends and we'll send you both $5 when they try this App!
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </InfoItem>
+                                                                <Table
+                                                                    ref={ref => {
+                                                                        this.tableRef = ref;
+                                                                    }}
+                                                                    autoHeight
                                                                     width={width}
-                                                                    dataKey="History"
-                                                                    cellRenderer={this.historyCellRenderer}
-                                                                    style={{ paddingRight: 0 }}
+                                                                    height={height}
+                                                                    disableHeader
+                                                                    rowCount={tableData.length}
+                                                                    rowGetter={({ index }) => tableData[index]}
+                                                                    rowHeight={80}
+                                                                    overscanRowCount={0}
+                                                                    scrollTop={scrollTop}
                                                                 >
-                                                                </Column>
-                                                            </Table>
-                                                        </PerfectScrollbar>
-                                                    </TableWrapper>
-                                                )}
-                                            </AutoSizer>
-                                        ) : (
-                                            <NoDataText>
-                                                <FormattedMessage
-                                                    id="pay_app.history_view_v2.label_no_transaction"
-                                                    defaultMessage="No Transaction Yet"
-                                                />
-                                            </NoDataText>
-                                        )}
-                                    </InnerList>
-                                )
-                            ) : (
-                                <NoDataText>
-                                    <FormattedMessage
-                                        id="pay_app.history_view_v2.label_login"
-                                        defaultMessage="Please login to see transactions"
-                                    />
-                                </NoDataText>
-                            )}
-                        </List>
-                    </InnerWrapper>}
-                </ContentWrapper>
+                                                                    <Column
+                                                                        width={width}
+                                                                        dataKey="History"
+                                                                        cellRenderer={this.historyCellRenderer}
+                                                                        style={{ paddingRight: 0 }}
+                                                                    >
+                                                                    </Column>
+                                                                </Table>
+                                                            </PerfectScrollbar>
+                                                        </TableWrapper>
+                                                    )}
+                                                </AutoSizer>
+                                            ) : (
+                                                <NoDataText>
+                                                    <FormattedMessage
+                                                        id="pay_app.history_view_v2.label_no_transaction"
+                                                        defaultMessage="No Transaction Yet"
+                                                    />
+                                                </NoDataText>
+                                            )}
+                                        </InnerList>
+                                    )
+                                ) : (
+                                    <NoDataText>
+                                        <FormattedMessage
+                                            id="pay_app.history_view_v2.label_login"
+                                            defaultMessage="Please login to see transactions"
+                                        />
+                                    </NoDataText>
+                                )}
+                            </List>
+                        </InnerWrapper>}
+                    </ContentWrapper>
+                }
             </Wrapper>
         );
     }

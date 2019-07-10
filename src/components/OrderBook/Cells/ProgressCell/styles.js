@@ -2,7 +2,7 @@ import styled from 'styled-components/macro';
 
 export const Wrapper = styled.div.attrs(props => ({
 	style: {
-        width: `${props.width}px`,
+        width: `${props.width}%`,
         background: props.isBuy ? props.theme.palette.orderBookTableCellBuyProgress : props.theme.palette.orderBookTableCellSellProgress,
     }
 }))`

@@ -1,5 +1,12 @@
 import styled from 'styled-components/macro';
 
+import { Cell } from '../commonStyles';
+
+export const Wrapper = styled(Cell)`
+    padding-right: 12px;
+    justify-content: flex-end;
+`;
+
 export const ResultNumber = styled.span`
     font-weight: 700;
     color: ${({ type, theme }) => {
@@ -16,7 +23,7 @@ export const ResultNumber = styled.span`
 `;
 
 export const IntegerWrapper = styled.span`
-    ${({ type }) => type !== 'header' ? '' : 'opacity: 0.7;'}
+    ${({ type }) => (type !== 'header' ? '' : 'opacity: 0.7;')}
     ${({ type, theme }) => {
         switch (type) {
             case 'buy':
@@ -31,11 +38,9 @@ export const IntegerWrapper = styled.span`
 `;
 
 export const ZerosWrapper = styled.span`
-    opacity:${({ position }) => {
+    opacity: ${({ position }) => {
         switch (position) {
             case 'leading':
-                return 0.25;
-            case 'leading-hidden':
                 return 0;
             case 'trailing':
             default:

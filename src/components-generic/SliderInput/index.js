@@ -242,7 +242,7 @@ const SliderTrackProgress = styled.div.attrs({ className: 'slider-input__slider-
     padding: 0;
     width: ${props => Number.parseFloat(props.progress) <= 100 ? props.progress : 100}%;
     height: 2px;
-    background: ${props => (props.colors && props.colors.ctrlSliderTrackProgressBg) || props.theme.palette.ctrlSliderTrackProgressBg};
+    background: ${props => props.isBuy ? props.theme.palette.clrGreen : props.theme.palette.btnNegativeBg};
     z-index: 2;
 `;
 
@@ -257,7 +257,7 @@ const SliderTrackCurrentValue = styled.div`
     margin: 0;
     padding: 0 5px;
     background: ${props => props.theme.palette.ctrlSliderTrackCurrentBg};
-    border: 1px solid ${props => props.theme.palette.ctrlSliderTrackProgressBg};
+    border: 1px solid ${props => props.isBuy ? props.theme.palette.clrGreen : props.theme.palette.btnNegativeBg};
     border-radius: 3px;
     font-size: 11px;
     line-height: 14px;
@@ -272,19 +272,19 @@ const SliderTrackCurrentValue = styled.div`
         width: 0;
         border-style: solid;
         border-width: 4px;
-        border-color: transparent ${props => props.theme.palette.ctrlSliderTrackProgressBg} transparent transparent;
+        border-color: transparent ${props => props.isBuy ? props.theme.palette.clrGreen : props.theme.palette.btnNegativeBg} transparent transparent;
     }
     
     &:before {
         left: -9px;
         display: ${props => Number.parseFloat(props.progress) > 0 ? 'block' : 'none'};
-        border-color: transparent ${props => props.theme.palette.ctrlSliderTrackProgressBg} transparent transparent;
+        border-color: transparent ${props => props.isBuy ? props.theme.palette.clrGreen : props.theme.palette.btnNegativeBg} transparent transparent;
     }
     
     &:after {
         right: -9px;
         display: ${props => Number.parseFloat(props.progress) < 100 ? 'block' : 'none'};
-        border-color: transparent transparent transparent ${props => props.theme.palette.ctrlSliderTrackProgressBg};
+        border-color: transparent transparent transparent ${props => props.isBuy ? props.theme.palette.clrGreen : props.theme.palette.btnNegativeBg};
     }
 `;
 
@@ -298,6 +298,9 @@ const Delimeter = styled.div.attrs({ className: 'slider-input__slider-delimeter'
     background: ${props => (props.colors && props.colors.ctrlSliderTrackProgressBg) || props.theme.palette.ctrlSliderTrackProgressBg};
     border: 1px solid ${props => (props.colors && props.colors.ctrlSliderDelimiterBorder) || props.theme.palette.ctrlSliderDelimiterBorder};
     z-index: 3;
+    &.active {
+        background: ${props => props.isBuy ? props.theme.palette.clrGreen : props.theme.palette.btnNegativeBg}
+    }
 `;
 
 class SliderInput extends Component {
@@ -315,7 +318,7 @@ class SliderInput extends Component {
 
     render() {
         let {
-            max, value, colors, showTooltip, tooltipValue,
+            isBuy, max, value, colors, showTooltip, tooltipValue,
         } = this.props;
 
         max = Number.parseFloat(max) || 0;
@@ -341,13 +344,13 @@ class SliderInput extends Component {
                 <SliderTrackWrapper colors={colors}>
                     <SliderTrack colors={colors}/>
                     {showTooltip &&
-                    <SliderTrackCurrentValue progress={progress} tooltipValue={tooltipValue}>
+                    <SliderTrackCurrentValue isBuy={isBuy} progress={progress} tooltipValue={tooltipValue}>
                         {tooltipValue}
                     </SliderTrackCurrentValue>
                     }
-                    <SliderTrackProgress progress={progress} colors={colors}/>
+                    <SliderTrackProgress isBuy={isBuy} progress={progress} colors={colors}/>
                     {delimeters.map((val, key) => (
-                        <Delimeter position={val} key={key} className={progress > val ? 'active' : ''} colors={colors}/>
+                        <Delimeter isBuy={isBuy} position={val} key={key} className={progress > val ? 'active' : ''} colors={colors}/>
                     ))}
                 </SliderTrackWrapper>
             </SliderWrapper>

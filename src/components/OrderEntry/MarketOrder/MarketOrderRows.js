@@ -17,7 +17,6 @@ const Wrapper = styled.div`
 export const MarketOrderRows = ({
     amount,
     price,
-    amountCoin,
     handleAmountChange,
     amountMistake,
     priceLabel,
@@ -38,6 +37,7 @@ export const MarketOrderRows = ({
                         coin={baseSymbol}
                         onChange={handleAmountChange}
                         userInputMistake={amountMistake}
+                        darkBg
                     />
                 }
             </FormattedMessage>
@@ -48,6 +48,7 @@ export const MarketOrderRows = ({
                 coin={quoteSymbol}
                 onChange={() => {}}
                 userInputMistake=""
+                darkBg
             />
             <FormattedMessage
                 id="order_history.label_total"
@@ -61,7 +62,6 @@ export const MarketOrderRows = ({
                         coin={quoteSymbol}
                         onChange={() => {}}
                         userInputMistake=""
-                        darkBg
                     />
                 }
             </FormattedMessage>

@@ -651,7 +651,7 @@ class CoinPairSearchV2 extends React.Component {
             screenWidth,
             isMobileDevice,
             gridHeight,
-        } = getScreenInfo();
+        } = getScreenInfo(true);
 
         if (isHidden && !isMobileDevice) {
             return null;
@@ -697,9 +697,7 @@ class CoinPairSearchV2 extends React.Component {
         } = modalStore;
 
         const { isFetchingBestRates } = orderBookStore;
-        const isCoinPairInversed = this.state.isSwapped === null
-            ? orderBookStore.isCoinPairInversed
-            : this.state.isSwapped;
+        const isCoinPairInversed = this.state.isSwapped || false;
 
         const isSwapMode = swap === 'Swap';
 
@@ -829,7 +827,6 @@ class CoinPairSearchV2 extends React.Component {
                                             setViewMode(viewModeKeys.basicModeKey);
                                             setTradingViewMode(false);
                                         }}
-                                        onClick={() => { }}
                                         setSelectedCoin={yourAccountStore.setSelectedCoin}
                                         openDepositView={viewModeStore.openDepositView}
                                         mainItems={baseList}

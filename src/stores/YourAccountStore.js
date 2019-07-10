@@ -65,6 +65,7 @@ class YourAccountStore {
     @observable targetQuoteCoin = '';
     @observable isAutoTrade = false;
     @observable isResetC1Mode = true;
+    @observable isNewUser = null; // new to payapp?
 
     baseCoins = [];
     coinsInterval = null;
@@ -234,13 +235,16 @@ class YourAccountStore {
 
             const isLoggedIn = localStorage.getItem('signedin');
             if (!isLoggedIn) {
+                this.isNewUser = true;
                 this.PortfolioUSDTValue = null;
             } else {
                 const usdtIndex = findIndex(this.PortfolioData, { Coin: 'ETH' });
                 if (usdtIndex !== -1) {
                     this.PortfolioUSDTValue = Math.floor(Number(this.PortfolioData[usdtIndex][PORTFOLIO_LABEL_POSITION]));
+                    this.isNewUser = this.PortfolioUSDTValue === 0;
                 } else {
                     this.PortfolioUSDTValue = 0;
+                    this.isNewUser = true;
                 }
             }
 

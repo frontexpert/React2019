@@ -65,6 +65,7 @@ const LimitOrderContainer = ({
             />
 
             <SliderInput
+                isBuy={isBuy}
                 value={amount}
                 max={sliderMax}
                 showTooltip={true}

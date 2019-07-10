@@ -1,16 +1,15 @@
 import {
     computed, observable, runInAction, reaction, action
 } from 'mobx';
-import debounce from 'lodash/debounce';
 
 import { updateMapStoreFromArrayForOrderBook } from './utils/storeUtils';
+import { ORDER_BOOK_THROTTLE } from '@/config/constants';
 import { getOrderBookBreakdowns } from '@/lib/ws/feed';
 import { pageIsVisible } from '@/utils';
 import { ORDER_BOOK_ROWS_COUNT } from '@/config/constants';
 import { STATE_KEYS } from './ConvertStore';
 import { getScreenInfo } from "utils";
 
-const throttleMs = 100;
 const maxRequestLevel = 15;
 
 class OrderBookBreakDownStore {
@@ -30,10 +29,6 @@ class OrderBookBreakDownStore {
     @observable maxOrderSize = 0;
     @observable isRegularMarket = true;
     @observable manualOrderBookHoverItem = {};
-
-    @computed get orderBookCoinPair() {
-        return [this.base, this.quote];
-    }
 
     convertState = null;
     symbol = '';
@@ -69,7 +64,7 @@ class OrderBookBreakDownStore {
                 this.quote = quote;
             }
             if (!this.isMobileDevice) {
-                this.initOrderBookBreakdownSubscription(this.base, this.quote);
+                this.createSubscription();
             }
         }, true);
 
@@ -82,7 +77,7 @@ class OrderBookBreakDownStore {
             ({ exchanges }) => {
                 this.exchanges = exchanges;
                 if (!this.isMobileDevice) {
-                    this.updateOrderBookBreakdownByExchange();
+                    this.createSubscription();
                 }
             }
         );
@@ -154,27 +149,8 @@ class OrderBookBreakDownStore {
         });
     };
 
-    initOrderBookBreakdownSubscription = (base, quote) => {
-        let exchanges = [];
-        for (let property in this.exchanges) {
-            if (this.exchanges[property] && this.exchanges[property].active && property !== 'Global') {
-                exchanges.push(property);
-            }
-        }
-
-        if (this.subscribe) this.subscribe.unsubscribe();
-        this.subscribe = getOrderBookBreakdowns({
-            symbol: `${base}-${quote}`,
-            levels: this.requestLevel,
-            throttleMs,
-            exchanges,
-        }).subscribe(this.handleIncomingAggregatedSummaryBooksFrames.bind(this));
-
-        this.__subscriptionInited = true;
-    };
-
     handleIncomingAggregatedSummaryBooksFrames({ Asks = [], Bids = [], Symbol = '' } = {}) {
-        if (!pageIsVisible() || this.convertState !== STATE_KEYS.coinSearch || this.isMobileDevice) return;
+        if (!pageIsVisible() || this.convertState !== STATE_KEYS.coinSearch) return;
 
         // --- check if data feed is coming continuously --- //
         this.orderbookBreakDownArrivedTime = Math.round(new Date().getTime() / 1000);
@@ -244,7 +220,7 @@ class OrderBookBreakDownStore {
         this.symbol = Symbol;
     }
 
-    @action.bound updateOrderBookBreakdownByExchange() {
+    @action.bound createSubscription() {
         let exchanges = [];
         for (let property in this.exchanges) {
             if (this.exchanges[property] && this.exchanges[property].active && property !== 'Global') {
@@ -252,14 +228,22 @@ class OrderBookBreakDownStore {
             }
         }
 
-        if (this.subscribe) this.subscribe.unsubscribe();
+        this.removeSubscription();
 
         this.subscribe = getOrderBookBreakdowns({
             symbol: `${this.base}-${this.quote}`,
             levels: this.requestLevel,
-            throttleMs,
+            throttleMs: ORDER_BOOK_THROTTLE,
             exchanges,
         }).subscribe(this.handleIncomingAggregatedSummaryBooksFrames.bind(this));
+
+        this.__subscriptionInited = true;
+    }
+
+    @action.bound removeSubscription() {
+        if (this.subscribe) {
+            this.subscribe.unsubscribe();
+        }
     }
 }
 

@@ -1,7 +1,6 @@
-import React from 'react';
+import React, { PureComponent } from 'react';
 import styled from 'styled-components/macro';
 import { inject, observer } from 'mobx-react';
-import { withStyles } from '@material-ui/styles';
 import { compose, withProps } from 'recompose';
 
 import { STORE_KEYS } from '../stores';
@@ -13,74 +12,77 @@ import ForexApp from '../components/ForexApp';
 import SettingsPanel from '../components/SettingsPanel';
 import ExchangeCellsV2 from '../components/GraphTool/ExchangeCellsV2';
 import CoinPairSearchV2 from '../components/CoinPairSearchV2';
-import OrderHistoryTable from '../components/ArbitrageHistory';
 
 const StyledLeftTopSectionGrid = styled.div`
     position: relative;
-    ${props => ((props.isMobilePortrait) || props.isSmallWidth) ? 'width: calc(100% - 8px);' : 'max-width: 33%; width: 33%;'}
-    margin-left: ${props => (props.isTrading || !props.isSidebar) && !props.isMobilePortrait ? '-33%' : '12px'};
+    ${props =>
+        props.isMobilePortrait || props.isSmallWidth ? 'width: calc(100% - 8px);' : 'max-width: 33%; width: 33%;'}
+    margin-left: ${props => ((props.isTrading || !props.isSidebar) && !props.isMobilePortrait ? '-33%' : '12px')};
     transition: margin .1s linear;
     border: ${props => (props.isForex && !props.isSidebarMenuOpen) && `1px solid ${props.theme.palette.clrMouseClick}`};
 
     & > div:first-child {
-        ${props => props.isSidebarOpen
-        ? `
-            transition: 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
-            margin-left: 37px !important;
-            width: calc(100% - 37px);
-        `
-        : `
-            transition: none !important;
-            margin-left: 0 !important;
-            width: 100% !important;
-        `}
+        transition: none !important;
+        margin-left: 0 !important;
+        width: 100% !important;
     }
 `;
 
-// need to get at paper within select
-const styles = (theme) => {
-    return {
-        paper: {
-            width: '160px',
-            background: `${theme.appTheme.palette.backgroundHighContrast}`,
-        },
-    };
-};
-
-class LeftTopSectionGrid extends React.Component {
-    componentDidMount() {
-    }
-
-    render() {
+class LeftTopSectionGrid extends PureComponent {
+    getComponentToRender = () => {
         const {
-            viewMode, isSidebarOpen, isSettingsOpen, isPayApp, isPayAppLoading, isUserDropDownOpen,
-            isArbitrageMode, tradeColStatus, sidebarStatus,
+            viewMode,
+            isSettingsOpen,
+            isPayApp,
             isEmptyExchange,
-            isOrderBookBreakDownStop, isOrderBookDataLoaded,
-            convertState,
-            isCoinTransfer, isMobileDevice, isMobilePortrait, isSmallWidth,
+            isOrderBookBreakDownStop,
+            isOrderBookDataLoaded,
+            isMobileDevice
         } = this.props;
 
-        const isArbitrageMonitorMode = isArbitrageMode && (convertState !== STATE_KEYS.coinSearch);
-
-        let SelectedComponent = PayApp;
         if (isSettingsOpen) {
-            SelectedComponent = SettingsPanel;
-        } else if (viewMode === viewModeKeys.basicModeKey) {
-            SelectedComponent = (isMobileDevice && isPayApp)
-                ? PayApp
-                : OrderBookRecentTradesContainer;
-        } else if (viewMode === viewModeKeys.advancedModeKey) {
-            SelectedComponent = (!isOrderBookBreakDownStop && isOrderBookDataLoaded && !isEmptyExchange)
-                ? OrderBookRecentTradesContainer
-                : ExchangeCellsV2;
-        } else if (viewMode === viewModeKeys.settingsModeKey) {
-            SelectedComponent = SettingsPanel;
-        } else if (viewMode === viewModeKeys.exchangesModeKey) {
-            SelectedComponent = ExchangeCellsV2;
-        } else if (viewMode === viewModeKeys.forexModeKey) {
-            SelectedComponent = ForexApp;
+            return SettingsPanel;
         }
+
+        switch (viewMode) {
+            case viewModeKeys.basicModeKey:
+                if (isMobileDevice && isPayApp) {
+                    return PayApp;
+                }
+                return OrderBookRecentTradesContainer;
+            case viewModeKeys.advancedModeKey:
+                if (!isOrderBookBreakDownStop && isOrderBookDataLoaded && !isEmptyExchange) {
+                    return OrderBookRecentTradesContainer;
+                }
+                return ExchangeCellsV2;
+            case viewModeKeys.settingsModeKey:
+                return SettingsPanel;
+            case viewModeKeys.exchangesModeKey:
+                return ExchangeCellsV2;
+            case viewModeKeys.forexModeKey:
+                return ForexApp;
+            default:
+                return PayApp;
+        }
+    };
+    render() {
+        const {
+            viewMode,
+            isPayAppLoading,
+            isUserDropDownOpen,
+            isArbitrageMode,
+            tradeColStatus,
+            sidebarStatus,
+            convertState,
+            isCoinTransfer,
+            isMobileDevice,
+            isMobilePortrait,
+            isSmallWidth
+        } = this.props;
+
+        const isArbitrageMonitorMode = isArbitrageMode && convertState !== STATE_KEYS.coinSearch;
+
+        const ComponentToRender = this.getComponentToRender();
 
         const isSidebarMenuOpen = (isUserDropDownOpen || (isArbitrageMonitorMode && tradeColStatus === 'open')) &&
             sidebarStatus === 'open';
@@ -88,8 +90,6 @@ class LeftTopSectionGrid extends React.Component {
         return (
             <StyledLeftTopSectionGrid
                 id="left-sidebar"
-                full={(isArbitrageMonitorMode && tradeColStatus === 'closed') || sidebarStatus === 'closed'}
-                isSidebarOpen={isSidebarOpen}
                 isMobilePortrait={isMobilePortrait}
                 isSmallWidth={isSmallWidth}
                 isForex={viewMode === viewModeKeys.forexModeKey}
@@ -97,7 +97,7 @@ class LeftTopSectionGrid extends React.Component {
                 isSidebar={sidebarStatus === 'open'}
                 isSidebarMenuOpen={isSidebarMenuOpen}
             >
-                <SelectedComponent
+                <ComponentToRender
                     isLeftTop
                     isMobileDevice={isMobileDevice}
                     isCoinTransfer={isCoinTransfer}
@@ -107,10 +107,8 @@ class LeftTopSectionGrid extends React.Component {
                     isArbitrageMonitorMode={isArbitrageMonitorMode}
                     isSidebarMenuOpen={isSidebarMenuOpen}
                 />
-
-                {isMobileDevice && !isArbitrageMonitorMode && (
-                    <CoinPairSearchV2 isSimple={true} isHidden/>
-                )}
+                {/* // TODO refactoring: This component is always hidden! Need to review the logic */}
+                {isMobileDevice && !isArbitrageMonitorMode && <CoinPairSearchV2 isSimple isHidden />}
             </StyledLeftTopSectionGrid>
         );
     }
@@ -124,23 +122,24 @@ const withStore = compose(
         STORE_KEYS.EXCHANGESSTORE,
         STORE_KEYS.ORDERBOOKBREAKDOWN,
         STORE_KEYS.CONVERTSTORE,
-        STORE_KEYS.MARKETMAKER,
+        STORE_KEYS.MARKETMAKER
     ),
     observer,
     withProps(
         ({
             [STORE_KEYS.VIEWMODESTORE]: {
-                viewMode, isSidebarOpen, isSettingsOpen, isPayApp, isPayAppLoading, isUserDropDownOpen,
+                viewMode,
+                isSettingsOpen,
+                isPayApp,
+                isPayAppLoading,
+                isUserDropDownOpen
             },
-            [STORE_KEYS.SETTINGSSTORE]: {
-                isArbitrageMode, tradeColStatus, sidebarStatus,
-            },
+            [STORE_KEYS.SETTINGSSTORE]: { isArbitrageMode, tradeColStatus, sidebarStatus },
             [STORE_KEYS.EXCHANGESSTORE]: { isEmptyExchange },
             [STORE_KEYS.ORDERBOOKBREAKDOWN]: { isOrderBookBreakDownStop, isOrderBookDataLoaded },
-            [STORE_KEYS.CONVERTSTORE]: { convertState },
+            [STORE_KEYS.CONVERTSTORE]: { convertState }
         }) => ({
             viewMode,
-            isSidebarOpen,
             isSettingsOpen,
             isPayApp,
             isPayAppLoading,
@@ -151,9 +150,9 @@ const withStore = compose(
             isOrderBookBreakDownStop,
             isOrderBookDataLoaded,
             convertState,
-            isUserDropDownOpen,
+            isUserDropDownOpen
         })
     )
 );
 
-export default withStyles(styles)(withStore(LeftTopSectionGrid));
+export default withStore(LeftTopSectionGrid);

@@ -4,7 +4,7 @@ import { inject, observer } from 'mobx-react';
 import { FormattedMessage } from 'react-intl';
 import partial from 'lodash.partial';
 import StopOrderContainer from './StopOrderContainer';
-import { STORE_KEYS } from '../../../stores';
+import { STORE_KEYS } from '@/stores';
 
 const withValueFromEvent = (fn, { target: { value = '' } }) => fn(value.trim());
 
@@ -19,7 +19,6 @@ const StopOrderSideBySideContainer = ({
             setUserEnteredPrice: setBuyPrice,
             setStopPrice: setBuyStopPrice,
             enabled: orderFormBuyEnabled,
-            submitOrder: orderFormBuySubmit,
             sliderMax: buySliderMax,
         },
         StopOrderFormSell: {
@@ -31,13 +30,9 @@ const StopOrderSideBySideContainer = ({
             setUserEnteredPrice: setSellPrice,
             setStopPrice: setSellStopPrice,
             enabled: orderFormSellEnabled,
-            submitOrder: orderFormSellSubmit,
             sliderMax: sellSliderMax,
         },
     },
-    // [STORE_KEYS.INSTRUMENTS]: {
-    //     selectedInstrumentPair: [baseSymbol, quoteSymbol],
-    // },
     [STORE_KEYS.ORDERBOOK]: {
         base: baseSymbol, quote: quoteSymbol,
     },
@@ -67,7 +62,6 @@ const StopOrderSideBySideContainer = ({
                         sliderCurrency={quoteSymbol}
                         orderButtonDisabled={!orderFormBuyEnabled}
                         handleOrder={showModal}
-                        // handleOrder={orderFormBuySubmit}
                     />
                 }
             </FormattedMessage>
@@ -94,7 +88,6 @@ const StopOrderSideBySideContainer = ({
                         sliderCurrency={baseSymbol}
                         orderButtonDisabled={!orderFormSellEnabled}
                         handleOrder={showModal}
-                        // handleOrder={orderFormSellSubmit}
                     />
                 }
             </FormattedMessage>
@@ -105,7 +98,6 @@ const StopOrderSideBySideContainer = ({
 export default compose(
     inject(
         STORE_KEYS.ORDERENTRY,
-        STORE_KEYS.INSTRUMENTS,
         STORE_KEYS.ORDERBOOK,
     ),
     observer,

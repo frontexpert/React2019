@@ -30,7 +30,7 @@ export const LimitOrderRows = ({
                 defaultMessage="Amount"
             >
                 {value =>
-                    <Row header={value} amount={amount} coin={amountCoin} onChange={handleAmountChange}/>
+                    <Row header={value} amount={amount} coin={amountCoin} onChange={handleAmountChange} darkBg/>
                 }
             </FormattedMessage>
             <FormattedMessage
@@ -38,7 +38,7 @@ export const LimitOrderRows = ({
                 defaultMessage="Price"
             >
                 {value =>
-                    <Row header={value} amount={price} coin={priceCoin} onChange={handlePriceChange}/>
+                    <Row header={value} amount={price} coin={priceCoin} onChange={handlePriceChange} darkBg/>
                 }
             </FormattedMessage>
             <FormattedMessage
@@ -46,7 +46,7 @@ export const LimitOrderRows = ({
                 defaultMessage="Total"
             >
                 {value =>
-                    <Row header={value} amount={total} readOnly={true} coin={totalCoin} darkBg/>
+                    <Row header={value} amount={total} readOnly={true} coin={totalCoin}/>
                 }
             </FormattedMessage>
 

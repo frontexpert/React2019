@@ -10,7 +10,7 @@ import { orderFormToggleKeys } from '@/stores/MarketMaker';
 import { STATE_KEYS } from '@/stores/ConvertStore';
 import { getScreenInfo } from '@/utils';
 import PriceChartCanvas from './PriceChartCanvas';
-import ForexChartCanvas from './ForexChartCanvas';
+import ForexChart from './ForexChart';
 import DonutChart from './DonutChart';
 import TradingView from './TradingView';
 import RightLowerSectionGrid from '@/grid/RightLowerSectionGrid';
@@ -60,9 +60,11 @@ const BGraphControls = styled.div`
     border-radius: ${props => props.theme.palette.borderRadius};
 `;
 
-const IS_MOBILE = getScreenInfo().isMobileDevice;
-const IS_MOBILE_PORTRAIT = getScreenInfo().isMobilePortrait;
-const IS_MOBILE_LANDSCAPE = getScreenInfo().isMobileLandscape;
+const {
+    isMobileDevice: IS_MOBILE,
+    isMobilePortrait: IS_MOBILE_PORTRAIT,
+    isMobileLandscape: IS_MOBILE_LANDSCAPE
+} = getScreenInfo();
 
 class GraphTool extends Component {
     componentDidMount() {}
@@ -148,7 +150,7 @@ class GraphTool extends Component {
                                 >
                                     {isPriceChart && !isBestRateTradingView && (
                                         isForexMode ? (
-                                            <ForexChartCanvas
+                                            <ForexChart
                                                 isLowerSectionOpened={isLowerSectionOpened}
                                                 isBorderHidden={isBoderHidden}
                                             />

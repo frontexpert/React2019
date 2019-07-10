@@ -14,13 +14,3 @@ export const ChartWrapper = styled.div`
     cursor: crosshair;
     z-index: 3;
 `;
-
-export const ChartInfoWrapper = styled.div`
-    position: absolute;
-    right: 100px;
-    bottom: 50px;
-`;
-
-export const ChartCanvasWrapper = styled.div`
-    height: 100%;
-`;

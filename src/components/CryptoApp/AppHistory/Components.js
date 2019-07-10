@@ -33,6 +33,7 @@ export const HeaderWrapper = styled.div`
     z-index: 100000;
     display: flex;
     align-items: center;
+    justify-content: ${props => props.justify ? 'center' : 'initial'};
 
     img {
         width: 74px;
@@ -40,6 +41,123 @@ export const HeaderWrapper = styled.div`
         padding: 18px;
         cursor: pointer;
     }
+`;
+
+export const SettingItem = styled.div`
+    height: 25%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-family: 'Exo 2',sans-serif;
+    border-bottom: 0.5px solid white;
+
+    p {
+        font-size: 1rem;
+        color: white;
+        margin: 0;
+    }
+
+    span {
+        font-size: 0.8rem;
+        color: #999;
+    }
+`;
+
+export const OptionTransfer = styled.div`
+    width: 44px;
+    margin-bottom: 0.5rem;
+
+    input[type="checkbox"].ios8-switch {
+        position: absolute;
+        margin: 8px 0 0 16px;    
+    }
+    input[type="checkbox"].ios8-switch + label {
+        position: relative;
+        padding: 5px 0 0 50px;
+        line-height: 2.0em;
+    }
+    input[type="checkbox"].ios8-switch + label:before {
+        content: "";
+        position: absolute;
+        display: block;
+        left: 0;
+        top: 0;
+        width: 40px; /* x*5 */
+        height: 24px; /* x*3 */
+        border-radius: 16px; /* x*2 */
+        background: #999;
+        border: 1px solid transparent;
+        -webkit-transition: all 0.3s;
+        transition: all 0.3s;
+    }
+    input[type="checkbox"].ios8-switch + label:after {
+        content: "";
+        position: absolute;
+        display: block;
+        left: 0px;
+        top: 0px;
+        width: 24px; /* x*3 */
+        height: 24px; /* x*3 */
+        border-radius: 16px; /* x*2 */
+        background: #fff;
+        border: 1px solid white;
+        -webkit-transition: all 0.3s;
+        transition: all 0.3s;
+    }
+    input[type="checkbox"].ios8-switch + label:hover:after {
+        box-shadow: 0 0 5px rgba(0,0,0,0.3);
+    }
+    input[type="checkbox"].ios8-switch:checked + label:after {
+        margin-left: 16px;
+    }
+    input[type="checkbox"].ios8-switch:checked + label:before {
+        background: #3269D1;
+    }
+    
+    input[type="checkbox"].ios8-switch-sm {
+        margin: 5px 0 0 10px;
+    }
+    input[type="checkbox"].ios8-switch-sm + label {
+        position: relative;
+        padding: 0 0 0 32px;
+        line-height: 1.3em;
+    }
+    input[type="checkbox"].ios8-switch-sm + label:before {
+        width: 44px;
+        height: 22px;
+        border-radius: 10px;
+    }
+    input[type="checkbox"].ios8-switch-sm + label:after {
+        width: 16px;
+        height: 16px;
+        border-radius: 20px;
+        margin-left: 3px;
+        margin-top: 3px;
+    }
+    input[type="checkbox"].ios8-switch-sm + label:hover:after {
+        box-shadow: 0 0 3px rgba(0,0,0,0.3);
+    }
+    input[type="checkbox"].ios8-switch-sm:checked + label:after {
+        margin-left: 24px;
+        margin-top: 3px;
+    } 
+`;
+
+export const AddPhoto = styled.div`
+    width: 58px;
+    height: 58px;
+    border-radius: 37px;
+    color: #999;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Exo 2',sans-serif;
+    box-shadow: 0 0 9.07px rgba(255,255,255,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
 `;
 
 export const ContentWrapper = styled.div`
